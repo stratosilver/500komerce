@@ -1,0 +1,20 @@
+{
+    "name": "exsilicon/bootstrap",
+    "description": "Bootstrap project generated from database structure",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Exsilicon\\Bootstrap\\": "classes/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Eddy Tilmant",
+            "email": "eddy.tilmant@charleroi.be"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+      "php": "^8.0"
+    }
+}

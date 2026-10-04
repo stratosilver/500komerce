@@ -1,0 +1,286 @@
+html {
+	overflow-y: scroll;
+	color: #002B59;
+}
+
+body {
+	color: #002B59;
+}
+
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6{
+	font-weight: 300;
+	color: #002b59;
+}
+
+.bg-light {
+	background-color: #e9ecef !important;
+}
+
+a{
+	text-decoration: none;
+	font-weight: normal;
+}
+a:hover{
+	text-decoration: none;
+}
+h1 a, h1 a:hover, h1 a:focus{
+	color: #002b59;
+}
+
+h1{margin-bottom: 20px;}
+h2{margin-top: 30px;margin-bottom: 30px;}
+
+.nav-tabs{
+	margin-bottom: 20px;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+	content: "|";
+}
+
+.table{
+	color: #002b59;
+}
+table .shrink{
+	width: 10px;
+}
+table tr td{
+	vertical-align: center;
+}
+table tr td{
+	border-bottom: 1px black;
+}
+
+.table > tbody > tr > td {
+	vertical-align: middle;
+}
+
+
+.bg-dark{
+	background-color: #002b59 !important;
+}
+
+.main-container{
+	margin-top:50px;
+	padding-bottom: 40px;
+}
+
+
+input[type=submit], input[type=reset] {
+	margin-top:32px;
+}
+
+.test-mail, .alert{
+	margin-top:32px;
+}
+
+/*
+LEFT MENU
+ */
+.left-menu{
+	margin-top:150px;
+	margin-right: -15px;
+	margin-left: -15px;
+}
+.left-menu .nav-link{
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+	padding-left: 1.35rem;
+}
+
+.left-menu a{
+	font-size: 1.25rem;
+}
+
+.left-menu .active {
+	color: #002b59;
+	background-color:#dbdee0;
+}
+
+
+.navbar-nav .nav-link{
+	font-size: 1.25rem;
+}
+
+.sub-nav-link .nav-link{
+	font-size: 1rem;
+	color: rgba(255,255,255,.5);
+}
+
+.sub-nav-link .nav-link-active{
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+	display: block;
+	padding: .5rem 1rem;
+	font-size: 1rem;
+	color: rgba(255,255,255,1);
+	text-decoration: none;
+}
+
+
+/*
+.form-group{
+	margin-bottom: 30px;
+}
+ */
+
+.searchbox{
+	position: relative;
+	padding: .75rem 1.25rem;
+	margin-bottom: 1rem;
+	border: 1px solid transparent;
+	//border-color: #077D2F;
+	border-top-color: transparent;
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+	border-left-color: transparent;
+	border-radius: .25rem;
+	color: #fff;
+	background-color: #07A22F;
+
+	//background-color: #43c148;
+	//background-color: #3aa53d;
+	border-color: #c3e6cb;
+}
+
+/*
+.form-control{
+	border: 4px solid grey;
+}
+*/
+.searchbox .form-control{
+	border-radius: .25rem;
+	border: 1px solid transparent;
+}
+
+.searchbox .form-control:focus {
+	color: #495057;
+	background-color: #fff;
+	border: 1px solid;
+	border-color: #8feaa5;
+	outline: 0;
+	box-shadow: 0px 0px 0px #fff;
+}
+
+.label{
+	border-radius: 1em;
+	padding: 0.3em 0.6em 0.3em;
+}
+/*
+.form-group{
+	margin-left:50px;
+}
+*/
+
+.btn  svg{
+	margin-bottom: 3px;
+	margin-right: 0px;
+}
+
+.form-check-label{
+	font-weight: normal;
+}
+
+.submit{
+	margin-top:10px;
+}
+
+.mandatory-field{
+	border-color: #002b59;
+}
+
+.comment-user-icon{
+	margin-right:10px;
+	margin-top:0px;
+	padding-bottom:4px;
+}
+
+.block-commentaires{
+	margin-bottom:40px;
+}
+
+.block-commentaires .h4{
+	margin-bottom: 0px;
+}
+
+.block-commentaires .date{
+	 margin-top:-5px;
+	 margin-left:35px;
+	 color:#888;
+ }
+.block-commentaires .text{
+	font-size: 20px;
+}
+
+/*
+Search pannel
+ */
+.search-pannel{
+	padding: 20px;
+	margin-bottom: 40px;
+	Background-color: #e3f2fd;
+}
+
+/*
+Dossier pannel
+ */
+.dossier_pannel{
+	margin: 0px;
+	margin-bottom: 40px;
+	background-color: #F5F5F5;
+}
+
+.dossier_pannel_left{
+	margin:0px;
+	padding: 20px;
+}
+
+.dossier_pannel_right{
+	padding:20px;
+	background-color: #e5e5e5;
+	text-align: center;
+
+}
+.dossier_pannel_right .nbTitres{
+	font-size: 50px;
+	line-height: 50px;
+	font-weight: 800;
+	color: #aaa;
+}
+
+.dossier_pannel_right strong, .dossier_pannel_left strong{
+	color: #aaa;
+}
+
+/*
+CHARTS
+ */
+
+.chartText{
+	padding-left:35px;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+	position: relative;
+	min-height: 100%;
+}
+
+body {
+	margin-bottom: 40px; /* Margin bottom by footer height */
+}
+
+.footer {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	margin-top:70px;
+	height: 40px; /* Set the fixed height of the footer here */
+}
+
+footer{
+	margin-top:70px;
+	width: 100%;
+	padding: 40px;
+}

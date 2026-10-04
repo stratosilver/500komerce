@@ -1,0 +1,356 @@
+<?php
+/**
+ * @author ApGenic.com <support@apgenic.com>
+ * @author ApGenic generate a boilerplate web app from your database structure
+ * @license GPL
+ * @license https://opensource.org/licenses/gpl-license.php GNU Public License
+ */
+  
+declare(strict_types=1);
+namespace Apgenic\Post;
+
+
+class ControllerPost  extends \Apgenic\Classes\Controller {
+    
+    private ViewPost $HTMLPost;
+    private ModelPost $dataPost;
+    
+    // Accepted sort fields
+    public static array $fieldsNames = array('id_post','id_user','lang','title','id_media','slug','excerpt','body','status','published_at','created_at','updated_at','deleted_at');
+    
+    function __construct(){
+        if(filter_input(INPUT_GET, 'showTabs', FILTER_VALIDATE_INT) === 0){
+            $this->showTabs = 0;    
+        } 
+    }
+    
+    /**
+     * Controller default method, validate inputs, create object and dispatch the request to other method depending of the request 
+     * @return void
+     */
+    function render(){
+
+        $oModelUser = new \Apgenic\User\ModelUser();
+        $oModelUser->getList();
+  
+        $this->HTMLPost = new ViewPost($oModelUser->list);
+        $this->dataPost = new ModelPost(); 
+        
+        
+       
+        // Task to execute
+        $task = filter_input(INPUT_GET, 'task', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'editlist'; ;
+        
+        $this->setOrderAndFilters();
+        $this->HTMLPost->filters = $this->filters; 
+        $this->HTMLPost->filtersGet = $this->filtersGet; 
+        
+        
+        $textSearch = filter_input(INPUT_GET, 'text_search', FILTER_SANITIZE_SPECIAL_CHARS) ?? '';
+
+        if($_SERVER['PHP_SELF'] != '/htmx.php'){
+            $this->HTMLPost->header('Post');
+            if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
+                $this->HTMLPost->search(self::$fieldsNames, $task);
+            }
+            echo '<div id="core_content">';
+                        
+        }
+          
+        try{    
+            switch ($task) {
+                case 'edit':       $this->edit(); break;
+                case 'del':        $this->del(); break;
+                case 'delHtmx':    $this->delHTMX(); break;
+                case 'editlist':   $this->editlist($textSearch); break;
+                case 'childlist':  $this->childlist(); break;
+                
+                case 'undelHtmx':  $this->undelHTMX(); break; 
+                case 'trashedlist':$this->trashedlist(); break;
+                case 'logicaldeleteHtmx':    $this->delHTMX(1); break;
+                
+                case 'view':       $this->view(); break;
+                case 'viewlist':   $this->viewList($textSearch); break;
+                
+                       
+                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+            }
+        }
+        catch(Exception $e){
+            $this->message['type'] = 'danger';
+            $this->message['text'] = $e->getMessage();
+        }
+        
+        if($_SERVER['PHP_SELF'] != '/htmx.php'){
+            echo '</div>';
+            $this->HTMLPost->footer();
+        }
+    
+    }
+    
+    /**
+     * Edit or add a row in post
+     * @return void
+     */
+    function edit(string $task='edit'){
+        // For when the edit is under a tab
+        $this->dataPost->id_user = (int)($_GET['id_user'] ?? 0);
+
+        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+            
+            $this->dataPost->id_post = filter_input(INPUT_POST, 'id_post', FILTER_VALIDATE_INT);
+            if(filter_input(INPUT_POST, 'lang', FILTER_UNSAFE_RAW) && 
+                filter_input(INPUT_POST, 'title', FILTER_UNSAFE_RAW) && 
+                filter_input(INPUT_POST, 'slug', FILTER_UNSAFE_RAW) && 
+                filter_input(INPUT_POST, 'body', FILTER_UNSAFE_RAW)){
+
+                $this->dataPost->id_user = $_POST['id_user'] == '' ? null : (int)filter_input(INPUT_POST, 'id_user', FILTER_SANITIZE_NUMBER_INT);
+                $this->dataPost->lang = (string)filter_input(INPUT_POST, 'lang', FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->title = (string)filter_input(INPUT_POST, 'title', FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->id_media = $_POST['id_media'] == '' ? null : (int)filter_input(INPUT_POST, 'id_media', FILTER_SANITIZE_NUMBER_INT);
+                $this->dataPost->slug = (string)filter_input(INPUT_POST, 'slug', FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->excerpt = (string)filter_input(INPUT_POST, 'excerpt', FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->body = (string)filter_input(INPUT_POST, 'body', FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->status = (string)filter_input(INPUT_POST, 'status', FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->published_at = (string)filter_input(INPUT_POST, 'published_at', FILTER_SANITIZE_SPECIAL_CHARS);
+
+                $this->dataPost->save();
+                $this->message['type'] = 'success';
+                $this->message['text'] = 'The entry has been saved';
+            }
+        
+            else{
+                $this->message['type'] = 'danger';
+                $this->message['text'] = 'Fill all mandatory fields';
+            }                        
+        }        
+        
+        else{
+            $this->dataPost->id_post = filter_input(INPUT_GET, 'id_post', FILTER_VALIDATE_INT);
+
+        }        
+        
+
+        if( 1 && $this->dataPost->id_post > 0 ){
+            $this->dataPost->get();
+        }
+        else{
+            // Do not show tabs when wee create the entry 
+            $this->showTabs = 0;
+        }
+            
+            
+        if($task == 'edit'){  
+            $this->HTMLPost->edit($this->dataPost,  $this->showTabs, $this->message, 'edit');
+        }
+        else{
+            $this->dataPost = new ModelPost();
+            $this->HTMLPost->edit($this->dataPost,  $this->showTabs, $this->message, 'childlist');
+        }
+    }
+    
+    
+    
+    /**
+     * Delete a row in post and display the list of elements
+     * @return void
+     */
+    function del(){
+        $this->dataPost->id_post = filter_input(INPUT_POST, 'id_post', FILTER_VALIDATE_INT);
+    
+        if($this->dataPost->id_post){
+            $this->dataPost->del();
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Done';
+        }
+        else{
+            $this->message['type'] = 'danger';
+            $this->message['text'] = 'Missing parameter';
+        }
+        
+        $this->editlist();
+    }
+    
+        
+    
+    /**
+     * Delete a row in post and return a JSON response
+     * @return void
+     */
+    function delHtmx(int $logical=0){
+        $this->dataPost->id_post = filter_input(INPUT_GET, 'id_post', FILTER_VALIDATE_INT);
+
+        if( 1  && $this->dataPost->id_post ){
+
+            if($logical == 1){
+                $this->dataPost->logicalDel(1);
+            }
+            else{
+                $this->dataPost->del();
+            }    
+        }
+        else{
+            $this->message['type'] = 'danger';
+            $this->message['text'] = 'Missing parameter';
+        }
+        
+        if(count($this->message)){
+            //http_response_code(204);
+            $this->HTMLPost->message($this->message);
+        }
+    }
+    
+    /**
+     * Display a list of row from post with add and del buttons
+     * @return void
+     */
+    function editlist($textSearch = ''){
+        // Display items list for edition
+        $this->filters['deleted_at'] = NULL; 
+        $nbItems = $this->dataPost->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
+
+        $this->HTMLPost->editList($this->dataPost->list ,  $this->orderBy, $this->revertOrder, $this->message);
+    
+        $orderGet = 'orderBy='.$this->orderBy.'&';    
+        $orderGet .= 'order='.$this->order;    
+    
+        $nbPages = ceil($nbItems/$this->itemsByPage);
+        $this->HTMLPost->pagination($nbPages, $this->page, "?component=post&task=editlist&".$this->filtersGet."&".$orderGet."&");
+    }
+    
+    
+    /**
+     * Display tabs above the edit form if the element have data from others tables
+     * @return void
+     */
+    function childlist(){
+        $this->edit('childlist');
+        $this->dataPost->getList(0 , 0, $this->filters, $this->orderBy, strtoupper($this->order));
+        $this->HTMLPost->childList($this->dataPost->list ,  $this->filters, $this->orderBy, $this->revertOrder);
+    }    
+    
+       
+    /**
+     * Display element details
+     * @return void
+     */
+    function view(){
+        // Display selected trainings
+        $this->dataPost->id_post = filter_input(INPUT_GET, 'id_post', FILTER_VALIDATE_INT);
+        $this->dataPost->get();
+        $this->HTMLPost->view($this->dataPost,  $this->message);
+    } 
+    
+
+    /**
+     * Display a list of row from post with only the view button 
+     * For consultation without editing
+     * @return void
+     */
+    function viewList($textSearch = ''){
+        // Display items list 
+        $this->filters['deleted_at'] = NULL; 
+
+        
+        $nbItems = $this->dataPost->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
+               
+        $this->HTMLPost->viewList($this->dataPost->list,  $this->orderBy, $this->revertOrder, $this->message);
+    
+        $orderGet = 'orderBy='.$this->orderBy.'&';    
+        $orderGet .= 'order='.$this->order;      
+       
+        $nbPages = ceil($nbItems/$this->itemsByPage);
+        $this->HTMLPost->pagination($nbPages, $this->page, "?component=post&task=viewlist&".$this->filtersGet."&".$orderGet."&");
+    }
+    
+         
+    /**
+     * Display a list of row from post with only the view button 
+     * For consultation without editing
+     * @return void
+     */
+    function trashedList($textSearch = ''){
+        // Display items list         
+        $nbItems = $this->dataPost->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , 
+                                                                 $this->itemsByPage, array('deleted_at' => 1), 
+                                                                 $this->orderBy, 
+                                                                 strtoupper($this->order), 
+                                                                 $textSearch);
+               
+        $this->HTMLPost->trashedList($this->dataPost->list,  $this->orderBy, $this->revertOrder, $this->message);
+    
+        $orderGet = 'orderBy='.$this->orderBy.'&';    
+        $orderGet .= 'order='.$this->order;      
+       
+        $nbPages = ceil($nbItems/$this->itemsByPage);
+        $this->HTMLPost->pagination($nbPages, $this->page, "?component=post&task=trashedlist&".$this->filtersGet."&".$orderGet."&");
+    }    
+    
+    
+    /**
+     * UnDelete a row in post and display the list of elements
+     * @return void
+     */
+    function undelHTMX(){
+        $this->dataPost->id_post = filter_input(INPUT_GET, 'id_post', FILTER_VALIDATE_INT);
+    
+        if($this->dataPost->id_post){
+            $this->dataPost->logicalUnDel();
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Done';
+        }
+        else{
+            $this->message['type'] = 'danger';
+            $this->message['text'] = 'Missing parameter';
+        }
+        if(count($this->message)){
+            //http_response_code(204);
+            //$this->HTMLPost->message($this->message);
+        }
+    }
+    
+    
+    /**
+     * Delete a row in post and display the list of elements
+     * @return void
+     */
+    function logicaldeleteHtmx(){
+        $this->dataPost->id_post = filter_input(INPUT_GET, 'id_post', FILTER_VALIDATE_INT);
+    
+        if($this->dataPost->id_post){
+            $this->dataPost->logicalDel();
+            $this->message['type'] = 'success';
+            $this->message['text'] = 'Done';
+        }
+        else{
+            $this->message['type'] = 'danger';
+            $this->message['text'] = 'Missing parameter';
+        }
+        if(count($this->message)){
+            //http_response_code(204);
+            //$this->HTMLPost->message($this->message);
+        }
+    }    
+        
+    
+    
+    /**
+     * Set the order and filter private variable depending of the browser request
+     * @return void
+     */
+    protected function setOrderAndFilters($defaultOrderBy = '', $defaultOrder = 'asc'):void{
+        // FK Filter(s)
+        if(isset($_GET['filters']['id_user'])){
+            $this->filters['id_user'] = intval($_GET['filters']['id_user']);
+        }      
+        
+        if(isset($_GET['field_search'])){
+            $this->filters[$_GET['field_search']] = $_GET['field_search_value'];
+        }        
+        
+        parent::setOrderAndFilters('id_post', 'desc');
+    }
+    
+    
+    
+}
