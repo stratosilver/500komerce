@@ -30,3 +30,8 @@ define('OAUTH_PROVIDERS', array(
     // https://developer.x.com  (User authentication settings: OAuth 2.0, "Web App", "Request email from users" enabled)
     'x'        => array('client_id' => '1234', 'client_secret' => '1234'),
 ));
+
+// API (api.php)
+// Secret token of the programs calling the API: header "Authorization: Bearer <token>".
+// Empty = no access by token, only the session of a logged user. Use a long random value, ex: bin2hex(random_bytes(32))
+define('API_TOKEN', '');
