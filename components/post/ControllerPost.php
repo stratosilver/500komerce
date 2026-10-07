@@ -238,6 +238,10 @@ class ControllerPost  extends \Apgenic\Classes\Controller {
         // Display selected trainings
         $this->dataPost->id_post = filter_var($_GET['id_post'] ?? null, FILTER_VALIDATE_INT);
         $this->dataPost->get();
+        // The customers only see the published posts
+        if(!\Apgenic\Classes\Auth::canEdit() && ($this->dataPost->status != 'published' || $this->dataPost->deleted_at !== null)){
+            $this->dataPost = new ModelPost();
+        }
         $this->HTMLPost->view($this->dataPost,  $this->message);
     }
 
@@ -250,6 +254,10 @@ class ControllerPost  extends \Apgenic\Classes\Controller {
     function viewList($textSearch = ''){
         // Display items list
         $this->filters['deleted_at'] = NULL;
+        // The customers only see the published posts
+        if(!\Apgenic\Classes\Auth::canEdit()){
+            $this->filters['status'] = 'published';
+        }
 
 
         $nbItems = $this->dataPost->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);

@@ -227,7 +227,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		?>
 		<tr>
 		<td class="shrink"><?php echo $element['id_post']?></td>
-		<td ><?php echo $this->userList1[$element['id_user']]['email'] ?? '';?></td>
+		<td ><?php /* author: back office only */ if(\Apgenic\Classes\Auth::canEdit()) echo $this->userList1[$element['id_user']]['email'] ?? '';?></td>
 		<td ><?php echo $element['lang']?></td>
 		<td ><?php echo $element['title']?></td>
 		<td ><?php echo $element['status']?></td>
@@ -285,7 +285,7 @@ public function view(ModelPost $data , array $message=null){
                 <dl class="row">
                     
 		        <dt class="col-sm-3"><h5>Id&nbsp;post</h5></dt><dd class="col-sm-9"><?php echo $data->id_post?></dd>
-		        <dt class="col-sm-3"><h5>Id&nbsp;user</h5></dt><dd class="col-sm-9"><?php echo $this->userList1[$data->id_user]['email'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5>Id&nbsp;user</h5></dt><dd class="col-sm-9"><?php if(\Apgenic\Classes\Auth::canEdit()) echo $this->userList1[$data->id_user]['email'] ?? '';?></dd>
 		        <dt class="col-sm-3"><h5>Lang</h5></dt><dd class="col-sm-9"><?php echo $data->lang?></dd>
 		        <dt class="col-sm-3"><h5>Title</h5></dt><dd class="col-sm-9"><?php echo $data->title?></dd>
 		        <dt class="col-sm-3"><h5>Id&nbsp;media</h5></dt><dd class="col-sm-9"><?php echo $data->id_media?></dd>

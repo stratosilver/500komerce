@@ -17,13 +17,15 @@ class ModelProduct extends \Apgenic\Classes\Model{
     public array $list;
 
     // Columns of the table: the only names accepted as filter and as sort field
-    const COLUMNS = array('id_product', 'id_user', 'name', 'slug', 'summary', 'description', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
+    const COLUMNS = array('id_product', 'id_user', 'name', 'slug', 'summary', 'description', 'price_amount', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
 
     public $id_product = '';
     public $id_user = null;
     public $name = '';
     public $slug = null;
     public $summary = null;
+    // Price without tax, in cents
+    public $price_amount = 0;
     public $description = null;
     public $status = array();
     public $published_at = null;
@@ -46,13 +48,14 @@ class ModelProduct extends \Apgenic\Classes\Model{
     */
     public function add():int{
 
-        $query = "  INSERT INTO `product`  ( id_user, name, slug, summary, description, status, published_at)
+        $query = "  INSERT INTO `product`  ( id_user, name, slug, summary, description, price_amount, status, published_at)
                     VALUES (
                     :id_user,
                     :name,
                     :slug,
                     :summary,
                     :description,
+                    :price_amount,
                     :status,
                     :published_at
                     )";
@@ -60,7 +63,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
 
 
         $q = self::$db->prepare($query);
-        if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':status' => $this->status, ':published_at' => $this->published_at,))){
+        if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':price_amount' => max(0, (int)$this->price_amount), ':status' => $this->status, ':published_at' => $this->published_at,))){
             $this->id_product = self::$db->lastInsertId();
             return(1);
         }
@@ -86,13 +89,14 @@ class ModelProduct extends \Apgenic\Classes\Model{
                     `slug` = :slug,
                     `summary` = :summary,
                     `description` = :description,
+                    `price_amount` = :price_amount,
                     `status` = :status,
                     `published_at` = :published_at
             WHERE  `id_product` = :id_product  ";
 
 
                 $q = self::$db->prepare($query);
-            if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':status' => $this->status, ':published_at' => $this->published_at, ':id_product' => $this->id_product))){
+            if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':price_amount' => max(0, (int)$this->price_amount), ':status' => $this->status, ':published_at' => $this->published_at, ':id_product' => $this->id_product))){
                 return (1);
             }
             else{
@@ -176,7 +180,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
     */
     public function get():int{
 
-        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
+        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`price_amount`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
                     , u.email AS u_email, u.id_user AS u_id_user
                                         FROM `product` AS p 
                     LEFT JOIN `user` u ON p.id_user = u.id_user
@@ -194,6 +198,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
                 $this->slug = $row['slug'];
                 $this->summary = $row['summary'];
                 $this->description = $row['description'];
+                $this->price_amount = (int)$row['price_amount'];
                 $this->status = $row['status'];
                 $this->published_at = $row['published_at'];
                 $this->created_at = $row['created_at'];
@@ -228,7 +233,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
         $filters = $this->safeFilters($filters);
         $orderBy = $this->safeOrderBy($orderBy);
 
-        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
+        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`price_amount`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
                     FROM `product` AS p                    ";
 
         // Add all filters
@@ -301,6 +306,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
                $this->list[$row['id_product']]['slug'] = $row['slug'];
                $this->list[$row['id_product']]['summary'] = $row['summary'];
                $this->list[$row['id_product']]['description'] = $row['description'];
+               $this->list[$row['id_product']]['price_amount'] = (int)$row['price_amount'];
                $this->list[$row['id_product']]['status'] = $row['status'];
                $this->list[$row['id_product']]['published_at'] = $row['published_at'];
                $this->list[$row['id_product']]['created_at'] = $row['created_at'];
@@ -360,5 +366,31 @@ class ModelProduct extends \Apgenic\Classes\Model{
             return(0);
         }
     }
+
+
+    /**
+    * Images of products (component productmedia), in the order of their position.
+    * @param array $ids ids of the products
+    * @return array id_product => list of media.filename
+    */
+    public function getImages(array $ids):array{
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        $images = array();
+        if(!count($ids)){
+            return $images;
+        }
+
+        $q = self::$db->prepare("SELECT pm.`id_product`, m.`filename`
+                                 FROM `product_media` pm
+                                 INNER JOIN `media` m ON m.id_media = pm.id_media
+                                 WHERE pm.`id_product` IN (".implode(',', array_fill(0, count($ids), '?')).")
+                                 AND m.`deleted_at` IS NULL
+                                 ORDER BY pm.`id_product`, pm.`position`, pm.`id_media`");
+        if($q->execute($ids)){
+            while($row = $q->fetch(\PDO::FETCH_ASSOC)){
+                $images[(int)$row['id_product']][] = (string)$row['filename'];
+            }
+        }
+        return $images;
+    }
 }
-    

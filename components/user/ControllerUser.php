@@ -556,16 +556,26 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return void
      */
     private function openSession():void{
+        self::openSessionFor($this->dataUser);
+    }
+
+
+    /**
+     * Store a user in the session
+     * @return void
+     */
+    public static function openSessionFor(ModelUser $user):void{
         // New session id (session fixation) and new CSRF token
         session_regenerate_id(true);
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         $_SESSION['user'] = array(
-            'id_user' => (int)$this->dataUser->id_user,
-            'email' => $this->dataUser->email,
-            'first_name' => $this->dataUser->first_name,
-            'last_name' => $this->dataUser->last_name,
+            'id_user' => (int)$user->id_user,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
         );
         unset($_SESSION['login_attempts'], $_SESSION['login_locked_until']);
+        \Apgenic\Classes\Auth::refresh();
     }
 
 
@@ -585,7 +595,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * Check the new password and his confirmation
      * @return string error message, empty if the password is accepted
      */
-    private function passwordError(string $password, string $confirmation):string{
+    public static function passwordError(string $password, string $confirmation):string{
         if(strlen($password) < self::PASSWORD_MIN_LENGTH){
             return 'The password must contain at least '.self::PASSWORD_MIN_LENGTH.' characters';
         }
@@ -597,6 +607,43 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             return 'The password and its confirmation are different';
         }
         return '';
+    }
+
+
+    /**
+     * Check an email and a password and, if they are right, open the session.
+     * Used by the login page and by the checkout of the shop.
+     * @return string error message, empty if the user is now logged
+     */
+    public static function attemptLogin(string $email, string $password):string{
+        if(($_SESSION['login_locked_until'] ?? 0) > time()){
+            return 'Too many attempts, try again in a few minutes';
+        }
+
+        $user = new ModelUser();
+        $found = filter_var($email, FILTER_VALIDATE_EMAIL) ? $user->getByEmail($email) : 0;
+
+        // Always verify a hash, so the response time does not tell if the email exists
+        $hash = $found && $user->password_hash ? $user->password_hash : self::DUMMY_HASH;
+        $passwordOk = password_verify($password, $hash);
+
+        if($found && $passwordOk && $user->provider == 'local' && $user->status == 'active'){
+            if(password_needs_rehash($user->password_hash, PASSWORD_DEFAULT)){
+                $user->updatePassword(password_hash($password, PASSWORD_DEFAULT));
+            }
+            $user->touchLastLogin();
+            self::openSessionFor($user);
+            return '';
+        }
+
+        $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+        if($_SESSION['login_attempts'] >= self::MAX_LOGIN_ATTEMPTS){
+            $_SESSION['login_locked_until'] = time() + self::LOGIN_LOCK_TIME;
+            $_SESSION['login_attempts'] = 0;
+        }
+
+        // Same message whatever the reason
+        return 'Wrong email or password';
     }
 
 
@@ -615,40 +662,14 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $email = trim((string)($_POST['email'] ?? ''));
-            $password = (string)($_POST['password'] ?? '');
 
-            if(($_SESSION['login_locked_until'] ?? 0) > time()){
-                $this->message['type'] = 'danger';
-                $this->message['text'] = 'Too many attempts, try again in a few minutes';
+            $error = self::attemptLogin($email, (string)($_POST['password'] ?? ''));
+            if($error == ''){
+                self::redirect(BASE_URL.'/index.php');
+                return;
             }
-            else{
-                $found = filter_var($email, FILTER_VALIDATE_EMAIL) ? $this->dataUser->getByEmail($email) : 0;
-
-                // Always verify a hash, so the response time does not tell if the email exists
-                $hash = $found && $this->dataUser->password_hash ? $this->dataUser->password_hash : self::DUMMY_HASH;
-                $passwordOk = password_verify($password, $hash);
-
-                if($found && $passwordOk && $this->dataUser->provider == 'local' && $this->dataUser->status == 'active'){
-
-                    if(password_needs_rehash($this->dataUser->password_hash, PASSWORD_DEFAULT)){
-                        $this->dataUser->updatePassword(password_hash($password, PASSWORD_DEFAULT));
-                    }
-                    $this->dataUser->touchLastLogin();
-                    $this->openSession();
-                    self::redirect(BASE_URL.'/index.php');
-                    return;
-                }
-
-                $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
-                if($_SESSION['login_attempts'] >= self::MAX_LOGIN_ATTEMPTS){
-                    $_SESSION['login_locked_until'] = time() + self::LOGIN_LOCK_TIME;
-                    $_SESSION['login_attempts'] = 0;
-                }
-
-                // Same message whatever the reason
-                $this->message['type'] = 'danger';
-                $this->message['text'] = 'Wrong email or password';
-            }
+            $this->message['type'] = 'danger';
+            $this->message['text'] = $error;
         }
 
         $this->HTMLUser->login($email, $this->message, self::oauthProviders());

@@ -3,7 +3,8 @@
  * Access control, the same rules for the web interface (index.php) and the API (api.php).
  *
  * Each user has a level of permissions from 0 to 100 (field `permissions` of the table `user`, 0 by default):
- *   0 and more                        the consultation pages (view, viewlist) and his own profile
+ *   nobody logged (visitor)           the products (view, viewlist), the cart and the checkout of the shop
+ *   0 and more                        the consultation pages (view, viewlist), the shop and his own profile
  *   PERMISSION_EDIT (50) and more     all the tasks of all the components, except the users
  *   PERMISSION_ADMIN (100)            the users: list, edit, delete, change the permissions
  * The two levels can be changed in config.php.
@@ -18,6 +19,11 @@ class Auth
 {
     // Tasks that only display data
     const READ_TASKS = array('view', 'viewlist');
+    // Tasks reachable without being logged, by component (the sign in tasks of the component user are added by isPublic)
+    const PUBLIC_TASKS = array(
+        'product' => array('view', 'viewlist'),
+        'shop'    => array('cart', 'add', 'update', 'checkout', 'login'),
+    );
     // Tasks of the component user that a logged user does on his own account
     const SELF_TASKS = array('profile', 'me');
 
@@ -70,6 +76,16 @@ class Auth
     }
 
 
+    /**
+     * Read the session again, after a login made during the request
+     * @return void
+     */
+    public static function refresh():void{
+        self::$loaded = false;
+        self::$level = null;
+    }
+
+
     public static function isLogged():bool{
         return self::level() !== null;
     }
@@ -86,11 +102,14 @@ class Auth
 
 
     /**
-     * Tasks reachable without being logged: sign in, registration, password recovery
+     * Tasks reachable without being logged: sign in, registration, password recovery, and the shop
      * @return bool
      */
     public static function isPublic(string $component, string $task):bool{
-        return $component === 'user' && in_array($task, \Apgenic\User\ControllerUser::AUTH_TASKS, true);
+        if($component === 'user'){
+            return in_array($task, \Apgenic\User\ControllerUser::AUTH_TASKS, true);
+        }
+        return in_array($task, self::PUBLIC_TASKS[$component] ?? array(), true);
     }
 
 
@@ -111,6 +130,11 @@ class Auth
         // The users (emails, status, permissions) are managed by the administrators only
         if($component === 'user'){
             return in_array($task, self::SELF_TASKS, true) || $level >= self::levelAdmin();
+        }
+
+        // The shop is for all the logged users: each one only reaches his own cart and orders
+        if($component === 'shop'){
+            return true;
         }
 
         if(in_array($task, self::READ_TASKS, true)){

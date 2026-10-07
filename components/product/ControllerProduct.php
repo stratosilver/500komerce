@@ -16,7 +16,7 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
     private ModelProduct $dataProduct;
 
     // Accepted sort fields
-    public static array $fieldsNames = array('id_product','id_user','name','slug','summary','description','status','published_at','created_at','updated_at','deleted_at');
+    public static array $fieldsNames = array('id_product','id_user','name','slug','summary','description','price_amount','status','published_at','created_at','updated_at','deleted_at');
 
     function __construct(){
         if(filter_var($_GET['showTabs'] ?? null, FILTER_VALIDATE_INT) === 0){
@@ -106,6 +106,8 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
                 $this->dataProduct->slug = (string)filter_var($_POST['slug'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataProduct->summary = (string)filter_var($_POST['summary'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataProduct->description = (string)filter_var($_POST['description'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                // Typed in the currency unit (19.99), stored in cents
+                $this->dataProduct->price_amount = (int)round(max(0, (float)str_replace(',', '.', (string)($_POST['price'] ?? '0'))) * 100);
                 $this->dataProduct->status = (string)filter_var($_POST['status'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataProduct->published_at = (string)filter_var($_POST['published_at'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
 
@@ -233,6 +235,11 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         // Display selected trainings
         $this->dataProduct->id_product = filter_var($_GET['id_product'] ?? null, FILTER_VALIDATE_INT);
         $this->dataProduct->get();
+        // The visitors and the customers only see the products on sale
+        if(!\Apgenic\Classes\Auth::canEdit() && ($this->dataProduct->status != 'active' || $this->dataProduct->deleted_at !== null)){
+            $this->dataProduct = new ModelProduct();
+        }
+        $this->HTMLProduct->images = $this->dataProduct->getImages(array((int)$this->dataProduct->id_product));
         $this->HTMLProduct->view($this->dataProduct,  $this->message);
     }
 
@@ -245,10 +252,16 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
     function viewList($textSearch = ''){
         // Display items list
         $this->filters['deleted_at'] = NULL;
-
+        // The visitors and the customers only see the products on sale
+        if(!\Apgenic\Classes\Auth::canEdit()){
+            $this->filters['status'] = 'active';
+        }
+        // Grid of products: 12 fills the rows of 2, 3 and 4 cards
+        $this->itemsByPage = 12;
 
         $nbItems = $this->dataProduct->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
 
+        $this->HTMLProduct->images = $this->dataProduct->getImages(array_keys($this->dataProduct->list));
         $this->HTMLProduct->viewList($this->dataProduct->list,  $this->orderBy, $this->revertOrder, $this->message);
 
         $orderGet = 'orderBy='.$this->orderBy.'&';

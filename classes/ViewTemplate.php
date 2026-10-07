@@ -24,6 +24,40 @@ class ViewTemplate
             'robot' => '<path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135"/><path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5"/>',
     ];
 
+    /** Links of the back office in the header of the page: Edit list, View list, + */
+    protected bool $listLinks = true;
+
+
+    /**
+     * Amount stored in cents, ex: 1999 => 19,99 EUR
+     * @return string
+     */
+    static function money(int $cents): string{
+        return number_format($cents / 100, 2, ',', '&nbsp;').'&nbsp;'.(defined('CURRENCY') ? CURRENCY : '&euro;');
+    }
+
+
+    /**
+     * Button adding a product to the cart of the shop
+     * @param bool $withQuantity display a quantity field next to the button
+     * @param bool $block button as wide as its container (card of the list of products)
+     * @return void
+     */
+    static function addToCart(int $idProduct, bool $withQuantity = false, bool $block = false): void{
+        ?>
+        <form class="<?=$block ? 'd-block' : 'form-inline d-inline-flex flex-nowrap'?>" method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=add">
+            <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
+            <input type="hidden" name="id_product" value="<?=$idProduct?>" />
+            <?php if($withQuantity){ ?>
+            <label class="sr-only" for="quantity_<?=$idProduct?>">Quantity</label>
+            <input class="form-control form-control-lg mr-2" style="width: 5.5em" type="number" name="quantity" id="quantity_<?=$idProduct?>" value="1" min="1" max="99" step="1" />
+            <?php } ?>
+            <button type="submit" class="btn btn-success text-nowrap <?=$block ? 'btn-block' : ''?> <?=$withQuantity ? 'btn-lg' : ''?>">Add to cart</button>
+        </form>
+        <?php
+    }
+
+
     static function icon(string $name, int $size = 20, string $viewBox = '0 0 16 16'): string{
         return '<svg width="'.$size.'" height="'.$size.'" fill="currentColor" viewBox="'.$viewBox.'">'.(self::ICONS[$name] ?? '').'</svg>';
     }
@@ -85,6 +119,9 @@ class ViewTemplate
 
                 </ul>
 
+                <?php $cartCount = (new \Apgenic\Shop\ModelCart())->count(); ?>
+                <a class="nav-link text-dark mr-2" href="<?=BASE_URL?>/index.php?component=shop&task=cart">Cart<?php if($cartCount > 0) echo ' ('.$cartCount.')';?></a>
+
                 <?php if(isset($_SESSION['user'])){ ?>
                     <a class="nav-link text-dark mr-2" href="<?=BASE_URL?>/index.php?component=user&task=profile" title="My profile"><?=$_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name']?></a>
                     <form class="form-inline" method="POST" action="<?=BASE_URL?>/index.php?component=user&task=logout">
@@ -106,6 +143,7 @@ class ViewTemplate
         if($active == ''){ $active = COMPONENT; }
 
         if(!isset($_GET['task'] )) $_GET['task'] = '';
+        // Only the components that the user can consult are in the menu
         ?>
         <div class="container-fluid">
         <div class="row">
@@ -114,33 +152,47 @@ class ViewTemplate
             <ul class="nav flex-column left-menu">
 
                 
+                <?php if(Auth::can('product', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'product') echo 'active';?>" href="<?=BASE_URL?>?component=product">Product</a>
                 </li>
+                <?php } ?>
             
+                <?php if(Auth::can('category', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'category') echo 'active';?>" href="<?=BASE_URL?>?component=category">Category</a>
                 </li>
+                <?php } ?>
             
+                <?php if(Auth::can('post', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'post') echo 'active';?>" href="<?=BASE_URL?>?component=post">Post</a>
                 </li>
+                <?php } ?>
             
+                <?php if(Auth::can('discount', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'discount') echo 'active';?>" href="<?=BASE_URL?>?component=discount">Discount</a>
                 </li>
+                <?php } ?>
             
+                <?php if(Auth::can('customerorder', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'customerorder') echo 'active';?>" href="<?=BASE_URL?>?component=customerorder">Customer order</a>
                 </li>
+                <?php } ?>
             
+                <?php if(Auth::can('translation', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'translation') echo 'active';?>" href="<?=BASE_URL?>?component=translation">Translation</a>
                 </li>
+                <?php } ?>
             
+                <?php if(Auth::can('media', 'viewlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'media') echo 'active';?>" href="<?=BASE_URL?>?component=media">Media</a>
                 </li>
+                <?php } ?>
             
                 <?php // The users are managed by the administrators only
                 if(Auth::can('user', 'editlist')){ ?>
@@ -166,8 +218,8 @@ function mainHeader($title){
     <main role="main" class="col-md-10 ml-sm-auto px-4  main-container">
     <?php
     // Only the links allowed by the permissions of the user are displayed (the access is checked again by index.php)
-    $canEditList = Auth::can(COMPONENT, 'editlist');
-    $canViewList = Auth::can(COMPONENT, 'viewlist');
+    $canEditList = $this->listLinks && Auth::can(COMPONENT, 'editlist');
+    $canViewList = $this->listLinks && Auth::can(COMPONENT, 'viewlist');
     $listUrl = $canEditList ? 'editlist' : ($canViewList ? 'viewlist' : '');
     ?>
     <?php if($canEditList || $canViewList){ ?>
@@ -192,7 +244,7 @@ function mainHeader($title){
             <?php } ?>
         </div>
         <div class="text-right" style="flex-basis: 20%">
-            <?php if(Auth::can(COMPONENT, 'edit')){ ?>
+            <?php if($this->listLinks && Auth::can(COMPONENT, 'edit')){ ?>
             <a href="<?= BASE_URL ?>/index.php?component=<?=COMPONENT?>&task=edit" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"></path>

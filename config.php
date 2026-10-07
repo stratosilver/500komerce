@@ -37,6 +37,16 @@ define('PERMISSION_EDIT', 50);
 // Minimum level to manage the users and their permissions
 define('PERMISSION_ADMIN', 100);
 
+// Shop (components/shop). The prices of the products are without tax, in cents
+// Rate of the tax added in the cart and in the orders, in percent
+define('TAX_RATE', 21);
+// Symbol displayed after the amounts
+define('CURRENCY', '&euro;');
+
+// Illustration displayed for a product that has no image (component productmedia): %1$d = id of the product,
+// %2$d = width, %3$d = height. The same product always gets the same picture. Empty = a grey tile.
+define('PRODUCT_ILLUSTRATION_URL', 'https://picsum.photos/seed/product-%1$d/%2$d/%3$d');
+
 // API (api.php)
 // Secret token of the programs calling the API: header "Authorization: Bearer <token>".
 // Empty = no access by token, only the session of a logged user. Use a long random value, ex: bin2hex(random_bytes(32))
