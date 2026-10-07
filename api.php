@@ -28,7 +28,9 @@
  * ACCESS, one of:
  *   - header "Authorization: Bearer <API_TOKEN>" (or "X-Api-Key: <API_TOKEN>"), API_TOKEN is set in config.php
  *   - the session cookie received from component=user&task=login; the requests that change something
- *     must then send the csrf_token of the login answer in the header "X-CSRF-Token"
+ *     must then send the csrf_token of the login answer in the header "X-CSRF-Token".
+ *     The session has the permissions of the user (classes/Auth.php): with 0, only list, view and user/me.
+ *     The API token has all the rights.
  *
  * ANSWER
  *   {"success":true,"data":{...}}                                  one row

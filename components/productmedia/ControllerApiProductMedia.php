@@ -19,10 +19,10 @@ class ControllerApiProductMedia extends \Apgenic\Classes\ControllerApi {
     const FIELDS = array(
         'id_product'           => array('type' => 'int', 'null' => false, 'required' => true),
         'id_media'             => array('type' => 'int', 'null' => false, 'required' => true),
-        'order'                => array('type' => 'int', 'null' => false, 'required' => false, 'default' => 1),
+        'position'             => array('type' => 'int', 'null' => false, 'required' => false, 'default' => 1),
     );
 
     // All the fields of the table `product_media`
-    public static array $fieldsNames = array('id_product', 'id_media', 'order');
+    public static array $fieldsNames = array('id_product', 'id_media', 'position');
 
 }

@@ -54,8 +54,14 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
 	?>
 	<div>
 	    <?php
+	    // #core_content is the zone replaced by HTMX: content of a tab, form after a save.
+	    // There must be exactly one in the page. It is created here: under the tabs, or around
+	    // the form of a full page. A form loaded by HTMX without tabs is already inside it.
+	    $coreContent = $showTabs == 1 || $_SERVER['PHP_SELF'] != '/htmx.php';
 	    if($showTabs == 1){
 	        self::tabs($data->id_post, 'info');
+	    }
+	    if($coreContent){
 	        echo '<div id="core_content">';
 	    }
 	    ?>
@@ -173,12 +179,14 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
     </div>
 	</fieldset>
 	</form>
-	</div>
+	<?php
+	// End of #core_content
+	if($coreContent){
+	    echo '</div>';
+	}
+	?>
 	</div>
 	<?php
-    if($showTabs == 1){
-        echo '</div>';
-    }	
 
 	}
 
@@ -558,4 +566,3 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 }
-	

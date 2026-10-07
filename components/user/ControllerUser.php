@@ -5,16 +5,16 @@
  * @license GPL
  * @license https://opensource.org/licenses/gpl-license.php GNU Public License
  */
-  
+
 declare(strict_types=1);
 namespace Apgenic\User;
 
 
 class ControllerUser  extends \Apgenic\Classes\Controller {
-    
+
     private ViewUser $HTMLUser;
     private ModelUser $dataUser;
-    
+
     // Accepted sort fields
     // Tasks reachable without being logged
     const AUTH_TASKS = array('login', 'logout', 'register', 'forgot', 'reset', 'oauth', 'oauthcallback');
@@ -57,22 +57,22 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
     // Maximum time, in seconds, between the redirection to the provider and the return
     const OAUTH_MAX_TIME = 600;
 
-    public static array $fieldsNames = array('id_user','email','email_verified','password_hash','first_name','last_name','id_media','provider','provider_user_id','status','last_login_at','created_at','updated_at','deleted_at');
-    
+    public static array $fieldsNames = array('id_user','email','email_verified','password_hash','first_name','last_name','id_media','provider','provider_user_id','status','permissions','last_login_at','created_at','updated_at','deleted_at');
+
     function __construct(){
-        if(filter_input(INPUT_GET, 'showTabs', FILTER_VALIDATE_INT) === 0){
-            $this->showTabs = 0;    
-        } 
+        if(filter_var($_GET['showTabs'] ?? null, FILTER_VALIDATE_INT) === 0){
+            $this->showTabs = 0;
+        }
     }
-    
+
     /**
-     * Controller default method, validate inputs, create object and dispatch the request to other method depending of the request 
+     * Controller default method, validate inputs, create object and dispatch the request to other method depending of the request
      * @return void
      */
     function render(){
 
         // Authentication pages (public, own layout, no menu)
-        $authTask = (string)filter_input(INPUT_GET, 'task', FILTER_SANITIZE_SPECIAL_CHARS);
+        $authTask = (string)filter_var($_GET['task'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
         if(in_array($authTask, self::AUTH_TASKS, true)){
             $this->HTMLUser = new ViewUser(array());
             $this->dataUser = new ModelUser();
@@ -86,49 +86,61 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             return;
         }
 
+        // Authorization. index.php already refuses the request, it is checked again here because this
+        // component is the one that gives the permissions: own profile for everybody, the rest for the administrators
+        if(!\Apgenic\Classes\Auth::can('user', $authTask == '' ? 'editlist' : $authTask)){
+            throw new \ErrorException('Access denied', 403, E_ERROR);
+        }
+
         $oModelMedia = new \Apgenic\Media\ModelMedia();
         $oModelMedia->getList();
-  
+
         $this->HTMLUser = new ViewUser($oModelMedia->list);
-        $this->dataUser = new ModelUser(); 
-        
-        
-       
+        $this->dataUser = new ModelUser();
+
+
+
         // Task to execute
-        $task = filter_input(INPUT_GET, 'task', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'editlist'; ;
-        
+        $task = filter_var($_GET['task'] ?? 'editlist', FILTER_SANITIZE_SPECIAL_CHARS); ;
+
         $this->setOrderAndFilters();
-        $this->HTMLUser->filters = $this->filters; 
-        $this->HTMLUser->filtersGet = $this->filtersGet; 
-        
-        
-        $textSearch = filter_input(INPUT_GET, 'text_search', FILTER_SANITIZE_SPECIAL_CHARS) ?? '';
+        $this->HTMLUser->filters = $this->filters;
+        $this->HTMLUser->filtersGet = $this->filtersGet;
+
+
+        $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
+
+        // Saved before the header, which displays the name of the user
+        if($task == 'profile'){
+            $this->saveProfile();
+        }
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLUser->header('User');
+            $this->HTMLUser->header($task == 'profile' ? 'My profile' : 'User');
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLUser->search(self::$fieldsNames, $task);
             }
-            echo '<div id="core_content">';
-                        
+            //echo '<div id="core_content">';
+
         }
-          
-        try{    
+
+        try{
             switch ($task) {
                 case 'edit':       $this->edit(); break;
                 case 'del':        $this->del(); break;
                 case 'delHtmx':    $this->delHTMX(); break;
                 case 'editlist':   $this->editlist($textSearch); break;
                 case 'childlist':  $this->childlist(); break;
-                
-                case 'undelHtmx':  $this->undelHTMX(); break; 
+
+                case 'undelHtmx':  $this->undelHTMX(); break;
                 case 'trashedlist':$this->trashedlist(); break;
                 case 'logicaldeleteHtmx':    $this->delHTMX(1); break;
-                
+
                 case 'view':       $this->view(); break;
                 case 'viewlist':   $this->viewList($textSearch); break;
-                
-                       
+
+                case 'profile':    $this->profile(); break;
+
                 default: throw new \ErrorException('Page not found', 404, E_ERROR);
             }
         }
@@ -136,14 +148,14 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             $this->message['type'] = 'danger';
             $this->message['text'] = $e->getMessage();
         }
-        
+
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            echo '</div>';
+            //echo '</div>';
             $this->HTMLUser->footer();
         }
-    
+
     }
-    
+
     /**
      * Edit or add a row in user
      * @return void
@@ -153,52 +165,67 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         $this->dataUser->id_media = (int)($_GET['id_media'] ?? 0);
 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
-            
-            $this->dataUser->id_user = filter_input(INPUT_POST, 'id_user', FILTER_VALIDATE_INT);
-            if(filter_input(INPUT_POST, 'email', FILTER_UNSAFE_RAW) && 
-                filter_input(INPUT_POST, 'first_name', FILTER_UNSAFE_RAW) && 
-                filter_input(INPUT_POST, 'last_name', FILTER_UNSAFE_RAW)){
 
-                $this->dataUser->email = (string)filter_input(INPUT_POST, 'email', FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataUser->email_verified = (string)filter_input(INPUT_POST, 'email_verified', FILTER_SANITIZE_SPECIAL_CHARS);
-                if($_POST['password_hash'] == $_POST['confirmation_password_hash']){
-                    $this->dataUser->password_hash = password_hash($_POST['password_hash'],PASSWORD_DEFAULT);
+            $this->dataUser->id_user = filter_var($_POST['id_user'] ?? null, FILTER_VALIDATE_INT);
+            if(filter_var($_POST['email'] ?? null, FILTER_UNSAFE_RAW) &&
+                filter_var($_POST['first_name'] ?? null, FILTER_UNSAFE_RAW) &&
+                filter_var($_POST['last_name'] ?? null, FILTER_UNSAFE_RAW)){
+
+                // Existing user: start from the stored row, so the password is kept when the fields are left empty
+                if($this->dataUser->id_user > 0){
+                    $this->dataUser->get();
                 }
-                $this->dataUser->first_name = (string)filter_input(INPUT_POST, 'first_name', FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataUser->last_name = (string)filter_input(INPUT_POST, 'last_name', FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataUser->id_media = $_POST['id_media'] == '' ? null : (int)filter_input(INPUT_POST, 'id_media', FILTER_SANITIZE_NUMBER_INT);
-                $this->dataUser->provider = (string)filter_input(INPUT_POST, 'provider', FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataUser->provider_user_id = (string)filter_input(INPUT_POST, 'provider_user_id', FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataUser->status = (string)filter_input(INPUT_POST, 'status', FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataUser->last_login_at = (string)filter_input(INPUT_POST, 'last_login_at', FILTER_SANITIZE_SPECIAL_CHARS);
+
+                $this->dataUser->email = (string)filter_var($_POST['email'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataUser->email_verified = isset($_POST['email_verified']) ? 1 : 0;
+                // The password is changed only when a new one is typed, with the same confirmation
+                $newPassword = (string)($_POST['password_hash'] ?? '');
+                if($newPassword != '' && $newPassword === (string)($_POST['confirmation_password_hash'] ?? '')){
+                    $this->dataUser->password_hash = password_hash($newPassword, PASSWORD_DEFAULT);
+                }
+                $this->dataUser->first_name = (string)filter_var($_POST['first_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataUser->last_name = (string)filter_var($_POST['last_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataUser->id_media = ($_POST['id_media'] ?? '') == '' ? null : (int)filter_var($_POST['id_media'] ?? null, FILTER_SANITIZE_NUMBER_INT);
+                $this->dataUser->provider = (string)filter_var($_POST['provider'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataUser->provider_user_id = (string)filter_var($_POST['provider_user_id'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                if($this->dataUser->provider_user_id == ''){ $this->dataUser->provider_user_id = null; }
+                $this->dataUser->status = (string)filter_var($_POST['status'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataUser->last_login_at = (string)filter_var($_POST['last_login_at'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                if($this->dataUser->last_login_at == ''){ $this->dataUser->last_login_at = null; }
+
+                // Permissions, from 0 to 100. An administrator cannot change his own level:
+                // the last administrator would lock everybody out of the user management
+                if((int)$this->dataUser->id_user !== (int)$_SESSION['user']['id_user']){
+                    $this->dataUser->permissions = max(0, min(100, (int)filter_var($_POST['permissions'] ?? 0, FILTER_VALIDATE_INT)));
+                }
 
                 $this->dataUser->save();
                 $this->message['type'] = 'success';
                 $this->message['text'] = 'The entry has been saved';
             }
-        
+
             else{
                 $this->message['type'] = 'danger';
                 $this->message['text'] = 'Fill all mandatory fields';
-            }                        
-        }        
-        
-        else{
-            $this->dataUser->id_user = filter_input(INPUT_GET, 'id_user', FILTER_VALIDATE_INT);
+            }
+        }
 
-        }        
-        
+        else{
+            $this->dataUser->id_user = filter_var($_GET['id_user'] ?? null, FILTER_VALIDATE_INT);
+
+        }
+
 
         if( 1 && $this->dataUser->id_user > 0 ){
             $this->dataUser->get();
         }
         else{
-            // Do not show tabs when wee create the entry 
+            // Do not show tabs when wee create the entry
             $this->showTabs = 0;
         }
-            
-            
-        if($task == 'edit'){  
+
+
+        if($task == 'edit'){
             $this->HTMLUser->edit($this->dataUser,  $this->showTabs, $this->message, 'edit');
         }
         else{
@@ -206,16 +233,16 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             $this->HTMLUser->edit($this->dataUser,  $this->showTabs, $this->message, 'childlist');
         }
     }
-    
-    
-    
+
+
+
     /**
      * Delete a row in user and display the list of elements
      * @return void
      */
     function del(){
-        $this->dataUser->id_user = filter_input(INPUT_POST, 'id_user', FILTER_VALIDATE_INT);
-    
+        $this->dataUser->id_user = filter_var($_POST['id_user'] ?? null, FILTER_VALIDATE_INT);
+
         if($this->dataUser->id_user){
             $this->dataUser->del();
             $this->message['type'] = 'success';
@@ -225,18 +252,18 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             $this->message['type'] = 'danger';
             $this->message['text'] = 'Missing parameter';
         }
-        
+
         $this->editlist();
     }
-    
-        
-    
+
+
+
     /**
      * Delete a row in user and return a JSON response
      * @return void
      */
     function delHtmx(int $logical=0){
-        $this->dataUser->id_user = filter_input(INPUT_GET, 'id_user', FILTER_VALIDATE_INT);
+        $this->dataUser->id_user = filter_var($_GET['id_user'] ?? null, FILTER_VALIDATE_INT);
 
         if( 1  && $this->dataUser->id_user ){
 
@@ -245,38 +272,38 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             }
             else{
                 $this->dataUser->del();
-            }    
+            }
         }
         else{
             $this->message['type'] = 'danger';
             $this->message['text'] = 'Missing parameter';
         }
-        
+
         if(count($this->message)){
             //http_response_code(204);
             $this->HTMLUser->message($this->message);
         }
     }
-    
+
     /**
      * Display a list of row from user with add and del buttons
      * @return void
      */
     function editlist($textSearch = ''){
         // Display items list for edition
-        $this->filters['deleted_at'] = NULL; 
+        $this->filters['deleted_at'] = NULL;
         $nbItems = $this->dataUser->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
 
         $this->HTMLUser->editList($this->dataUser->list ,  $this->orderBy, $this->revertOrder, $this->message);
-    
-        $orderGet = 'orderBy='.$this->orderBy.'&';    
-        $orderGet .= 'order='.$this->order;    
-    
+
+        $orderGet = 'orderBy='.$this->orderBy.'&';
+        $orderGet .= 'order='.$this->order;
+
         $nbPages = ceil($nbItems/$this->itemsByPage);
         $this->HTMLUser->pagination($nbPages, $this->page, "?component=user&task=editlist&".$this->filtersGet."&".$orderGet."&");
     }
-    
-    
+
+
     /**
      * Display tabs above the edit form if the element have data from others tables
      * @return void
@@ -285,73 +312,73 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         $this->edit('childlist');
         $this->dataUser->getList(0 , 0, $this->filters, $this->orderBy, strtoupper($this->order));
         $this->HTMLUser->childList($this->dataUser->list ,  $this->filters, $this->orderBy, $this->revertOrder);
-    }    
-    
-       
+    }
+
+
     /**
      * Display element details
      * @return void
      */
     function view(){
         // Display selected trainings
-        $this->dataUser->id_user = filter_input(INPUT_GET, 'id_user', FILTER_VALIDATE_INT);
+        $this->dataUser->id_user = filter_var($_GET['id_user'] ?? null, FILTER_VALIDATE_INT);
         $this->dataUser->get();
         $this->HTMLUser->view($this->dataUser,  $this->message);
-    } 
-    
+    }
+
 
     /**
-     * Display a list of row from user with only the view button 
+     * Display a list of row from user with only the view button
      * For consultation without editing
      * @return void
      */
     function viewList($textSearch = ''){
-        // Display items list 
-        $this->filters['deleted_at'] = NULL; 
+        // Display items list
+        $this->filters['deleted_at'] = NULL;
 
-        
+
         $nbItems = $this->dataUser->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
-               
+
         $this->HTMLUser->viewList($this->dataUser->list,  $this->orderBy, $this->revertOrder, $this->message);
-    
-        $orderGet = 'orderBy='.$this->orderBy.'&';    
-        $orderGet .= 'order='.$this->order;      
-       
+
+        $orderGet = 'orderBy='.$this->orderBy.'&';
+        $orderGet .= 'order='.$this->order;
+
         $nbPages = ceil($nbItems/$this->itemsByPage);
         $this->HTMLUser->pagination($nbPages, $this->page, "?component=user&task=viewlist&".$this->filtersGet."&".$orderGet."&");
     }
-    
-         
+
+
     /**
-     * Display a list of row from user with only the view button 
+     * Display a list of row from user with only the view button
      * For consultation without editing
      * @return void
      */
     function trashedList($textSearch = ''){
-        // Display items list         
-        $nbItems = $this->dataUser->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , 
-                                                                 $this->itemsByPage, array('deleted_at' => 1), 
-                                                                 $this->orderBy, 
-                                                                 strtoupper($this->order), 
+        // Display items list
+        $nbItems = $this->dataUser->getList(($this->page * $this->itemsByPage)-$this->itemsByPage ,
+                                                                 $this->itemsByPage, array('deleted_at' => 1),
+                                                                 $this->orderBy,
+                                                                 strtoupper($this->order),
                                                                  $textSearch);
-               
+
         $this->HTMLUser->trashedList($this->dataUser->list,  $this->orderBy, $this->revertOrder, $this->message);
-    
-        $orderGet = 'orderBy='.$this->orderBy.'&';    
-        $orderGet .= 'order='.$this->order;      
-       
+
+        $orderGet = 'orderBy='.$this->orderBy.'&';
+        $orderGet .= 'order='.$this->order;
+
         $nbPages = ceil($nbItems/$this->itemsByPage);
         $this->HTMLUser->pagination($nbPages, $this->page, "?component=user&task=trashedlist&".$this->filtersGet."&".$orderGet."&");
-    }    
-    
-    
+    }
+
+
     /**
      * UnDelete a row in user and display the list of elements
      * @return void
      */
     function undelHTMX(){
-        $this->dataUser->id_user = filter_input(INPUT_GET, 'id_user', FILTER_VALIDATE_INT);
-    
+        $this->dataUser->id_user = filter_var($_GET['id_user'] ?? null, FILTER_VALIDATE_INT);
+
         if($this->dataUser->id_user){
             $this->dataUser->logicalUnDel();
             $this->message['type'] = 'success';
@@ -366,15 +393,15 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             //$this->HTMLUser->message($this->message);
         }
     }
-    
-    
+
+
     /**
      * Delete a row in user and display the list of elements
      * @return void
      */
     function logicaldeleteHtmx(){
-        $this->dataUser->id_user = filter_input(INPUT_GET, 'id_user', FILTER_VALIDATE_INT);
-    
+        $this->dataUser->id_user = filter_var($_GET['id_user'] ?? null, FILTER_VALIDATE_INT);
+
         if($this->dataUser->id_user){
             $this->dataUser->logicalDel();
             $this->message['type'] = 'success';
@@ -388,10 +415,10 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             //http_response_code(204);
             //$this->HTMLUser->message($this->message);
         }
-    }    
-        
-    
-    
+    }
+
+
+
     /**
      * Set the order and filter private variable depending of the browser request
      * @return void
@@ -400,14 +427,94 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         // FK Filter(s)
         if(isset($_GET['filters']['id_media'])){
             $this->filters['id_media'] = intval($_GET['filters']['id_media']);
-        }      
-        
+        }
+
         if(isset($_GET['field_search'])){
             $this->filters[$_GET['field_search']] = $_GET['field_search_value'];
-        }        
-        
+        }
+
         parent::setOrderAndFilters('id_user', 'desc');
     }
+
+    // Profile of the logged user
+    // ------------------------------------------------------------------------------------------------
+
+    /**
+     * Save the profile form: the user changes his own name, email and password, nothing else.
+     * The account is always the one of the session, never an id sent by the browser.
+     * @return void
+     */
+    private function saveProfile():void{
+        $this->dataUser->id_user = (int)$_SESSION['user']['id_user'];
+        if(!$this->dataUser->get() || $_SERVER['REQUEST_METHOD'] !== 'POST'){
+            return;
+        }
+        $isLocal = $this->dataUser->provider == 'local';
+
+        $firstName = trim((string)filter_var($_POST['first_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
+        $lastName = trim((string)filter_var($_POST['last_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
+        // The email of an account created with Google, Facebook, X comes from the provider
+        $email = $isLocal ? trim((string)($_POST['email'] ?? '')) : (string)$this->dataUser->email;
+        $password = (string)($_POST['password'] ?? '');
+
+        $error = '';
+        if($firstName == '' || $lastName == '' || $email == ''){
+            $error = 'Fill all mandatory fields';
+        }
+        elseif(strlen($firstName) > 100 || strlen($lastName) > 100){
+            $error = 'The first name or the last name is too long';
+        }
+        elseif($isLocal && (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255)){
+            $error = 'The email address is not valid';
+        }
+        elseif($isLocal && $password != ''){
+            if(!password_verify((string)($_POST['current_password'] ?? ''), (string)$this->dataUser->password_hash)){
+                $error = 'The current password is wrong';
+            }
+            else{
+                $error = $this->passwordError($password, (string)($_POST['password_confirmation'] ?? ''));
+            }
+        }
+
+        // The email is unique in the table, logically deleted users included
+        if($error == '' && strcasecmp($email, (string)$this->dataUser->email) != 0){
+            $other = new ModelUser();
+            if($other->getByEmail($email, false)){
+                $error = 'An account already exists with this email address';
+            }
+        }
+
+        if($error != ''){
+            $this->message = array('type' => 'danger', 'text' => $error);
+            // Display what has been typed
+            $this->dataUser->first_name = $firstName;
+            $this->dataUser->last_name = $lastName;
+            $this->dataUser->email = htmlspecialchars($email);
+            return;
+        }
+
+        $this->dataUser->updateProfile($email, $firstName, $lastName);
+        if($isLocal && $password != ''){
+            $this->dataUser->updatePassword(password_hash($password, PASSWORD_DEFAULT));
+        }
+        $this->dataUser->get();
+
+        $_SESSION['user']['email'] = $this->dataUser->email;
+        $_SESSION['user']['first_name'] = $this->dataUser->first_name;
+        $_SESSION['user']['last_name'] = $this->dataUser->last_name;
+
+        $this->message = array('type' => 'success', 'text' => 'Your profile has been saved');
+    }
+
+
+    /**
+     * Display the profile form
+     * @return void
+     */
+    function profile(){
+        $this->HTMLUser->profile($this->dataUser, $this->message, self::PASSWORD_MIN_LENGTH);
+    }
+
 
     // Authentication
     // ------------------------------------------------------------------------------------------------
@@ -417,7 +524,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return bool
      */
     public static function isLogged():bool{
-        return isset($_SESSION['user']['id_user']) && $_SESSION['user']['id_user'] > 0;
+        return \Apgenic\Classes\Auth::isLogged();
     }
 
 
@@ -579,8 +686,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $values['email'] = trim((string)($_POST['email'] ?? ''));
-            $values['first_name'] = trim((string)filter_input(INPUT_POST, 'first_name', FILTER_SANITIZE_SPECIAL_CHARS));
-            $values['last_name'] = trim((string)filter_input(INPUT_POST, 'last_name', FILTER_SANITIZE_SPECIAL_CHARS));
+            $values['first_name'] = trim((string)filter_var($_POST['first_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
+            $values['last_name'] = trim((string)filter_var($_POST['last_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
             $password = (string)($_POST['password'] ?? '');
 
             $error = '';

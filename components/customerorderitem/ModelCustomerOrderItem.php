@@ -16,6 +16,9 @@ class ModelCustomerOrderItem extends \Apgenic\Classes\Model{
     private string $tableName = '';
     public array $list;
 
+    // Columns of the table: the only names accepted as filter and as sort field
+    const COLUMNS = array('id_customer_order_item', 'id_customer_order', 'id_product_variant', 'product_name', 'sku', 'quantity', 'unit_price_amount', 'discount_amount', 'tax_amount', 'line_total_amount', 'created_at');
+
     public $id_customer_order_item = '';
     public $id_customer_order = '';
     public $id_product_variant = null;
@@ -189,6 +192,10 @@ class ModelCustomerOrderItem extends \Apgenic\Classes\Model{
     */
     public function getList(int $limitFrom=null, int $limitNumber=null, array $filters=array(),  string $orderBy='', string $order='ASC', $textSearch = ''):int{
 
+        // The names of columns cannot be bound: they are checked, the values are bound
+        $filters = $this->safeFilters($filters);
+        $orderBy = $this->safeOrderBy($orderBy);
+
         $query = "  SELECT c.`id_customer_order_item`, c.`id_customer_order`, c.`id_product_variant`, c.`product_name`, c.`sku`, c.`quantity`, c.`unit_price_amount`, c.`discount_amount`, c.`tax_amount`, c.`line_total_amount`, c.`created_at`
                     FROM `customer_order_item` AS c                    ";
 
@@ -207,7 +214,7 @@ class ModelCustomerOrderItem extends \Apgenic\Classes\Model{
     
         foreach($filters as $field=>$value){
             if($field != ''  && $value !='' ) {
-                $where .= " AND $field = :$field ";
+                $where .= " AND `$field` = :$field ";
             }
         }
         $query .= $where;
@@ -215,7 +222,7 @@ class ModelCustomerOrderItem extends \Apgenic\Classes\Model{
         // Set order
         if($order != 'ASC') $order = 'DESC';
         if($orderBy){
-            $query .= " ORDER BY $orderBy $order ";
+            $query .= " ORDER BY `$orderBy` $order ";
         }
 
         // Set limits
@@ -278,6 +285,8 @@ class ModelCustomerOrderItem extends \Apgenic\Classes\Model{
     * @return int 0 or Number of elements
     */
     public function count(string $where, $filters = [], string $textSearch):int{
+
+        $filters = $this->safeFilters($filters);
 
         $query = "SELECT COUNT(*) AS nbRows
                   FROM `customer_order_item`

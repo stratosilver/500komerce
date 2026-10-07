@@ -66,8 +66,14 @@ public function edit(ModelUser $data , int $showTabs = 1, array $message=null, s
 	?>
 	<div>
 	    <?php
+	    // #core_content is the zone replaced by HTMX: content of a tab, form after a save.
+	    // There must be exactly one in the page. It is created here: under the tabs, or around
+	    // the form of a full page. A form loaded by HTMX without tabs is already inside it.
+	    $coreContent = $showTabs == 1 || $_SERVER['PHP_SELF'] != '/htmx.php';
 	    if($showTabs == 1){
 	        self::tabs($data->id_user, 'info');
+	    }
+	    if($coreContent){
 	        echo '<div id="core_content">';
 	    }
 	    ?>
@@ -125,17 +131,19 @@ public function edit(ModelUser $data , int $showTabs = 1, array $message=null, s
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
             <label class="control-label">Id&nbsp;media:</label>
-            <select  class="form-control" name="id_media" id="id_media">
+            <select  class="form-control" name="id_media" id="id_media" onchange="var i=document.getElementById('id_media_thumb'),u=this.options[this.selectedIndex].getAttribute('data-thumb')||'';i.src=u;i.style.display=u?'':'none';">
                 <option value=""></option>
         <?php
         foreach ($this->mediaList as $key => $val){
                 ?>
-                <option value="<?=$val['id_media']?>" <?php if($data->id_media == $val['id_media']) echo 'selected="selected"';?>><?=$val['filename']?></option>
+                <option data-thumb="<?=htmlspecialchars(\Apgenic\Media\MediaImage::thumbnailUrl($val['filename']))?>" value="<?=$val['id_media']?>" <?php if($data->id_media == $val['id_media']) echo 'selected="selected"';?>><?=$val['filename']?></option>
         <?php 
         }
         ?>
        
             </select>
+            <?php $thumbUrl = \Apgenic\Media\MediaImage::thumbnailUrl($this->mediaList[$data->id_media]['filename'] ?? ''); ?>
+            <div><img id="id_media_thumb" class="media-thumb mt-2" src="<?=htmlspecialchars($thumbUrl)?>" alt="" <?php if($thumbUrl == '') echo 'style="display:none"';?>></div>
 		</div>
 		</div>
 		
@@ -178,6 +186,15 @@ public function edit(ModelUser $data , int $showTabs = 1, array $message=null, s
 		
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
+		<label class="control-label">Permissions&nbsp;(0-100):</label>
+		<?php $ownAccount = (int)$data->id_user === (int)($_SESSION['user']['id_user'] ?? 0); ?>
+		<input <?php if($ownAccount) echo 'disabled';?> class="form-control" type="number" min="0" max="100" step="1" name="permissions" id="permissions" value="<?=(int)$data->permissions?>"/>
+		<small class="form-text text-muted">0: consultation and own profile &middot; <?=\Apgenic\Classes\Auth::levelEdit()?>+: add, edit, delete &middot; <?=\Apgenic\Classes\Auth::levelAdmin()?>: manage the users<?php if($ownAccount) echo '. You cannot change your own level';?></small>
+	    </div>
+	    </div>
+	
+
+        <div class="col-lg-4 col-md-6"><div class="form-group">
 		<label class="control-label">Last&nbsp;login&nbsp;at:</label>
 		<input  class="form-control" type="datetime-local" name="last_login_at" id="last_login_at" value="<?=htmlentities((string)$data->last_login_at)?>"/>
 	    </div>
@@ -215,12 +232,14 @@ public function edit(ModelUser $data , int $showTabs = 1, array $message=null, s
     </div>
 	</fieldset>
 	</form>
-	</div>
+	<?php
+	// End of #core_content
+	if($coreContent){
+	    echo '</div>';
+	}
+	?>
 	</div>
 	<?php
-    if($showTabs == 1){
-        echo '</div>';
-    }	
 
 	}
 
@@ -247,6 +266,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	<th scope="col" id="first_name"><a href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=first_name&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>">First&nbsp;name</a></th>
 	<th scope="col" id="last_name"><a href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=last_name&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>">Last&nbsp;name</a></th>
 	<th scope="col" id="status"><a href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>">Status</a></th>
+	<th scope="col" id="permissions"><a href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=permissions&order=<?php if($orderBy == "permissions") echo $order; else echo 'asc';?>">Permissions</a></th>
 	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
 	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
 
@@ -267,6 +287,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		<td ><?php echo $element['first_name']?></td>
 		<td ><?php echo $element['last_name']?></td>
 		<td ><?php echo $element['status']?></td>
+		<td ><?php echo $element['permissions']?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
@@ -326,10 +347,11 @@ public function view(ModelUser $data , array $message=null){
 		        <dt class="col-sm-3"><h5>Password&nbsp;hash</h5></dt><dd class="col-sm-9"><?php echo $data->password_hash?></dd>
 		        <dt class="col-sm-3"><h5>First&nbsp;name</h5></dt><dd class="col-sm-9"><?php echo $data->first_name?></dd>
 		        <dt class="col-sm-3"><h5>Last&nbsp;name</h5></dt><dd class="col-sm-9"><?php echo $data->last_name?></dd>
-		        <dt class="col-sm-3"><h5>Id&nbsp;media</h5></dt><dd class="col-sm-9"><?php echo $this->mediaList[$data->id_media]['filename'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5>Id&nbsp;media</h5></dt><dd class="col-sm-9"><?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList[$data->id_media]['filename'] ?? '')?> <?php echo $this->mediaList[$data->id_media]['filename'] ?? '';?></dd>
 		        <dt class="col-sm-3"><h5>Provider</h5></dt><dd class="col-sm-9"><?php echo $data->provider?></dd>
 		        <dt class="col-sm-3"><h5>Provider&nbsp;user&nbsp;id</h5></dt><dd class="col-sm-9"><?php echo $data->provider_user_id?></dd>
 		        <dt class="col-sm-3"><h5>Status</h5></dt><dd class="col-sm-9"><?php echo $data->status?></dd>
+		        <dt class="col-sm-3"><h5>Permissions</h5></dt><dd class="col-sm-9"><?php echo (int)$data->permissions?></dd>
 		        <dt class="col-sm-3"><h5>Last&nbsp;login&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->last_login_at?></dd>
 		        <dt class="col-sm-3"><h5>Created&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
 		        <dt class="col-sm-3"><h5>Updated&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->updated_at?></dd>
@@ -388,6 +410,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	<th scope="col" id="first_name"><a href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=first_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>">First&nbsp;name</a></th>
 	<th scope="col" id="last_name"><a href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=last_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>">Last&nbsp;name</a></th>
 	<th scope="col" id="status"><a href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>">Status</a></th>
+	<th scope="col" id="permissions"><a href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=permissions&<?=$this->filtersGet?>&order=<?php if($orderBy == "permissions") echo $order; else echo 'asc';?>">Permissions</a></th>
 	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
 	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
 
@@ -412,6 +435,7 @@ check2
 		<td ><?php echo $element['first_name']?></td>
 		<td ><?php echo $element['last_name']?></td>
 		<td ><?php echo $element['status']?></td>
+		<td ><?php echo $element['permissions']?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
@@ -592,6 +616,63 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	</table>
 	<?php
 }
+
+    /**
+    * Profile of the logged user: his name, email and password
+    * @return void
+    */
+    public function profile(ModelUser $data, array $message = null, int $passwordMinLength = 8){
+        $isLocal = $data->provider == 'local';
+        $this->message($message);
+        ?>
+        <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=profile">
+            <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
+            <div class="row">
+                <div class="col-lg-4 col-md-6"><div class="form-group">
+                    <label class="control-label" for="first_name">First&nbsp;name&nbsp;*:</label>
+                    <input required maxlength="100" class="form-control" type="text" name="first_name" id="first_name" value="<?=$data->first_name?>"/>
+                </div></div>
+                <div class="col-lg-4 col-md-6"><div class="form-group">
+                    <label class="control-label" for="last_name">Last&nbsp;name&nbsp;*:</label>
+                    <input required maxlength="100" class="form-control" type="text" name="last_name" id="last_name" value="<?=$data->last_name?>"/>
+                </div></div>
+                <div class="col-lg-4 col-md-6"><div class="form-group">
+                    <label class="control-label" for="email">Email&nbsp;*:</label>
+                    <input <?=$isLocal ? 'required' : 'disabled'?> maxlength="255" class="form-control" type="email" name="email" id="email" value="<?=$data->email?>"/>
+                    <?php if(!$isLocal){ ?>
+                    <small class="form-text text-muted">Given by your <?=ucfirst((string)$data->provider)?> account</small>
+                    <?php } ?>
+                </div></div>
+            </div>
+
+            <?php if($isLocal){ ?>
+            <fieldset>
+                <legend>Change password</legend>
+                <p class="text-muted">Leave empty to keep your password</p>
+                <div class="row">
+                    <div class="col-lg-4 col-md-6"><div class="form-group">
+                        <label class="control-label" for="current_password">Current password:</label>
+                        <input class="form-control" type="password" name="current_password" id="current_password" autocomplete="current-password"/>
+                    </div></div>
+                    <div class="col-lg-4 col-md-6"><div class="form-group">
+                        <label class="control-label" for="password">New password:</label>
+                        <input class="form-control" type="password" name="password" id="password" minlength="<?=$passwordMinLength?>" maxlength="72" autocomplete="new-password"/>
+                    </div></div>
+                    <div class="col-lg-4 col-md-6"><div class="form-group">
+                        <label class="control-label" for="password_confirmation">Confirmation:</label>
+                        <input class="form-control" type="password" name="password_confirmation" id="password_confirmation" maxlength="72" autocomplete="new-password"/>
+                    </div></div>
+                </div>
+            </fieldset>
+            <?php } ?>
+
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-outline btn-outline-primary">
+            </div>
+        </form>
+        <?php
+    }
+
 
     // Authentication
     // ------------------------------------------------------------------------------------------------

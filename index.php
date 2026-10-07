@@ -37,6 +37,47 @@ else{
     define('COMPONENT', 'discount');
 }
 
+// Access control (classes/Auth.php)
+// ------------------------------------------------------------------------------------------------
+$task = isset($_GET['task']) && is_string($_GET['task']) ? $_GET['task'] : '';
+
+if(!Apgenic\Classes\Auth::isPublic(COMPONENT, $task)){
+
+    // 1. Authentication: all the pages, except the sign in pages, need a logged user
+    if(!Apgenic\Classes\Auth::isLogged()){
+        $loginUrl = BASE_URL.'/index.php?component=user&task=login';
+        header((isset($_SERVER['HTTP_HX_REQUEST']) ? 'HX-Redirect: ' : 'Location: ').$loginUrl);
+        exit;
+    }
+
+    // Default page of a component: the edit list, or the consultation list for the users who cannot edit
+    if(!isset($_GET['task'])){
+        if(Apgenic\Classes\Auth::can(COMPONENT, 'editlist')){
+            $task = 'editlist';
+        }
+        else{
+            $task = COMPONENT == 'user' ? 'profile' : 'viewlist';
+        }
+        $_GET['task'] = $task;
+    }
+
+    // 2. Authorization: is this task allowed with the permissions of the user
+    if(!Apgenic\Classes\Auth::can(COMPONENT, $task)){
+        http_response_code(403);
+        $oView = new Apgenic\Classes\ViewTemplate();
+        $denied = array('type' => 'danger', 'text' => 'Access denied: your permissions do not allow this page');
+        if($_SERVER['PHP_SELF'] == '/htmx.php'){
+            $oView->message($denied);
+        }
+        else{
+            $oView->header('Access denied');
+            $oView->message($denied);
+            $oView->footer();
+        }
+        exit;
+    }
+}
+
 try{
     switch(COMPONENT){
 

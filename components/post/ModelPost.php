@@ -16,6 +16,9 @@ class ModelPost extends \Apgenic\Classes\Model{
     private string $tableName = '';
     public array $list;
 
+    // Columns of the table: the only names accepted as filter and as sort field
+    const COLUMNS = array('id_post', 'id_user', 'lang', 'title', 'id_media', 'slug', 'excerpt', 'body', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
+
     public $id_post = '';
     public $id_user = null;
     public $lang = '';
@@ -229,6 +232,10 @@ class ModelPost extends \Apgenic\Classes\Model{
     */
     public function getList(int $limitFrom=null, int $limitNumber=null, array $filters=array(),  string $orderBy='', string $order='ASC', $textSearch = ''):int{
 
+        // The names of columns cannot be bound: they are checked, the values are bound
+        $filters = $this->safeFilters($filters);
+        $orderBy = $this->safeOrderBy($orderBy);
+
         $query = "  SELECT p.`id_post`, p.`id_user`, p.`lang`, p.`title`, p.`id_media`, p.`slug`, p.`excerpt`, p.`body`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
                     FROM `post` AS p                    ";
 
@@ -256,7 +263,7 @@ class ModelPost extends \Apgenic\Classes\Model{
     
         foreach($filters as $field=>$value){
             if($field != ''  && $value !='' && $field !='deleted_at') {
-                $where .= " AND $field = :$field ";
+                $where .= " AND `$field` = :$field ";
             }
         }
         $query .= $where;
@@ -264,7 +271,7 @@ class ModelPost extends \Apgenic\Classes\Model{
         // Set order
         if($order != 'ASC') $order = 'DESC';
         if($orderBy){
-            $query .= " ORDER BY $orderBy $order ";
+            $query .= " ORDER BY `$orderBy` $order ";
         }
 
         // Set limits
@@ -329,6 +336,8 @@ class ModelPost extends \Apgenic\Classes\Model{
     * @return int 0 or Number of elements
     */
     public function count(string $where, $filters = [], string $textSearch):int{
+
+        $filters = $this->safeFilters($filters);
 
         $query = "SELECT COUNT(*) AS nbRows
                   FROM `post`

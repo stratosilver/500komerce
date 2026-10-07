@@ -86,7 +86,7 @@ class ViewTemplate
                 </ul>
 
                 <?php if(isset($_SESSION['user'])){ ?>
-                    <span class="navbar-text mr-3"><?=$_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name']?></span>
+                    <a class="nav-link text-dark mr-2" href="<?=BASE_URL?>/index.php?component=user&task=profile" title="My profile"><?=$_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name']?></a>
                     <form class="form-inline" method="POST" action="<?=BASE_URL?>/index.php?component=user&task=logout">
                         <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
                         <button type="submit" class="btn btn-outline-secondary btn-sm">Sign out</button>
@@ -142,9 +142,12 @@ class ViewTemplate
                     <a class="nav-link <?php if($active == 'media') echo 'active';?>" href="<?=BASE_URL?>?component=media">Media</a>
                 </li>
             
+                <?php // The users are managed by the administrators only
+                if(Auth::can('user', 'editlist')){ ?>
                 <li class="nav-item">
                     <a class="nav-link <?php if($active == 'user') echo 'active';?>" href="<?=BASE_URL?>?component=user">User</a>
                 </li>
+                <?php } ?>
             
 
 
@@ -161,23 +164,41 @@ function mainHeader($title){
     if(strtolower($_SERVER['PHP_SELF']) == '/ajax.php') return '';
     ?>
     <main role="main" class="col-md-10 ml-sm-auto px-4  main-container">
+    <?php
+    // Only the links allowed by the permissions of the user are displayed (the access is checked again by index.php)
+    $canEditList = Auth::can(COMPONENT, 'editlist');
+    $canViewList = Auth::can(COMPONENT, 'viewlist');
+    $listUrl = $canEditList ? 'editlist' : ($canViewList ? 'viewlist' : '');
+    ?>
+    <?php if($canEditList || $canViewList){ ?>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+            <?php if($canEditList){ ?>
             <li class="breadcrumb-item"><a class="text-dark" href="<?= BASE_URL ?>/index.php?component=<?=COMPONENT?>&task=editlist">Edit list</a></li>
+            <?php } ?>
+            <?php if($canViewList){ ?>
             <li class="breadcrumb-item"><a class="text-dark" href="<?= BASE_URL ?>/index.php?component=<?=COMPONENT?>&task=viewlist">View List</a></li>
+            <?php } ?>
         </ol>
     </nav>
+    <?php } ?>
 
     <div class="" style="display: flex; flex-wrap: wrap;">
         <div class="align-self-center" style="flex-basis: 80%">
-            <h1><a href="<?= BASE_URL ?>/index.php?component=<?=COMPONENT?>&task=editlist"><?=ucfirst($title)?></a></h1>
+            <?php if($listUrl != ''){ ?>
+            <h1><a href="<?= BASE_URL ?>/index.php?component=<?=COMPONENT?>&task=<?=$listUrl?>"><?=ucfirst($title)?></a></h1>
+            <?php } else { ?>
+            <h1><?=ucfirst($title)?></h1>
+            <?php } ?>
         </div>
         <div class="text-right" style="flex-basis: 20%">
+            <?php if(Auth::can(COMPONENT, 'edit')){ ?>
             <a href="<?= BASE_URL ?>/index.php?component=<?=COMPONENT?>&task=edit" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"></path>
                 </svg>
             </a>
+            <?php } ?>
         </div>
     </div>
     <div id="main_content">

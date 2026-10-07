@@ -33,11 +33,12 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
         'provider'             => array('type' => 'string', 'null' => false, 'required' => false, 'default' => 'local', 'max' => 50),
         'provider_user_id'     => array('type' => 'string', 'null' => true, 'required' => false, 'max' => 255),
         'status'               => array('type' => 'string', 'null' => false, 'required' => false, 'default' => 'active', 'enum' => array('active', 'suspended', 'disabled')),
+        'permissions'          => array('type' => 'int', 'null' => false, 'required' => false, 'default' => 0),
         'last_login_at'        => array('type' => 'string', 'null' => true, 'required' => false),
     );
 
     // All the fields of the table `user`
-    public static array $fieldsNames = array('id_user', 'email', 'email_verified', 'password_hash', 'first_name', 'last_name', 'id_media', 'provider', 'provider_user_id', 'status', 'last_login_at', 'created_at', 'updated_at', 'deleted_at');
+    public static array $fieldsNames = array('id_user', 'email', 'email_verified', 'password_hash', 'first_name', 'last_name', 'id_media', 'provider', 'provider_user_id', 'status', 'permissions', 'last_login_at', 'created_at', 'updated_at', 'deleted_at');
 
 
     protected function dispatch(string $task, string $method):void{
@@ -58,6 +59,10 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
      * @return void
      */
     protected function validate(array &$errors, bool $isNew):void{
+        if(!isset($errors['permissions']) && ((int)$this->data->permissions < 0 || (int)$this->data->permissions > 100)){
+            $errors['permissions'] = 'Must be between 0 and 100';
+        }
+
         if(!isset($errors['email']) && !filter_var(html_entity_decode((string)$this->data->email, ENT_QUOTES | ENT_HTML5, 'UTF-8'), FILTER_VALIDATE_EMAIL)){
             $errors['email'] = 'Not a valid email address';
         }

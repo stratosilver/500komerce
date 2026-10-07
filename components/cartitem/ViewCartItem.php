@@ -58,8 +58,14 @@ public function edit(ModelCartItem $data , int $showTabs = 1, array $message=nul
 	?>
 	<div>
 	    <?php
+	    // #core_content is the zone replaced by HTMX: content of a tab, form after a save.
+	    // There must be exactly one in the page. It is created here: under the tabs, or around
+	    // the form of a full page. A form loaded by HTMX without tabs is already inside it.
+	    $coreContent = $showTabs == 1 || $_SERVER['PHP_SELF'] != '/htmx.php';
 	    if($showTabs == 1){
 	        self::tabs($data->id_cart_item, 'info');
+	    }
+	    if($coreContent){
 	        echo '<div id="core_content">';
 	    }
 	    ?>
@@ -113,14 +119,66 @@ public function edit(ModelCartItem $data , int $showTabs = 1, array $message=nul
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
 		<label class="control-label">Cookie&nbsp;id:</label>
-		<input required="" class="form-control" type="number" name="cookie_id" id="cookie_id" value="<?=$data->cookie_id?>"/>
+		<input class="form-control" type="text" maxlength="255" name="cookie_id" id="cookie_id" value="<?=$data->cookie_id?>"/>
+	    </div>
+	    </div>
+
+                        <?php 
+                        if(!isset($this->filters['id_product'])){ ?>
+                        
+        <div class="col-lg-4 col-md-6">
+        <div class="form-group">
+            <label class="control-label">Id&nbsp;product&nbsp;*:</label>
+            <select required="required" class="form-control" name="id_product" id="id_product">
+                <option value=""></option>
+        <?php
+        foreach ($this->productList3 as $key => $val){
+                ?>
+                <option value="<?=$val['id_product']?>" <?php if($data->id_product == $val['id_product']) echo 'selected="selected"';?>><?=$val['name']?></option>
+        <?php 
+        }
+        ?>
+       
+            </select>
+		</div>
+		</div>
+		
+                        <?php
+                        }
+                        else{
+                            ?>
+                            
+                            <input type="hidden" name="id_product" id="id_product" value="<?php if(!isset($data->id_product) || $data->id_product < 1) echo $_GET['filters']['id_product']; else echo $data->id_product?>"/>
+                            <?php
+                        }
+                        ?>                     
+
+        <div class="col-lg-4 col-md-6">
+        <div class="form-group">
+            <label class="control-label">Id&nbsp;product&nbsp;variant:</label>
+            <select  class="form-control" name="id_product_variant" id="id_product_variant">
+                <option value=""></option>
+        <?php
+        foreach ($this->productVariantList as $key => $val){
+                ?>
+                <option value="<?=$val['id_product_variant']?>" <?php if($data->id_product_variant == $val['id_product_variant']) echo 'selected="selected"';?>><?=$val['name']?></option>
+        <?php 
+        }
+        ?>
+       
+            </select>
+		</div>
+		</div>
+
+        <div class="col-lg-4 col-md-6"><div class="form-group">
+		<label class="control-label">Quantity&nbsp;*:</label>
+		<input required="required" class="form-control" type="number" min="1" name="quantity" id="quantity" value="<?=$data->quantity == '' ? 1 : $data->quantity?>"/>
 	    </div>
 	    </div>
 	    
 		<div class="col-12">
 		
 		<div class="form-group">
-		<input type="hidden" name="id_cart_item" id="id" value="<?=$data->id_cart_item ?>"/>
 		<input type="submit" name="Envoyer" title="Envoyer" value="Save" class="btn btn-outline btn-outline-primary">
 		</div>
 		</div>
@@ -129,12 +187,14 @@ public function edit(ModelCartItem $data , int $showTabs = 1, array $message=nul
     </div>
 	</fieldset>
 	</form>
-	</div>
+	<?php
+	// End of #core_content
+	if($coreContent){
+	    echo '</div>';
+	}
+	?>
 	</div>
 	<?php
-    if($showTabs == 1){
-        echo '</div>';
-    }	
 
 	}
 
@@ -155,7 +215,8 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_cart"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=viewlist&orderBy=id_cart&order=<?php if($orderBy == "id_cart") echo $order; else echo 'asc';?>">Id&nbsp;cart</a></th>
+	<tr>	<th scope="col" id="id_cart_item"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=viewlist&orderBy=id_cart_item&order=<?php if($orderBy == "id_cart_item") echo $order; else echo 'asc';?>">Id&nbsp;cart&nbsp;item</a></th>
+	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
 	<th scope="col" id="id_product_variant"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=viewlist&orderBy=id_product_variant&order=<?php if($orderBy == "id_product_variant") echo $order; else echo 'asc';?>">Id&nbsp;product&nbsp;variant</a></th>
 	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=viewlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>">Quantity</a></th>
 	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
@@ -172,7 +233,8 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	foreach ($data as $element){
 		?>
 		<tr>
-		<td class="shrink"><?php echo $element['id_cart']?></td>
+		<td class="shrink"><?php echo $element['id_cart_item']?></td>
+		<td ><?php echo $this->productList3[$element['id_product']]['name'] ?? '';?></td>
 		<td ><?php echo $this->productVariantList[$element['id_product_variant']]['name'] ?? '';?></td>
 		<td ><?php echo $element['quantity']?></td>
 		<td ><?php echo $element['created_at']?></td>
@@ -228,7 +290,8 @@ public function view(ModelCartItem $data , array $message=null){
             <div class="col-sm-12">
                 <dl class="row">
                     
-		        <dt class="col-sm-3"><h5>Id&nbsp;cart</h5></dt><dd class="col-sm-9"><?php echo $data->id_cart?></dd>
+		        <dt class="col-sm-3"><h5>Id&nbsp;cart&nbsp;item</h5></dt><dd class="col-sm-9"><?php echo $data->id_cart_item?></dd>
+		        <dt class="col-sm-3"><h5>Id&nbsp;product</h5></dt><dd class="col-sm-9"><?php echo $this->productList3[$data->id_product]['name'] ?? '';?></dd>
 		        <dt class="col-sm-3"><h5>Id&nbsp;product&nbsp;variant</h5></dt><dd class="col-sm-9"><?php echo $this->productVariantList[$data->id_product_variant]['name'] ?? '';?></dd>
 		        <dt class="col-sm-3"><h5>Quantity</h5></dt><dd class="col-sm-9"><?php echo $data->quantity?></dd>
 		        <dt class="col-sm-3"><h5>Created&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
@@ -281,7 +344,8 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_cart"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=editlist&orderBy=id_cart&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_cart") echo $order; else echo 'asc';?>">Id&nbsp;cart</a></th>
+	<tr>	<th scope="col" id="id_cart_item"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=editlist&orderBy=id_cart_item&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_cart_item") echo $order; else echo 'asc';?>">Id&nbsp;cart&nbsp;item</a></th>
+	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
 	<th scope="col" id="id_product_variant"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=editlist&orderBy=id_product_variant&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product_variant") echo $order; else echo 'asc';?>">Id&nbsp;product&nbsp;variant</a></th>
 	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=editlist&orderBy=quantity&<?=$this->filtersGet?>&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>">Quantity</a></th>
 	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
@@ -300,7 +364,8 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_cart_item']?>">
-		<td class="shrink"><?php echo $element['id_cart']?></td>
+		<td class="shrink"><?php echo $element['id_cart_item']?></td>
+		<td ><?php echo $this->productList3[$element['id_product']]['name'] ?? '';?></td>
 		<td >
                                             <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=editList&id_product_variant=<?php echo $element['id_product_variant']?>">
                                             <?php echo $this->productVariantList[$element['id_product_variant']]['name'] ?? '';?>
@@ -359,7 +424,8 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	?>
 	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_cart"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=childlist&orderBy=id_cart&order=<?php if($orderBy == "id_cart") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;cart</a></th>
+	<tr>	<th scope="col" id="id_cart_item"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=childlist&orderBy=id_cart_item&order=<?php if($orderBy == "id_cart_item") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;cart&nbsp;item</a></th>
+	<th scope="col" id="id_product"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;product</a></th>
 	<th scope="col" id="id_product_variant"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=childlist&orderBy=id_product_variant&order=<?php if($orderBy == "id_product_variant") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;product&nbsp;variant</a></th>
 	<th scope="col" id="quantity"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=childlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Quantity</a></th>
 	<th scope="col" id="created_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Created&nbsp;at</a></th>
@@ -377,7 +443,8 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_cart_item']?>">
-		<td class="shrink"><?php echo $element['id_cart']?></td>
+		<td class="shrink"><?php echo $element['id_cart_item']?></td>
+		<td ><?php echo $this->productList3[$element['id_product']]['name'] ?? '';?></td>
 		<td >
                                             <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=cartitem&task=editList&id_product_variant=<?php echo $element['id_product_variant']?>">
                                             <?php echo $this->productVariantList[$element['id_product_variant']]['name'];?>
@@ -436,7 +503,8 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<table class="table table-bordered table-sm">
 	<thead>
-	<tr>	<th scope="col" id="id_cart"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=trashedlist&orderBy=id_cart&order=<?php if($orderBy == "id_cart") echo $order; else echo 'asc';?>">Id&nbsp;cart</a></th>
+	<tr>	<th scope="col" id="id_cart_item"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=trashedlist&orderBy=id_cart_item&order=<?php if($orderBy == "id_cart_item") echo $order; else echo 'asc';?>">Id&nbsp;cart&nbsp;item</a></th>
+	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
 	<th scope="col" id="id_product_variant"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=trashedlist&orderBy=id_product_variant&order=<?php if($orderBy == "id_product_variant") echo $order; else echo 'asc';?>">Id&nbsp;product&nbsp;variant</a></th>
 	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=trashedlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>">Quantity</a></th>
 	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=cartitem&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
@@ -453,7 +521,8 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_cart_item']?>">
-		<td class="shrink"><?php echo $element['id_cart']?></td>
+		<td class="shrink"><?php echo $element['id_cart_item']?></td>
+		<td ><?php echo $this->productList3[$element['id_product']]['name'] ?? '';?></td>
 		<td ><?php echo $this->productVariantList[$element['id_product_variant']]['name'] ?? '';?></td>
 		<td ><?php echo $element['quantity']?></td>
 		<td ><?php echo $element['created_at']?></td>
@@ -488,4 +557,3 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 }
-	

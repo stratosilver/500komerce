@@ -16,6 +16,9 @@ class ModelUser extends \Apgenic\Classes\Model{
     private string $tableName = '';
     public array $list;
 
+    // Columns of the table: the only names accepted as filter and as sort field
+    const COLUMNS = array('id_user', 'email', 'email_verified', 'password_hash', 'first_name', 'last_name', 'id_media', 'provider', 'provider_user_id', 'status', 'permissions', 'last_login_at', 'created_at', 'updated_at', 'deleted_at');
+
     public $id_user = '';
     public $email = '';
     public $email_verified = '';
@@ -26,6 +29,8 @@ class ModelUser extends \Apgenic\Classes\Model{
     public $provider = '';
     public $provider_user_id = null;
     public $status = array();
+    // Level of permissions, from 0 to 100 (see \Apgenic\Classes\Auth)
+    public $permissions = 0;
     public $last_login_at = null;
     public $created_at = '';
     public $updated_at = '';
@@ -46,7 +51,7 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function add():int{
 
-        $query = "  INSERT INTO `user`  ( email, email_verified, password_hash, first_name, last_name, id_media, provider, provider_user_id, status, last_login_at)
+        $query = "  INSERT INTO `user`  ( email, email_verified, password_hash, first_name, last_name, id_media, provider, provider_user_id, status, permissions, last_login_at)
                     VALUES (
                     :email,
                     :email_verified,
@@ -57,13 +62,14 @@ class ModelUser extends \Apgenic\Classes\Model{
                     :provider,
                     :provider_user_id,
                     :status,
+                    :permissions,
                     :last_login_at
                     )";
 
 
 
         $q = self::$db->prepare($query);
-        if($q->execute(array(':email' => $this->email, ':email_verified' => $this->email_verified, ':password_hash' => $this->password_hash, ':first_name' => $this->first_name, ':last_name' => $this->last_name, ':id_media' => $this->id_media, ':provider' => $this->provider, ':provider_user_id' => $this->provider_user_id, ':status' => $this->status, ':last_login_at' => $this->last_login_at,))){
+        if($q->execute(array(':email' => $this->email, ':email_verified' => $this->email_verified, ':password_hash' => $this->password_hash, ':first_name' => $this->first_name, ':last_name' => $this->last_name, ':id_media' => $this->id_media, ':provider' => $this->provider, ':provider_user_id' => $this->provider_user_id, ':status' => $this->status, ':permissions' => (int)$this->permissions, ':last_login_at' => $this->last_login_at,))){
             $this->id_user = self::$db->lastInsertId();
             return(1);
         }
@@ -93,12 +99,13 @@ class ModelUser extends \Apgenic\Classes\Model{
                     `provider` = :provider,
                     `provider_user_id` = :provider_user_id,
                     `status` = :status,
+                    `permissions` = :permissions,
                     `last_login_at` = :last_login_at
             WHERE  `id_user` = :id_user  ";
 
 
                 $q = self::$db->prepare($query);
-            if($q->execute(array(':email' => $this->email, ':email_verified' => $this->email_verified, ':password_hash' => $this->password_hash, ':first_name' => $this->first_name, ':last_name' => $this->last_name, ':id_media' => $this->id_media, ':provider' => $this->provider, ':provider_user_id' => $this->provider_user_id, ':status' => $this->status, ':last_login_at' => $this->last_login_at, ':id_user' => $this->id_user))){
+            if($q->execute(array(':email' => $this->email, ':email_verified' => $this->email_verified, ':password_hash' => $this->password_hash, ':first_name' => $this->first_name, ':last_name' => $this->last_name, ':id_media' => $this->id_media, ':provider' => $this->provider, ':provider_user_id' => $this->provider_user_id, ':status' => $this->status, ':permissions' => (int)$this->permissions, ':last_login_at' => $this->last_login_at, ':id_user' => $this->id_user))){
                 return (1);
             }
             else{
@@ -182,7 +189,7 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function get():int{
 
-        $query = "  SELECT u.`id_user`, u.`email`, u.`email_verified`, u.`password_hash`, u.`first_name`, u.`last_name`, u.`id_media`, u.`provider`, u.`provider_user_id`, u.`status`, u.`last_login_at`, u.`created_at`, u.`updated_at`, u.`deleted_at`
+        $query = "  SELECT u.`id_user`, u.`email`, u.`email_verified`, u.`password_hash`, u.`first_name`, u.`last_name`, u.`id_media`, u.`provider`, u.`provider_user_id`, u.`status`, u.`permissions`, u.`last_login_at`, u.`created_at`, u.`updated_at`, u.`deleted_at`
                     , m.filename AS m_filename, m.id_media AS m_id_media
                                         FROM `user` AS u 
                     LEFT JOIN `media` m ON u.id_media = m.id_media
@@ -204,6 +211,7 @@ class ModelUser extends \Apgenic\Classes\Model{
                 $this->provider = $row['provider'];
                 $this->provider_user_id = $row['provider_user_id'];
                 $this->status = $row['status'];
+                $this->permissions = (int)$row['permissions'];
                 $this->last_login_at = $row['last_login_at'];
                 $this->created_at = $row['created_at'];
                 $this->updated_at = $row['updated_at'];
@@ -233,7 +241,11 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function getList(int $limitFrom=null, int $limitNumber=null, array $filters=array(),  string $orderBy='', string $order='ASC', $textSearch = ''):int{
 
-        $query = "  SELECT u.`id_user`, u.`email`, u.`email_verified`, u.`password_hash`, u.`first_name`, u.`last_name`, u.`id_media`, u.`provider`, u.`provider_user_id`, u.`status`, u.`last_login_at`, u.`created_at`, u.`updated_at`, u.`deleted_at`
+        // The names of columns cannot be bound: they are checked, the values are bound
+        $filters = $this->safeFilters($filters);
+        $orderBy = $this->safeOrderBy($orderBy);
+
+        $query = "  SELECT u.`id_user`, u.`email`, u.`email_verified`, u.`password_hash`, u.`first_name`, u.`last_name`, u.`id_media`, u.`provider`, u.`provider_user_id`, u.`status`, u.`permissions`, u.`last_login_at`, u.`created_at`, u.`updated_at`, u.`deleted_at`
                     FROM `user` AS u                    ";
 
         // Add all filters
@@ -261,7 +273,7 @@ class ModelUser extends \Apgenic\Classes\Model{
     
         foreach($filters as $field=>$value){
             if($field != ''  && $value !='' && $field !='deleted_at') {
-                $where .= " AND $field = :$field ";
+                $where .= " AND `$field` = :$field ";
             }
         }
         $query .= $where;
@@ -269,7 +281,7 @@ class ModelUser extends \Apgenic\Classes\Model{
         // Set order
         if($order != 'ASC') $order = 'DESC';
         if($orderBy){
-            $query .= " ORDER BY $orderBy $order ";
+            $query .= " ORDER BY `$orderBy` $order ";
         }
 
         // Set limits
@@ -312,6 +324,7 @@ class ModelUser extends \Apgenic\Classes\Model{
                $this->list[$row['id_user']]['provider'] = $row['provider'];
                $this->list[$row['id_user']]['provider_user_id'] = $row['provider_user_id'];
                $this->list[$row['id_user']]['status'] = $row['status'];
+               $this->list[$row['id_user']]['permissions'] = $row['permissions'];
                $this->list[$row['id_user']]['last_login_at'] = $row['last_login_at'];
                $this->list[$row['id_user']]['created_at'] = $row['created_at'];
                $this->list[$row['id_user']]['updated_at'] = $row['updated_at'];
@@ -335,6 +348,8 @@ class ModelUser extends \Apgenic\Classes\Model{
     * @return int 0 or Number of elements
     */
     public function count(string $where, $filters = [], string $textSearch):int{
+
+        $filters = $this->safeFilters($filters);
 
         $query = "SELECT COUNT(*) AS nbRows
                   FROM `user`
@@ -419,6 +434,17 @@ class ModelUser extends \Apgenic\Classes\Model{
 
         $q = self::$db->prepare("UPDATE `user` SET `password_hash` = :password_hash WHERE `id_user` = :id_user");
         return($q->execute(array(':password_hash' => $passwordHash, ':id_user' => $this->id_user)) ? 1 : 0);
+    }
+
+
+    /**
+    * Change only what a user can edit in his own profile. A new email address has to be verified again.
+    * @return int 0 or 1
+    */
+    public function updateProfile(string $email, string $firstName, string $lastName):int{
+
+        $q = self::$db->prepare("UPDATE `user` SET `email_verified` = IF(`email` = :email_old, `email_verified`, 0), `email` = :email, `first_name` = :first_name, `last_name` = :last_name WHERE `id_user` = :id_user");
+        return($q->execute(array(':email_old' => $email, ':email' => $email, ':first_name' => $firstName, ':last_name' => $lastName, ':id_user' => $this->id_user)) ? 1 : 0);
     }
 
 

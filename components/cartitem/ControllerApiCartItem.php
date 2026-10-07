@@ -13,13 +13,15 @@ class ControllerApiCartItem extends \Apgenic\Classes\ControllerApi {
     const PK = array('id_cart_item');
     const PK_AUTO = false;
     const SOFT_DELETE = false;
-    const AUTO_DATES = array('created_at', 'updated_at');
+    const AUTO_DATES = array();
 
     // Fields saved by ModelCartItem
     const FIELDS = array(
         'id_cart_item'         => array('type' => 'int', 'null' => false, 'required' => true),
         'id_user'              => array('type' => 'int', 'null' => false, 'required' => true),
         'cookie_id'            => array('type' => 'string', 'null' => true, 'required' => false, 'max' => 255),
+        'id_product'           => array('type' => 'int', 'null' => false, 'required' => true),
+        'id_product_variant'   => array('type' => 'int', 'null' => true, 'required' => false),
         'quantity'             => array('type' => 'int', 'null' => false, 'required' => false, 'default' => 1),
     );
 

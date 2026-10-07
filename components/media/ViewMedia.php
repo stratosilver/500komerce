@@ -15,7 +15,10 @@ public string $filtersGet = '';
 
 public $fileters = array();
 
-function __construct() {
+var $productList = array();
+
+function __construct($productList = array()) {
+$this->productList = $productList;
 }
 
 
@@ -60,8 +63,14 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
 	?>
 	<div>
 	    <?php
+	    // #core_content is the zone replaced by HTMX: content of a tab, form after a save.
+	    // There must be exactly one in the page. It is created here: under the tabs, or around
+	    // the form of a full page. A form loaded by HTMX without tabs is already inside it.
+	    $coreContent = $showTabs == 1 || $_SERVER['PHP_SELF'] != '/htmx.php';
 	    if($showTabs == 1){
 	        self::tabs($data->id_media, 'info');
+	    }
+	    if($coreContent){
 	        echo '<div id="core_content">';
 	    }
 	    ?>
@@ -69,46 +78,56 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
 		$this->message($message);
 		?>
 		
-		<form method="POST" enctype="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
+		<form method="POST" enctype="multipart/form-data" hx-encoding="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
 		<input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
 		<fieldset>
         <div class="row">
 	
 
+        <?php
+        $isNew = !($data->id_media > 0);
+        $sizes = array();
+        foreach(MediaImage::SIZES as $sizeName => $box){
+            $sizes[] = $sizeName.' '.$box[0].'x'.$box[1];
+        }
+        ?>
+
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Filename&nbsp;*:</label>
-		<input required class="form-control" type="text" name="filename" id="filename" size="10" value="<?=htmlentities((string)(string)$data->filename)?>"/>
+		<label class="control-label"><?=$isNew ? 'Image&nbsp;*:' : 'Replace&nbsp;the&nbsp;image:'?></label>
+		<input <?php if($isNew) echo 'required';?> class="form-control-file" type="file" name="file" id="file" accept="<?=implode(',', array_keys(MediaImage::TYPES))?>"/>
+		<small class="form-text text-muted">JPEG, PNG, GIF or WebP, <?=round(MediaImage::MAX_FILE_SIZE / 1048576)?> MB maximum. Sizes created: <?=implode(', ', $sizes)?>.</small>
 	    </div>
 	    </div>
+
+        <div class="col-lg-4 col-md-6">
+        <div class="form-group">
+            <label class="control-label">Product:</label>
+            <select  class="form-control" name="id_product" id="id_product">
+                <option value=""></option>
+        <?php
+        foreach ($this->productList as $key => $val){
+                ?>
+                <option value="<?=$val['id_product']?>"><?=$val['name']?></option>
+        <?php 
+        }
+        ?>
+            </select>
+            <small class="form-text text-muted">The file is named after the product<?php if($isNew) echo ' and the image is added to its images';?>. Without product: after the alt text, else the name of the file.</small>
+		</div>
+		</div>
+
+        <?php if(!$isNew){ ?>
+        <div class="col-lg-4 col-md-6"><div class="form-group">
+		<label class="control-label">Current&nbsp;image:</label>
+		<div>
+		<?=MediaImage::thumbnail($data->filename, (string)$data->alt_text)?>
+		<?=htmlentities((string)$data->filename)?>
+		<small class="form-text text-muted"><?=htmlentities((string)$data->mime_type)?><?php if($data->width && $data->height) echo ', '.(int)$data->width.' x '.(int)$data->height.' px';?><?php if($data->size_bytes) echo ', '.round($data->size_bytes / 1024).' KB';?></small>
+		</div>
+	    </div>
+	    </div>
+        <?php } ?>
 	
-
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Mime&nbsp;type&nbsp;*:</label>
-		<input required class="form-control" type="text" name="mime_type" id="mime_type" size="10" value="<?=htmlentities((string)(string)$data->mime_type)?>"/>
-	    </div>
-	    </div>
-	
-
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Size&nbsp;bytes:</label>
-		<input required="" class="form-control" type="number" name="size_bytes" id="size_bytes" value="<?=$data->size_bytes?>"/>
-	    </div>
-	    </div>
-	    
-
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Width:</label>
-		<input required="" class="form-control" type="number" name="width" id="width" value="<?=$data->width?>"/>
-	    </div>
-	    </div>
-	    
-
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Height:</label>
-		<input required="" class="form-control" type="number" name="height" id="height" value="<?=$data->height?>"/>
-	    </div>
-	    </div>
-	    
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
 		<label class="control-label">Alt&nbsp;text:</label>
@@ -135,12 +154,14 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
     </div>
 	</fieldset>
 	</form>
-	</div>
+	<?php
+	// End of #core_content
+	if($coreContent){
+	    echo '</div>';
+	}
+	?>
 	</div>
 	<?php
-    if($showTabs == 1){
-        echo '</div>';
-    }	
 
 	}
 
@@ -180,7 +201,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		?>
 		<tr>
 		<td class="shrink"><?php echo $element['id_media']?></td>
-		<td ><?php echo $element['filename']?></td>
+		<td ><?=MediaImage::thumbnail($element['filename'], (string)($element['alt_text'] ?? ''))?> <?php echo $element['filename']?></td>
 		<td ><?php echo $element['mime_type']?></td>
 		<td ><?php echo $element['size_bytes']?></td>
 		<td ><?php echo $element['created_at']?></td>
@@ -237,7 +258,7 @@ public function view(ModelMedia $data , array $message=null){
                 <dl class="row">
                     
 		        <dt class="col-sm-3"><h5>Id&nbsp;media</h5></dt><dd class="col-sm-9"><?php echo $data->id_media?></dd>
-		        <dt class="col-sm-3"><h5>Filename</h5></dt><dd class="col-sm-9"><?php echo $data->filename?></dd>
+		        <dt class="col-sm-3"><h5>Filename</h5></dt><dd class="col-sm-9"><?=MediaImage::thumbnail($data->filename, (string)$data->alt_text)?> <?php echo $data->filename?></dd>
 		        <dt class="col-sm-3"><h5>Mime&nbsp;type</h5></dt><dd class="col-sm-9"><?php echo $data->mime_type?></dd>
 		        <dt class="col-sm-3"><h5>Size&nbsp;bytes</h5></dt><dd class="col-sm-9"><?php echo $data->size_bytes?></dd>
 		        <dt class="col-sm-3"><h5>Width</h5></dt><dd class="col-sm-9"><?php echo $data->width?></dd>
@@ -318,7 +339,7 @@ check2
 		?>
 		<tr id="row-<?php echo $element['id_media']?>">
 		<td class="shrink"><?php echo $element['id_media']?></td>
-		<td ><?php echo $element['filename']?></td>
+		<td ><?=MediaImage::thumbnail($element['filename'], (string)($element['alt_text'] ?? ''))?> <?php echo $element['filename']?></td>
 		<td ><?php echo $element['mime_type']?></td>
 		<td ><?php echo $element['size_bytes']?></td>
 		<td ><?php echo $element['created_at']?></td>
@@ -392,7 +413,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		?>
 		<tr id="row-<?php echo $element['id_media']?>">
 		<td class="shrink"><?php echo $element['id_media']?></td>
-		<td ><?php echo $element['filename']?></td>
+		<td ><?=MediaImage::thumbnail($element['filename'], (string)($element['alt_text'] ?? ''))?> <?php echo $element['filename']?></td>
 		<td ><?php echo $element['mime_type']?></td>
 		<td ><?php echo $element['size_bytes']?></td>
 		<td ><?php echo $element['created_at']?></td>
@@ -465,7 +486,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		?>
 		<tr id="row-<?php echo $element['id_media']?>">
 		<td class="shrink"><?php echo $element['id_media']?></td>
-		<td ><?php echo $element['filename']?></td>
+		<td ><?=MediaImage::thumbnail($element['filename'], (string)($element['alt_text'] ?? ''))?> <?php echo $element['filename']?></td>
 		<td ><?php echo $element['mime_type']?></td>
 		<td ><?php echo $element['size_bytes']?></td>
 		<td ><?php echo $element['created_at']?></td>
@@ -500,4 +521,3 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 }
-	

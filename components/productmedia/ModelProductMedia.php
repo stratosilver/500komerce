@@ -16,9 +16,12 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
     private string $tableName = '';
     public array $list;
 
+    // Columns of the table: the only names accepted as filter and as sort field
+    const COLUMNS = array('id_product', 'id_media', 'position');
+
     public $id_product = '';
     public $id_media = '';
-    public $order = '';
+    public $position = '';
 
 
     /**
@@ -35,17 +38,17 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
     */
     public function add():int{
 
-        $query = "  INSERT INTO `product_media`  ( id_product, id_media, order)
+        $query = "  INSERT INTO `product_media`  ( id_product, id_media, position)
                     VALUES (
                     :id_product,
                     :id_media,
-                    :order
+                    :position
                     )";
 
 
 
         $q = self::$db->prepare($query);
-        if($q->execute(array(':id_product' => $this->id_product, ':id_media' => $this->id_media, ':order' => $this->order,))){
+        if($q->execute(array(':id_product' => $this->id_product, ':id_media' => $this->id_media, ':position' => $this->position,))){
             $this->id_product = self::$db->lastInsertId();
             return(1);
         }
@@ -68,12 +71,12 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
             $query = "  UPDATE `product_media` SET
                     `id_product` = :id_product,
                     `id_media` = :id_media,
-                    `order` = :order
+                    `position` = :position
             WHERE  `id_product` = :id_product  AND  `id_media` = :id_media  ";
 
 
                 $q = self::$db->prepare($query);
-            if($q->execute(array(':id_product' => $this->id_product, ':id_media' => $this->id_media, ':order' => $this->order, ':id_product' => $this->id_product, ':id_media' => $this->id_media))){
+            if($q->execute(array(':id_product' => $this->id_product, ':id_media' => $this->id_media, ':position' => $this->position, ':id_product' => $this->id_product, ':id_media' => $this->id_media))){
                 return (1);
             }
             else{
@@ -119,7 +122,7 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
     */
     public function get():int{
 
-        $query = "  SELECT p.`id_product`, p.`id_media`, p.`order`
+        $query = "  SELECT p.`id_product`, p.`id_media`, p.`position`
                     , m.filename AS m_filename, m.id_media AS m_id_media
                     , pr.name AS pr_name, pr.id_product AS pr_id_product
                                         FROM `product_media` AS p 
@@ -135,7 +138,7 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
             if($row = $q->fetch(\PDO::FETCH_ASSOC)){
                 $this->id_product = $row['id_product'];
                 $this->id_media = $row['id_media'];
-                $this->order = $row['order'];
+                $this->position = $row['position'];
 
                 return(1);
             }
@@ -161,7 +164,11 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
     */
     public function getList(int $limitFrom=null, int $limitNumber=null, array $filters=array(),  string $orderBy='', string $order='ASC', $textSearch = ''):int{
 
-        $query = "  SELECT p.`id_product`, p.`id_media`, p.`order`
+        // The names of columns cannot be bound: they are checked, the values are bound
+        $filters = $this->safeFilters($filters);
+        $orderBy = $this->safeOrderBy($orderBy);
+
+        $query = "  SELECT p.`id_product`, p.`id_media`, p.`position`
                     FROM `product_media` AS p                    ";
 
         // Add all filters
@@ -174,7 +181,7 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
     
         foreach($filters as $field=>$value){
             if($field != ''  && $value !='' ) {
-                $where .= " AND $field = :$field ";
+                $where .= " AND `$field` = :$field ";
             }
         }
         $query .= $where;
@@ -182,7 +189,7 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
         // Set order
         if($order != 'ASC') $order = 'DESC';
         if($orderBy){
-            $query .= " ORDER BY $orderBy $order ";
+            $query .= " ORDER BY `$orderBy` $order ";
         }
 
         // Set limits
@@ -216,7 +223,7 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
             $i=0;            while($row = $q->fetch(\PDO::FETCH_ASSOC)){
                $this->list[$i]['id_product'] = $row['id_product'];
                $this->list[$i]['id_media'] = $row['id_media'];
-               $this->list[$i]['order'] = $row['order'];
+               $this->list[$i]['position'] = $row['position'];
                     $i++;            }
             return($this->count($where, $filters, $textSearch));
         }
@@ -236,6 +243,8 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
     * @return int 0 or Number of elements
     */
     public function count(string $where, $filters = [], string $textSearch):int{
+
+        $filters = $this->safeFilters($filters);
 
         $query = "SELECT COUNT(*) AS nbRows
                   FROM `product_media`

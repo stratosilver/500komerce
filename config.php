@@ -31,6 +31,12 @@ define('OAUTH_PROVIDERS', array(
     'x'        => array('client_id' => '1234', 'client_secret' => '1234'),
 ));
 
+// Permissions (classes/Auth.php). Each user has a level from 0 to 100, 0 by default: consultation pages and own profile only
+// Minimum level to add, edit and delete in all the components, except the users
+define('PERMISSION_EDIT', 50);
+// Minimum level to manage the users and their permissions
+define('PERMISSION_ADMIN', 100);
+
 // API (api.php)
 // Secret token of the programs calling the API: header "Authorization: Bearer <token>".
 // Empty = no access by token, only the session of a logged user. Use a long random value, ex: bin2hex(random_bytes(32))

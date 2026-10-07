@@ -54,7 +54,7 @@ abstract class ControllerApi
             $task = $this->task($method);
 
             if(!in_array($task, static::PUBLIC_TASKS, true)){
-                $this->authenticate($method);
+                $this->authenticate($method, $task);
             }
 
             $modelClass = static::MODEL;
@@ -145,8 +145,8 @@ abstract class ControllerApi
         $filters = array();
         if(isset($_GET['filters']) && is_array($_GET['filters'])){
             foreach($_GET['filters'] as $field => $value){
-                // The name of the field is put in the SQL query by the model: only known fields are accepted
-                if(in_array($field, static::$fieldsNames, true) && !in_array($field, static::HIDDEN, true) && $field != 'deleted_at' && $field != 'order' && is_scalar($value)){
+                // Only known fields are accepted (the model checks the names again before writing them in the query)
+                if(in_array($field, static::$fieldsNames, true) && !in_array($field, static::HIDDEN, true) && $field != 'deleted_at' && is_scalar($value)){
                     $filters[$field] = (string)$value;
                 }
             }
@@ -169,7 +169,7 @@ abstract class ControllerApi
         $textSearch = (string)filter_var((string)($_GET['text_search'] ?? ''), FILTER_SANITIZE_SPECIAL_CHARS);
 
         $this->data->list = array();
-        $total = $this->data->getList(($page - 1) * $limit, $limit, $filters, '`'.$orderBy.'`', $order, $textSearch);
+        $total = $this->data->getList(($page - 1) * $limit, $limit, $filters, $orderBy, $order, $textSearch);
 
         $rows = array();
         foreach($this->data->list as $row){
@@ -476,10 +476,11 @@ abstract class ControllerApi
 
 
     /**
-     * Check the access: the API token of config.php, or the session of a logged user.
+     * Check the access: the API token of config.php (all the rights), or the session of a logged user
+     * (rights given by his permissions, see Auth).
      * @return void
      */
-    protected function authenticate(string $method):void{
+    protected function authenticate(string $method, string $task = ''):void{
         // 1. Token: Authorization: Bearer xxx (or X-Api-Key: xxx)
         $token = (string)($_SERVER['HTTP_X_API_KEY'] ?? '');
         $header = (string)($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
@@ -499,8 +500,13 @@ abstract class ControllerApi
         }
 
         // 2. Session opened by task=login of the user API, or by the login page
-        if(!isset($_SESSION['user']['id_user'])){
+        if(!Auth::isLogged()){
             throw new ApiException(401, 'Authentication required');
+        }
+        // Same rules as the web interface: list and view are the consultation tasks
+        $webTasks = array('list' => 'viewlist', 'view' => 'view');
+        if(!Auth::can(COMPONENT, $webTasks[$task] ?? $task)){
+            throw new ApiException(403, 'Your permissions do not allow this operation');
         }
         // The session cookie is sent by the browser on its own: a request that changes something must prove
         // that it comes from our pages, with the CSRF token of the session

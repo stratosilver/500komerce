@@ -284,3 +284,14 @@ footer{
 	width: 100%;
 	padding: 40px;
 }
+
+/* Thumbnail displayed next to the name of an image (component media) */
+.media-thumb{
+	max-height: 48px;
+	max-width: 72px;
+	margin-right: 8px;
+	border: 1px solid #dee2e6;
+	border-radius: 3px;
+	background: #fff;
+	vertical-align: middle;
+}

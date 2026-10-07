@@ -16,6 +16,9 @@ class ModelMedia extends \Apgenic\Classes\Model{
     private string $tableName = '';
     public array $list;
 
+    // Columns of the table: the only names accepted as filter and as sort field
+    const COLUMNS = array('id_media', 'filename', 'mime_type', 'size_bytes', 'width', 'height', 'alt_text', 'caption', 'created_at', 'updated_at', 'deleted_at');
+
     public $id_media = '';
     public $filename = '';
     public $mime_type = '';
@@ -219,6 +222,10 @@ class ModelMedia extends \Apgenic\Classes\Model{
     */
     public function getList(int $limitFrom=null, int $limitNumber=null, array $filters=array(),  string $orderBy='', string $order='ASC', $textSearch = ''):int{
 
+        // The names of columns cannot be bound: they are checked, the values are bound
+        $filters = $this->safeFilters($filters);
+        $orderBy = $this->safeOrderBy($orderBy);
+
         $query = "  SELECT m.`id_media`, m.`filename`, m.`mime_type`, m.`size_bytes`, m.`width`, m.`height`, m.`alt_text`, m.`caption`, m.`created_at`, m.`updated_at`, m.`deleted_at`
                     FROM `media` AS m                    ";
 
@@ -245,7 +252,7 @@ class ModelMedia extends \Apgenic\Classes\Model{
     
         foreach($filters as $field=>$value){
             if($field != ''  && $value !='' && $field !='deleted_at') {
-                $where .= " AND $field = :$field ";
+                $where .= " AND `$field` = :$field ";
             }
         }
         $query .= $where;
@@ -253,7 +260,7 @@ class ModelMedia extends \Apgenic\Classes\Model{
         // Set order
         if($order != 'ASC') $order = 'DESC';
         if($orderBy){
-            $query .= " ORDER BY $orderBy $order ";
+            $query .= " ORDER BY `$orderBy` $order ";
         }
 
         // Set limits
@@ -316,6 +323,8 @@ class ModelMedia extends \Apgenic\Classes\Model{
     * @return int 0 or Number of elements
     */
     public function count(string $where, $filters = [], string $textSearch):int{
+
+        $filters = $this->safeFilters($filters);
 
         $query = "SELECT COUNT(*) AS nbRows
                   FROM `media`
