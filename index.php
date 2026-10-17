@@ -47,6 +47,9 @@ if(!isset($_GET['task'])){
     if(COMPONENT == 'shop'){
         $task = 'cart';
     }
+    elseif(COMPONENT == 'accesscode'){
+        $task = 'code';
+    }
     elseif(Apgenic\Classes\Auth::can(COMPONENT, 'editlist')){
         $task = 'editlist';
     }
@@ -138,6 +141,10 @@ try{
 
             case 'shop':
                 $oCtrl = new Apgenic\Shop\ControllerShop();
+                break;
+
+            case 'accesscode':
+                $oCtrl = new Apgenic\Accesscode\ControllerAccesscode();
                 break;
             
     }

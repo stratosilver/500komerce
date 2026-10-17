@@ -23,6 +23,7 @@ class Auth
     const PUBLIC_TASKS = array(
         'product' => array('view', 'viewlist'),
         'shop'    => array('cart', 'add', 'update', 'checkout', 'login'),
+        'accesscode' => array('code', 'form', 'email', 'sent', 'link'),
     );
     // Tasks of the component user that a logged user does on his own account
     const SELF_TASKS = array('profile', 'me');
