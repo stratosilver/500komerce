@@ -89,7 +89,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         // Authorization. index.php already refuses the request, it is checked again here because this
         // component is the one that gives the permissions: own profile for everybody, the rest for the administrators
         if(!\Apgenic\Classes\Auth::can('user', $authTask == '' ? 'editlist' : $authTask)){
-            throw new \ErrorException('Access denied', 403, E_ERROR);
+            throw new \ErrorException(T_ACCESS_DENIED, 403, E_ERROR);
         }
 
         $oModelMedia = new \Apgenic\Media\ModelMedia();
@@ -116,7 +116,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         }
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLUser->header($task == 'profile' ? 'My profile' : 'User');
+            $this->HTMLUser->header($task == 'profile' ? T_MY_PROFILE : T_COMPONENT_USER);
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLUser->search(self::$fieldsNames, $task);
             }
@@ -141,7 +141,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
                 case 'profile':    $this->profile(); break;
 
-                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+                default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
             }
         }
         catch(Exception $e){
@@ -201,12 +201,12 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
                 $this->dataUser->save();
                 $this->message['type'] = 'success';
-                $this->message['text'] = 'The entry has been saved';
+                $this->message['text'] = T_MSG_SAVED;
             }
 
             else{
                 $this->message['type'] = 'danger';
-                $this->message['text'] = 'Fill all mandatory fields';
+                $this->message['text'] = T_MSG_FILL_MANDATORY;
             }
         }
 
@@ -246,11 +246,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if($this->dataUser->id_user){
             $this->dataUser->del();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         $this->editlist();
@@ -276,7 +276,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         if(count($this->message)){
@@ -382,11 +382,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if($this->dataUser->id_user){
             $this->dataUser->logicalUnDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -405,11 +405,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if($this->dataUser->id_user){
             $this->dataUser->logicalDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -459,17 +459,17 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
         $error = '';
         if($firstName == '' || $lastName == '' || $email == ''){
-            $error = 'Fill all mandatory fields';
+            $error = T_MSG_FILL_MANDATORY;
         }
         elseif(strlen($firstName) > 100 || strlen($lastName) > 100){
-            $error = 'The first name or the last name is too long';
+            $error = T_ERROR_NAME_TOO_LONG;
         }
         elseif($isLocal && (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255)){
-            $error = 'The email address is not valid';
+            $error = T_ERROR_EMAIL_INVALID;
         }
         elseif($isLocal && $password != ''){
             if(!password_verify((string)($_POST['current_password'] ?? ''), (string)$this->dataUser->password_hash)){
-                $error = 'The current password is wrong';
+                $error = T_ERROR_CURRENT_PASSWORD;
             }
             else{
                 $error = $this->passwordError($password, (string)($_POST['password_confirmation'] ?? ''));
@@ -480,7 +480,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if($error == '' && strcasecmp($email, (string)$this->dataUser->email) != 0){
             $other = new ModelUser();
             if($other->getByEmail($email, false)){
-                $error = 'An account already exists with this email address';
+                $error = T_ERROR_ACCOUNT_EXISTS;
             }
         }
 
@@ -503,7 +503,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         $_SESSION['user']['first_name'] = $this->dataUser->first_name;
         $_SESSION['user']['last_name'] = $this->dataUser->last_name;
 
-        $this->message = array('type' => 'success', 'text' => 'Your profile has been saved');
+        $this->message = array('type' => 'success', 'text' => T_MSG_PROFILE_SAVED);
     }
 
 
@@ -597,14 +597,14 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      */
     public static function passwordError(string $password, string $confirmation):string{
         if(strlen($password) < self::PASSWORD_MIN_LENGTH){
-            return 'The password must contain at least '.self::PASSWORD_MIN_LENGTH.' characters';
+            return sprintf(T_ERROR_PASSWORD_MIN, self::PASSWORD_MIN_LENGTH);
         }
         // bcrypt ignores what is after 72 bytes
         if(strlen($password) > 72){
-            return 'The password is too long (72 characters maximum)';
+            return T_ERROR_PASSWORD_MAX;
         }
         if($password !== $confirmation){
-            return 'The password and its confirmation are different';
+            return T_ERROR_PASSWORD_CONFIRMATION;
         }
         return '';
     }
@@ -617,7 +617,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      */
     public static function attemptLogin(string $email, string $password):string{
         if(($_SESSION['login_locked_until'] ?? 0) > time()){
-            return 'Too many attempts, try again in a few minutes';
+            return T_ERROR_TOO_MANY_ATTEMPTS;
         }
 
         $user = new ModelUser();
@@ -643,7 +643,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         }
 
         // Same message whatever the reason
-        return 'Wrong email or password';
+        return T_ERROR_WRONG_LOGIN;
     }
 
 
@@ -713,13 +713,13 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
             $error = '';
             if($values['first_name'] == '' || $values['last_name'] == '' || $values['email'] == ''){
-                $error = 'Fill all mandatory fields';
+                $error = T_MSG_FILL_MANDATORY;
             }
             elseif(!filter_var($values['email'], FILTER_VALIDATE_EMAIL) || strlen($values['email']) > 255){
-                $error = 'The email address is not valid';
+                $error = T_ERROR_EMAIL_INVALID;
             }
             elseif(strlen($values['first_name']) > 100 || strlen($values['last_name']) > 100){
-                $error = 'The first name or the last name is too long';
+                $error = T_ERROR_NAME_TOO_LONG;
             }
             else{
                 $error = $this->passwordError($password, (string)($_POST['password_confirmation'] ?? ''));
@@ -727,7 +727,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
             // The email is unique in the table, logically deleted users included
             if($error == '' && $this->dataUser->getByEmail($values['email'], false)){
-                $error = 'An account already exists with this email address';
+                $error = T_ERROR_ACCOUNT_EXISTS;
             }
 
             if($error == ''){
@@ -742,7 +742,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
                     self::redirect(BASE_URL.'/index.php');
                     return;
                 }
-                $error = 'The account could not be created';
+                $error = T_ERROR_ACCOUNT_NOT_CREATED;
             }
 
             $this->message['type'] = 'danger';
@@ -779,7 +779,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
             // Same message if the email is unknown, to not reveal which emails have an account
             $this->message['type'] = 'success';
-            $this->message['text'] = 'If an account exists with this email address, a link to choose a new password has been sent';
+            $this->message['text'] = T_MSG_RESET_LINK_SENT;
         }
 
         $this->HTMLUser->forgot($this->message, $devResetLink);
@@ -796,7 +796,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
         if(!$tokenValid){
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'This link is not valid or has expired';
+            $this->message['text'] = T_LINK_INVALID;
         }
         elseif($_SERVER['REQUEST_METHOD'] === 'POST'){
             $password = (string)($_POST['password'] ?? '');
@@ -808,7 +808,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
                 $this->dataUser->deletePasswordResetTokens();
 
                 unset($_SESSION['user'], $_SESSION['login_attempts'], $_SESSION['login_locked_until']);
-                $_SESSION['auth_message'] = array('type' => 'success', 'text' => 'Your password has been changed, you can sign in');
+                $_SESSION['auth_message'] = array('type' => 'success', 'text' => T_MSG_PASSWORD_CHANGED);
                 self::redirect(self::url('login'));
                 return;
             }
@@ -842,11 +842,12 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return bool
      */
     private function sendResetMail(string $to, string $link):bool{
-        $subject = 'Reset your password';
-        $body  = "Hello,\r\n\r\n";
-        $body .= "Use the following link to choose a new password, it is valid for ".self::RESET_TOKEN_VALIDITY." minutes:\r\n\r\n";
+        // Subject encoded for the accents (RFC 2047)
+        $subject = '=?UTF-8?B?'.base64_encode(T_MAIL_RESET_SUBJECT).'?=';
+        $body  = T_MAIL_HELLO."\r\n\r\n";
+        $body .= sprintf(T_MAIL_RESET_TEXT, self::RESET_TOKEN_VALIDITY)."\r\n\r\n";
         $body .= $link."\r\n\r\n";
-        $body .= "If you did not ask for a new password, ignore this email.\r\n";
+        $body .= T_MAIL_RESET_IGNORE."\r\n";
 
         $headers = "Content-Type: text/plain; charset=utf-8\r\n";
         if(defined('MAIL_FROM') && MAIL_FROM != ''){
@@ -966,7 +967,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             || $state == ''
             || !hash_equals((string)$oauth['state'], $state)
             || time() - (int)$oauth['time'] > self::OAUTH_MAX_TIME){
-            $this->oauthFail('The sign in has expired, try again');
+            $this->oauthFail(T_OAUTH_EXPIRED);
             return;
         }
         $conf = self::OAUTH[$provider];
@@ -974,7 +975,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         // The user refused, or the provider returned an error
         $code = (string)($_GET['code'] ?? '');
         if($code == ''){
-            $this->oauthFail('The sign in with '.$conf['label'].' has been cancelled');
+            $this->oauthFail(sprintf(T_OAUTH_CANCELLED, $conf['label']));
             return;
         }
 
@@ -1008,12 +1009,12 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         }
         catch(\Throwable $e){
             error_log('OAuth '.$provider.': '.$e->getMessage());
-            $this->oauthFail('The sign in with '.$conf['label'].' failed, try again');
+            $this->oauthFail(sprintf(T_OAUTH_FAILED, $conf['label']));
             return;
         }
 
         if($profile['id'] == ''){
-            $this->oauthFail('The sign in with '.$conf['label'].' failed, try again');
+            $this->oauthFail(sprintf(T_OAUTH_FAILED, $conf['label']));
             return;
         }
 
@@ -1023,7 +1024,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         // 2. An account exists with the same email, verified by the provider: same person
         if(!$found){
             if($profile['email'] == ''){
-                $this->oauthFail('Your '.$conf['label'].' account did not give a verified email address, it is required to create your account');
+                $this->oauthFail(sprintf(T_OAUTH_NO_EMAIL, $conf['label']));
                 return;
             }
             $found = $this->dataUser->getByEmail($profile['email'], false);
@@ -1039,12 +1040,12 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             $this->dataUser->provider_user_id = $profile['id'];
 
             if(!$this->dataUser->registerSocial()){
-                $this->oauthFail('The account could not be created');
+                $this->oauthFail(T_ERROR_ACCOUNT_NOT_CREATED);
                 return;
             }
         }
         elseif($this->dataUser->status != 'active' || $this->dataUser->deleted_at !== null){
-            $this->oauthFail('This account is disabled');
+            $this->oauthFail(T_OAUTH_DISABLED);
             return;
         }
 

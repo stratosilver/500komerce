@@ -19,21 +19,21 @@ class ControllerAccesscode {
 
     // The 15 fields of the form: column of access_form => label. Change the labels here.
     const FIELDS = array(
-        'field_01' => 'Field 1',
-        'field_02' => 'Field 2',
-        'field_03' => 'Field 3',
-        'field_04' => 'Field 4',
-        'field_05' => 'Field 5',
-        'field_06' => 'Field 6',
-        'field_07' => 'Field 7',
-        'field_08' => 'Field 8',
-        'field_09' => 'Field 9',
-        'field_10' => 'Field 10',
-        'field_11' => 'Field 11',
-        'field_12' => 'Field 12',
-        'field_13' => 'Field 13',
-        'field_14' => 'Field 14',
-        'field_15' => 'Field 15',
+        'field_01' => T_ACCESS_FIELD_01,
+        'field_02' => T_ACCESS_FIELD_02,
+        'field_03' => T_ACCESS_FIELD_03,
+        'field_04' => T_ACCESS_FIELD_04,
+        'field_05' => T_ACCESS_FIELD_05,
+        'field_06' => T_ACCESS_FIELD_06,
+        'field_07' => T_ACCESS_FIELD_07,
+        'field_08' => T_ACCESS_FIELD_08,
+        'field_09' => T_ACCESS_FIELD_09,
+        'field_10' => T_ACCESS_FIELD_10,
+        'field_11' => T_ACCESS_FIELD_11,
+        'field_12' => T_ACCESS_FIELD_12,
+        'field_13' => T_ACCESS_FIELD_13,
+        'field_14' => T_ACCESS_FIELD_14,
+        'field_15' => T_ACCESS_FIELD_15,
     );
     const FIELD_MAX_LENGTH = 255;
 
@@ -69,7 +69,7 @@ class ControllerAccesscode {
             case 'email': $this->email(); break;
             case 'sent':  $this->sent(); break;
             case 'link':  $this->link(); break;
-            default: throw new \ErrorException('Page not found', 404, E_ERROR);
+            default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
         }
     }
 
@@ -103,10 +103,10 @@ class ControllerAccesscode {
             $code = trim((string)($_POST['code'] ?? ''));
 
             if($lockedUntil > time()){
-                $this->message = array('type' => 'danger', 'text' => 'Too many wrong codes, try again in '.ceil(($lockedUntil - time()) / 60).' minute(s)');
+                $this->message = array('type' => 'danger', 'text' => sprintf(T_ERROR_TOO_MANY_CODES, ceil(($lockedUntil - time()) / 60)));
             }
             elseif($code === '' || strlen($code) > 64){
-                $this->message = array('type' => 'danger', 'text' => 'Please enter a code');
+                $this->message = array('type' => 'danger', 'text' => T_ERROR_ENTER_CODE);
             }
             else{
                 $idAccessCode = $this->dataAccesscode->findCode($code);
@@ -123,11 +123,11 @@ class ControllerAccesscode {
                     $_SESSION['accesscode_locked_until'] = time() + self::LOCK_DURATION;
                     $_SESSION['accesscode_attempts'] = 0;
                 }
-                $this->message = array('type' => 'danger', 'text' => 'This code does not exist');
+                $this->message = array('type' => 'danger', 'text' => T_ERROR_CODE_UNKNOWN);
             }
         }
 
-        $this->HTMLAccesscode->header('Access code');
+        $this->HTMLAccesscode->header(T_ACCESS_CODE);
         $this->HTMLAccesscode->code(htmlspecialchars($code), $this->message);
         $this->HTMLAccesscode->footer();
     }
@@ -138,7 +138,7 @@ class ControllerAccesscode {
 
     private function form():void{
         if(self::validatedCode() < 1){
-            self::flash('warning', 'Please enter your code first');
+            self::flash('warning', T_ERROR_CODE_FIRST);
             self::redirect(self::url('code'));
             return;
         }
@@ -151,7 +151,7 @@ class ControllerAccesscode {
             foreach(array_keys(self::FIELDS) as $field){
                 $values[$field] = trim((string)filter_var($_POST[$field] ?? '', FILTER_SANITIZE_SPECIAL_CHARS));
                 if(strlen($values[$field]) > self::FIELD_MAX_LENGTH){
-                    $errors[$field] = 'Too long';
+                    $errors[$field] = T_ERROR_TOO_LONG;
                 }
             }
             $_SESSION['accesscode']['values'] = $values;
@@ -161,10 +161,10 @@ class ControllerAccesscode {
                 self::redirect(self::url('email'));
                 return;
             }
-            $this->message = array('type' => 'danger', 'text' => 'Some fields are not valid');
+            $this->message = array('type' => 'danger', 'text' => T_MSG_FIELDS_INVALID);
         }
 
-        $this->HTMLAccesscode->header('Form');
+        $this->HTMLAccesscode->header(T_FORM);
         $this->HTMLAccesscode->form(self::FIELDS, $values, $errors, self::FIELD_MAX_LENGTH, $this->message);
         $this->HTMLAccesscode->footer();
     }
@@ -184,12 +184,12 @@ class ControllerAccesscode {
             $email = trim((string)($_POST['email'] ?? ''));
 
             if(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
-                $this->message = array('type' => 'danger', 'text' => 'The email address is not valid');
+                $this->message = array('type' => 'danger', 'text' => T_ERROR_EMAIL_INVALID);
             }
             else{
                 $saved = $this->dataAccesscode->saveFormWithCodes(self::validatedCode(), $_SESSION['accesscode']['values'], $email, self::LINK_VALIDITY_DAYS, self::CODES_SENT);
                 if($saved === array()){
-                    $this->message = array('type' => 'danger', 'text' => 'The form could not be saved');
+                    $this->message = array('type' => 'danger', 'text' => T_ERROR_FORM_NOT_SAVED);
                 }
                 else{
                     $link = $this->absoluteUrl(self::url('link', '&token='.$saved['token']));
@@ -210,7 +210,7 @@ class ControllerAccesscode {
             }
         }
 
-        $this->HTMLAccesscode->header('Your email');
+        $this->HTMLAccesscode->header(T_YOUR_EMAIL);
         $this->HTMLAccesscode->email(htmlspecialchars($email), $this->message);
         $this->HTMLAccesscode->footer();
     }
@@ -224,7 +224,7 @@ class ControllerAccesscode {
         }
         unset($_SESSION['accesscode_sent']);
 
-        $this->HTMLAccesscode->header('Link sent');
+        $this->HTMLAccesscode->header(T_LINK_SENT);
         $this->HTMLAccesscode->sent($sent['email'], (bool)$sent['mail_sent'], (string)$sent['dev_link'], (array)$sent['dev_codes']);
         $this->HTMLAccesscode->footer();
     }
@@ -238,7 +238,7 @@ class ControllerAccesscode {
 
         // The token must not leak in the Referer header
         header('Referrer-Policy: no-referrer');
-        $this->HTMLAccesscode->header('Your form');
+        $this->HTMLAccesscode->header(T_YOUR_FORM);
         $this->HTMLAccesscode->link(self::FIELDS, $row);
         $this->HTMLAccesscode->footer();
     }
@@ -263,11 +263,12 @@ class ControllerAccesscode {
      * @return bool
      */
     private function sendLinkMail(string $to, string $link, array $codes):bool{
-        $subject = 'Your form';
-        $body  = "Hello,\r\n\r\n";
-        $body .= "Thank you for filling the form. You can see it with the following link, valid for ".self::LINK_VALIDITY_DAYS." days:\r\n\r\n";
+        // Subject encoded for the accents (RFC 2047)
+        $subject = '=?UTF-8?B?'.base64_encode(T_YOUR_FORM).'?=';
+        $body  = T_MAIL_HELLO."\r\n\r\n";
+        $body .= sprintf(T_MAIL_FORM_TEXT, self::LINK_VALIDITY_DAYS)."\r\n\r\n";
         $body .= $link."\r\n\r\n";
-        $body .= "Here are ".count($codes)." codes that give access to the form:\r\n\r\n";
+        $body .= sprintf(T_MAIL_FORM_CODES, count($codes))."\r\n\r\n";
         foreach($codes as $code){
             $body .= "  ".$code."\r\n";
         }

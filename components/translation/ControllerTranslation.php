@@ -45,7 +45,7 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
         $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLTranslation->header('Translation');
+            $this->HTMLTranslation->header(T_COMPONENT_TRANSLATION);
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLTranslation->search(self::$fieldsNames, $task);
             }
@@ -69,7 +69,7 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
                 case 'viewlist':   $this->viewList($textSearch); break;
 
 
-                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+                default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
             }
         }
         catch(Exception $e){
@@ -102,12 +102,12 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
 
                 $this->dataTranslation->save();
                 $this->message['type'] = 'success';
-                $this->message['text'] = 'The entry has been saved';
+                $this->message['text'] = T_MSG_SAVED;
             }
 
             else{
                 $this->message['type'] = 'danger';
-                $this->message['text'] = 'Fill all mandatory fields';
+                $this->message['text'] = T_MSG_FILL_MANDATORY;
             }
         }
 
@@ -147,11 +147,11 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
         if($this->dataTranslation->id_translation){
             $this->dataTranslation->del();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         $this->editlist();
@@ -177,7 +177,7 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         if(count($this->message)){
@@ -283,11 +283,11 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
         if($this->dataTranslation->id_translation){
             $this->dataTranslation->logicalUnDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -306,11 +306,11 @@ class ControllerTranslation  extends \Apgenic\Classes\Controller {
         if($this->dataTranslation->id_translation){
             $this->dataTranslation->logicalDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);

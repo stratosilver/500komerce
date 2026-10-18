@@ -77,50 +77,50 @@ class MediaImage {
      */
     public static function store(array $file, string $name):array{
         if(!extension_loaded('gd')){
-            throw new \RuntimeException('The GD extension of PHP is needed to resize the images');
+            throw new \RuntimeException(T_UPLOAD_NO_GD);
         }
 
         // Upload errors
         if(!isset($file['error']) || is_array($file['error'])){
-            throw new \RuntimeException('Invalid upload');
+            throw new \RuntimeException(T_UPLOAD_INVALID);
         }
         switch($file['error']){
             case UPLOAD_ERR_OK:
                 break;
             case UPLOAD_ERR_NO_FILE:
-                throw new \RuntimeException('No file sent');
+                throw new \RuntimeException(T_UPLOAD_NO_FILE);
             case UPLOAD_ERR_INI_SIZE:
             case UPLOAD_ERR_FORM_SIZE:
-                throw new \RuntimeException('The file is too big (upload_max_filesize of php.ini: '.ini_get('upload_max_filesize').')');
+                throw new \RuntimeException(sprintf(T_UPLOAD_TOO_BIG_INI, ini_get('upload_max_filesize')));
             default:
-                throw new \RuntimeException('The upload failed (code '.$file['error'].')');
+                throw new \RuntimeException(sprintf(T_UPLOAD_FAILED, $file['error']));
         }
         if(!is_uploaded_file($file['tmp_name'])){
-            throw new \RuntimeException('Invalid upload');
+            throw new \RuntimeException(T_UPLOAD_INVALID);
         }
         if($file['size'] <= 0 || $file['size'] > self::MAX_FILE_SIZE){
-            throw new \RuntimeException('The file is too big, '.round(self::MAX_FILE_SIZE / 1048576).' MB maximum');
+            throw new \RuntimeException(sprintf(T_UPLOAD_TOO_BIG, round(self::MAX_FILE_SIZE / 1048576)));
         }
 
         // Real type of the file, never the one announced by the browser
         $mime = (string)(new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
         $size = @getimagesize($file['tmp_name']);
         if(!isset(self::TYPES[$mime]) || $size === false || $size[0] < 1 || $size[1] < 1){
-            throw new \RuntimeException('This file is not an accepted image (JPEG, PNG, GIF or WebP)');
+            throw new \RuntimeException(T_UPLOAD_NOT_IMAGE);
         }
         if($size[0] * $size[1] > self::MAX_PIXELS){
-            throw new \RuntimeException('The image is too large, '.round(self::MAX_PIXELS / 1000000).' megapixels maximum');
+            throw new \RuntimeException(sprintf(T_UPLOAD_TOO_MANY_PIXELS, round(self::MAX_PIXELS / 1000000)));
         }
         $extension = self::TYPES[$mime];
 
         $source = self::open($file['tmp_name'], $mime);
         if(!$source){
-            throw new \RuntimeException('The image could not be read');
+            throw new \RuntimeException(T_UPLOAD_UNREADABLE);
         }
 
         $dir = self::dir();
         if(!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)){
-            throw new \RuntimeException('The folder public/'.self::DIR.' could not be created');
+            throw new \RuntimeException(sprintf(T_UPLOAD_NO_FOLDER, 'public/'.self::DIR));
         }
 
         $base = self::freeName(self::slug($name));
@@ -129,7 +129,7 @@ class MediaImage {
 
         try{
             if(!move_uploaded_file($file['tmp_name'], $dir.DIRECTORY_SEPARATOR.$filename)){
-                throw new \RuntimeException('The file could not be stored in public/'.self::DIR);
+                throw new \RuntimeException(sprintf(T_UPLOAD_NOT_STORED, 'public/'.self::DIR));
             }
             $created[] = $filename;
             @chmod($dir.DIRECTORY_SEPARATOR.$filename, 0644);
@@ -137,7 +137,7 @@ class MediaImage {
             foreach(self::SIZES as $sizeName => $box){
                 $variant = self::variant($filename, $sizeName);
                 if(!self::resize($source, $mime, $box[0], $box[1], $dir.DIRECTORY_SEPARATOR.$variant)){
-                    throw new \RuntimeException('The size "'.$sizeName.'" of the image could not be created');
+                    throw new \RuntimeException(sprintf(T_UPLOAD_SIZE_FAILED, $sizeName));
                 }
                 $created[] = $variant;
             }

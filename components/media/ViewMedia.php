@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Apgenic\Media;
 
 class ViewMedia extends \Apgenic\Classes\ViewTemplate {
+/** The component has a list of the deleted entries (link Trash of the header) */
+protected bool $trash = true;
 
 public string $filtersGet = '';
 
@@ -35,15 +37,15 @@ public static function tabs(int $id, string $activeTab){
 
     <ul id="tabs_list" class="nav nav-tabs">
       <li class="nav-item">
-        <a id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=media&task=edit&id_media=<?=$id?>">Info</a>
+        <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=media&task=edit&id_media=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
       
         <li class="nav-item">
-            <a id="tab_0" class="form_tabs nav-link <?php if($activeTab == 'user') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=user&task=childlist&filters[id_media]=<?=$id ?>&showTabs=0">User</a>
+            <a href="#" id="tab_0" class="form_tabs nav-link <?php if($activeTab == 'user') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=user&task=childlist&filters[id_media]=<?=$id ?>&showTabs=0"><?=T_MENU_USER?></a>
         </li>
         
         <li class="nav-item">
-            <a id="tab_1" class="form_tabs nav-link <?php if($activeTab == 'productmedia') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=productmedia&task=childlist&filters[id_media]=<?=$id ?>&showTabs=0">Product_media</a>
+            <a href="#" id="tab_1" class="form_tabs nav-link <?php if($activeTab == 'productmedia') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=productmedia&task=childlist&filters[id_media]=<?=$id ?>&showTabs=0"><?=T_MENU_PRODUCTMEDIA?></a>
         </li>
         
     </ul>
@@ -93,15 +95,15 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
         ?>
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=$isNew ? 'Image&nbsp;*:' : 'Replace&nbsp;the&nbsp;image:'?></label>
+		<label class="control-label" for="file"><?=$isNew ? T_IMAGE.'&nbsp;*' : T_REPLACE_IMAGE?></label>
 		<input <?php if($isNew) echo 'required';?> class="form-control-file" type="file" name="file" id="file" accept="<?=implode(',', array_keys(MediaImage::TYPES))?>"/>
-		<small class="form-text text-muted">JPEG, PNG, GIF or WebP, <?=round(MediaImage::MAX_FILE_SIZE / 1048576)?> MB maximum. Sizes created: <?=implode(', ', $sizes)?>.</small>
+		<small class="form-text text-muted"><?=sprintf(T_IMAGE_HELP, round(MediaImage::MAX_FILE_SIZE / 1048576), implode(', ', $sizes))?></small>
 	    </div>
 	    </div>
 
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Product:</label>
+            <label class="control-label"><?=T_FIELD_PRODUCT?></label>
             <select  class="form-control" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
@@ -112,13 +114,13 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
         }
         ?>
             </select>
-            <small class="form-text text-muted">The file is named after the product<?php if($isNew) echo ' and the image is added to its images';?>. Without product: after the alt text, else the name of the file.</small>
+            <small class="form-text text-muted"><?=$isNew ? T_IMAGE_PRODUCT_HELP_NEW : T_IMAGE_PRODUCT_HELP?></small>
 		</div>
 		</div>
 
         <?php if(!$isNew){ ?>
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Current&nbsp;image:</label>
+		<label class="control-label"><?=T_FIELD_CURRENT_IMAGE?></label>
 		<div>
 		<?=MediaImage::thumbnail($data->filename, (string)$data->alt_text)?>
 		<?=htmlentities((string)$data->filename)?>
@@ -130,23 +132,23 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Alt&nbsp;text:</label>
+		<label class="control-label"><?=T_FIELD_ALT_TEXT?></label>
 		<input  class="form-control" type="text" name="alt_text" id="alt_text" size="10" value="<?=htmlentities((string)(string)$data->alt_text)?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-12 col-md-12"><div class="form-group">
-		<label><span>Caption:</span></label>
+		<label class="control-label"><?=T_FIELD_CAPTION?></label>
 		<textarea  class="form-control" name="caption" id="caption" rows="4" cols="49"><?=$data->caption?></textarea>
 	    </div>
 	    </div>
 	
 		<div class="col-12">
 		
-		<div class="form-group">
+		<div class="form-group k-form-actions">
 		<input type="hidden" name="id_media" id="id" value="<?=$data->id_media ?>"/>
-		<input type="submit" name="Envoyer" title="Envoyer" value="Save" class="btn btn-outline btn-outline-primary">
+		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
 		</div>
 
@@ -180,14 +182,14 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>">Id&nbsp;media</a></th>
-	<th scope="col" id="filename"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>">Filename</a></th>
-	<th scope="col" id="mime_type"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>">Mime&nbsp;type</a></th>
-	<th scope="col" id="size_bytes"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>">Size&nbsp;bytes</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -207,7 +209,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn">
+		    <td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
             <?=self::icon('view')?>		    
             </a></td>
 		</tr>
@@ -227,6 +229,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -257,17 +260,17 @@ public function view(ModelMedia $data , array $message=null){
             <div class="col-sm-12">
                 <dl class="row">
                     
-		        <dt class="col-sm-3"><h5>Id&nbsp;media</h5></dt><dd class="col-sm-9"><?php echo $data->id_media?></dd>
-		        <dt class="col-sm-3"><h5>Filename</h5></dt><dd class="col-sm-9"><?=MediaImage::thumbnail($data->filename, (string)$data->alt_text)?> <?php echo $data->filename?></dd>
-		        <dt class="col-sm-3"><h5>Mime&nbsp;type</h5></dt><dd class="col-sm-9"><?php echo $data->mime_type?></dd>
-		        <dt class="col-sm-3"><h5>Size&nbsp;bytes</h5></dt><dd class="col-sm-9"><?php echo $data->size_bytes?></dd>
-		        <dt class="col-sm-3"><h5>Width</h5></dt><dd class="col-sm-9"><?php echo $data->width?></dd>
-		        <dt class="col-sm-3"><h5>Height</h5></dt><dd class="col-sm-9"><?php echo $data->height?></dd>
-		        <dt class="col-sm-3"><h5>Alt&nbsp;text</h5></dt><dd class="col-sm-9"><?php echo $data->alt_text?></dd>
-		        <dt class="col-sm-3"><h5>Caption</h5></dt><dd class="col-sm-9"><?php echo $data->caption?></dd>
-		        <dt class="col-sm-3"><h5>Created&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
-		        <dt class="col-sm-3"><h5>Updated&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->updated_at?></dd>
-		        <dt class="col-sm-3"><h5>Deleted&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->deleted_at?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID?></h5></dt><dd class="col-sm-9"><?php echo $data->id_media?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_FILENAME?></h5></dt><dd class="col-sm-9"><?=MediaImage::thumbnail($data->filename, (string)$data->alt_text)?> <?php echo $data->filename?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_MIME_TYPE?></h5></dt><dd class="col-sm-9"><?php echo $data->mime_type?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_SIZE_BYTES?></h5></dt><dd class="col-sm-9"><?php echo $data->size_bytes?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_WIDTH?></h5></dt><dd class="col-sm-9"><?php echo $data->width?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_HEIGHT?></h5></dt><dd class="col-sm-9"><?php echo $data->height?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ALT_TEXT?></h5></dt><dd class="col-sm-9"><?php echo $data->alt_text?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_CAPTION?></h5></dt><dd class="col-sm-9"><?php echo $data->caption?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_CREATED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_UPDATED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->updated_at?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_DELETED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->deleted_at?></dd>
 	             </dl></div>
             </div>
 	    </div>
@@ -275,7 +278,7 @@ public function view(ModelMedia $data , array $message=null){
 	<?php
     }
     else{
-        $this->message(array('text' => 'No data', 'type' => 'warning'));
+        $this->message(array('text' => T_NO_DATA, 'type' => 'warning'));
     }
 
 
@@ -297,7 +300,7 @@ public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonIcon[1] = self::icon('check2');
    
     ?>
-    <a hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=<?=$task?>&value=<?php echo $value?>&id_media=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=<?=$task?>&value=<?php echo $value?>&id_media=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
     <?php
 }
 
@@ -314,20 +317,18 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>">Id&nbsp;media</a></th>
-	<th scope="col" id="filename"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=filename&<?=$this->filtersGet?>&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>">Filename</a></th>
-	<th scope="col" id="mime_type"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=mime_type&<?=$this->filtersGet?>&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>">Mime&nbsp;type</a></th>
-	<th scope="col" id="size_bytes"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=size_bytes&<?=$this->filtersGet?>&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>">Size&nbsp;bytes</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=filename&<?=$this->filtersGet?>&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=mime_type&<?=$this->filtersGet?>&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=size_bytes&<?=$this->filtersGet?>&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist" class="btn btn-outline btn-outline-secondary">
-check2   
-            </a></th>
+		<th><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3')?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -345,12 +346,12 @@ check2
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 			<?=self::icon('view');?></a></td>
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=edit&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=edit&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil');?>
             </a></td>
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=logicaldeleteHtmx&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=logicaldeleteHtmx&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">
             <?=self::icon('x-lg');?>
             </a></td>
 		</tr>
@@ -370,6 +371,7 @@ check2
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -391,14 +393,14 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_media"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;media</a></th>
-	<th scope="col" id="filename"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Filename</a></th>
-	<th scope="col" id="mime_type"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Mime&nbsp;type</a></th>
-	<th scope="col" id="size_bytes"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Size&nbsp;bytes</a></th>
-	<th scope="col" id="created_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_media"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
@@ -419,13 +421,13 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&showTabs=0&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&showTabs=0&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 	        <?=self::icon('view');?>		
             </a></td>
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childList&showTabs=0&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn  btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childList&showTabs=0&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver');?>
             </a></td>    
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=delHtmx&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">Del</a></td>
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=delHtmx&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -439,14 +441,15 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	<tfoot>
 	<tr>
 	<td colspan="14" class="phppistolsTFooter" style="text-align: right;">
-	    <a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
-        <?=self::icon('plus-lg');?>
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
+        <?=self::icon('plus-lg');?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
 	</tfoot>
 
 	</table>
+	</div>
 	
 	<?php
 }
@@ -465,14 +468,14 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<table class="table table-bordered table-sm">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
 	<thead>
-	<tr>	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>">Id&nbsp;media</a></th>
-	<th scope="col" id="filename"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>">Filename</a></th>
-	<th scope="col" id="mime_type"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>">Mime&nbsp;type</a></th>
-	<th scope="col" id="size_bytes"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>">Size&nbsp;bytes</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -492,7 +495,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#row-<?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=undelHtmx&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary">
+		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=media&task=undelHtmx&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
             <?=self::icon('undel')?>	    
             </a></td>
 		</tr>
@@ -512,6 +515,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 

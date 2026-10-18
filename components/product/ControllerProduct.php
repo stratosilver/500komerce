@@ -49,7 +49,16 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLProduct->header('Product');
+            // Page of a product: its name in the title of the page and in the path
+            $title = T_COMPONENT_PRODUCT;
+            if($task == 'view'){
+                $oProduct = new ModelProduct();
+                $oProduct->id_product = filter_var($_GET['id_product'] ?? null, FILTER_VALIDATE_INT);
+                if($oProduct->id_product && $oProduct->get() && (\Apgenic\Classes\Auth::canEdit() || ($oProduct->status == 'active' && $oProduct->deleted_at === null))){
+                    $title = (string)$oProduct->name;
+                }
+            }
+            $this->HTMLProduct->header($title);
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLProduct->search(self::$fieldsNames, $task);
             }
@@ -73,7 +82,7 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
                 case 'viewlist':   $this->viewList($textSearch); break;
 
 
-                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+                default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
             }
         }
         catch(Exception $e){
@@ -113,12 +122,12 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
 
                 $this->dataProduct->save();
                 $this->message['type'] = 'success';
-                $this->message['text'] = 'The entry has been saved';
+                $this->message['text'] = T_MSG_SAVED;
             }
 
             else{
                 $this->message['type'] = 'danger';
-                $this->message['text'] = 'Fill all mandatory fields';
+                $this->message['text'] = T_MSG_FILL_MANDATORY;
             }
         }
 
@@ -158,11 +167,11 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         if($this->dataProduct->id_product){
             $this->dataProduct->del();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         $this->editlist();
@@ -188,7 +197,7 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         if(count($this->message)){
@@ -305,11 +314,11 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         if($this->dataProduct->id_product){
             $this->dataProduct->logicalUnDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -328,11 +337,11 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         if($this->dataProduct->id_product){
             $this->dataProduct->logicalDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);

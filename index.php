@@ -11,6 +11,8 @@ ini_set('display_errors', 'On');
 error_reporting(E_ALL ^ E_NOTICE);
 
 require_once('config.php');
+// Texts of the interface in the chosen language: constants T_...
+require_once('translations.php');
 require_once('autoload.php');
 
 // CSRF protection
@@ -23,7 +25,7 @@ if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'])) {
 
     if ($csrf_token == null ||
         !hash_equals($_SESSION['csrf_token'], $csrf_token)){
-        die('Invalid Token');
+        die(T_INVALID_TOKEN);
     }
 }
 
@@ -72,12 +74,12 @@ if(!Apgenic\Classes\Auth::can(COMPONENT, $task)){
     // 2. Authorization: this task is not allowed with the permissions of the user
     http_response_code(403);
     $oView = new Apgenic\Classes\ViewTemplate();
-    $denied = array('type' => 'danger', 'text' => 'Access denied: your permissions do not allow this page');
+    $denied = array('type' => 'danger', 'text' => T_ACCESS_DENIED_TEXT);
     if($_SERVER['PHP_SELF'] == '/htmx.php'){
         $oView->message($denied);
     }
     else{
-        $oView->header('Access denied');
+        $oView->header(T_ACCESS_DENIED);
         $oView->message($denied);
         $oView->footer();
     }
@@ -151,7 +153,8 @@ try{
     $oCtrl->render();
 }
 catch (exception $e){
-    echo $e->getMessage();
+    // Displayed by 404.php, in the layout of the site
+    $errorMessage = $e->getMessage();
     include '404.php';
 }
 

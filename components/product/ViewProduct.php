@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Apgenic\Product;
 
 class ViewProduct extends \Apgenic\Classes\ViewTemplate {
+/** The component has a list of the deleted entries (link Trash of the header) */
+protected bool $trash = true;
 var $userList2 = array();
 
 public array $filters = array();
@@ -37,23 +39,23 @@ public static function tabs(int $id, string $activeTab){
 
     <ul id="tabs_list" class="nav nav-tabs">
       <li class="nav-item">
-        <a id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=product&task=edit&id_product=<?=$id?>">Info</a>
+        <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=product&task=edit&id_product=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
       
         <li class="nav-item">
-            <a id="tab_0" class="form_tabs nav-link <?php if($activeTab == 'productmedia') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=productmedia&task=childlist&filters[id_product]=<?=$id ?>&showTabs=0">Product_media</a>
+            <a href="#" id="tab_0" class="form_tabs nav-link <?php if($activeTab == 'productmedia') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=productmedia&task=childlist&filters[id_product]=<?=$id ?>&showTabs=0"><?=T_MENU_PRODUCTMEDIA?></a>
         </li>
         
         <li class="nav-item">
-            <a id="tab_1" class="form_tabs nav-link <?php if($activeTab == 'productcategory') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=productcategory&task=childlist&filters[id_product]=<?=$id ?>&showTabs=0">Product_category</a>
+            <a href="#" id="tab_1" class="form_tabs nav-link <?php if($activeTab == 'productcategory') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=productcategory&task=childlist&filters[id_product]=<?=$id ?>&showTabs=0"><?=T_MENU_PRODUCTCATEGORY?></a>
         </li>
         
         <li class="nav-item">
-            <a id="tab_2" class="form_tabs nav-link <?php if($activeTab == 'cartitem') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=cartitem&task=childlist&filters[id_product_variant]=<?=$id ?>&showTabs=0">Cart_item</a>
+            <a href="#" id="tab_2" class="form_tabs nav-link <?php if($activeTab == 'cartitem') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=cartitem&task=childlist&filters[id_product_variant]=<?=$id ?>&showTabs=0"><?=T_MENU_CARTITEM?></a>
         </li>
         
         <li class="nav-item">
-            <a id="tab_3" class="form_tabs nav-link <?php if($activeTab == 'customerorder') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=customerorder&task=childlist&filters[id_user]=<?=$id ?>&showTabs=0">Customer_order</a>
+            <a href="#" id="tab_3" class="form_tabs nav-link <?php if($activeTab == 'customerorder') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=customerorder&task=childlist&filters[id_user]=<?=$id ?>&showTabs=0"><?=T_MENU_CUSTOMERORDER?></a>
         </li>
         
     </ul>
@@ -99,7 +101,7 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
                         
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Id&nbsp;user:</label>
+            <label class="control-label"><?=T_FIELD_ID_USER?></label>
             <select  class="form-control" name="id_user" id="id_user">
                 <option value=""></option>
         <?php
@@ -126,64 +128,64 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
                         
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Name&nbsp;*:</label>
+		<label class="control-label"><?=T_FIELD_NAME?>&nbsp;*</label>
 		<input required class="form-control" type="text" name="name" id="name" size="10" value="<?=htmlentities((string)(string)$data->name)?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Slug:</label>
+		<label class="control-label"><?=T_FIELD_SLUG?></label>
 		<input  class="form-control" type="text" name="slug" id="slug" size="10" value="<?=htmlentities((string)(string)$data->slug)?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Summary:</label>
+		<label class="control-label"><?=T_FIELD_SUMMARY?></label>
 		<input  class="form-control" type="text" name="summary" id="summary" size="10" value="<?=htmlentities((string)(string)$data->summary)?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Price&nbsp;(without&nbsp;tax):</label>
+		<label class="control-label"><?=T_FIELD_PRICE_WITHOUT_TAX?></label>
 		<input  class="form-control" type="number" min="0" step="0.01" name="price" id="price" value="<?=number_format((int)$data->price_amount / 100, 2, '.', '')?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-12 col-md-12"><div class="form-group">
-		<label><span>Description:</span></label>
+		<label class="control-label"><?=T_FIELD_DESCRIPTION?></label>
 		<textarea  class="form-control" name="description" id="description" rows="4" cols="49"><?=$data->description?></textarea>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-            <label class="control-label">Status:</label>
+            <label class="control-label"><?=T_FIELD_STATUS?></label>
             <select required="" class="form-control" name="status" id="status">
                 <option value=""></option>
             
-                <option value="draft" <?php if($data->status == 'draft') echo 'selected="selected"' ?>>draft</option>
-                <option value="active" <?php if($data->status == 'active') echo 'selected="selected"' ?>>active</option>
-                <option value="archived" <?php if($data->status == 'archived') echo 'selected="selected"' ?>>archived</option>
+                <option value="draft" <?php if($data->status == 'draft') echo 'selected="selected"' ?>><?=T_VALUE_DRAFT?></option>
+                <option value="active" <?php if($data->status == 'active') echo 'selected="selected"' ?>><?=T_VALUE_ACTIVE?></option>
+                <option value="archived" <?php if($data->status == 'archived') echo 'selected="selected"' ?>><?=T_VALUE_ARCHIVED?></option>
             </select>
 		</div>
 	    </div>
 		
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Published&nbsp;at:</label>
+		<label class="control-label"><?=T_FIELD_PUBLISHED_AT?></label>
 		<input  class="form-control" type="datetime-local" name="published_at" id="published_at" value="<?=htmlentities((string)$data->published_at)?>"/>
 	    </div>
 	    </div>
 	    
 		<div class="col-12">
 		
-		<div class="form-group">
+		<div class="form-group k-form-actions">
 		<input type="hidden" name="id_product" id="id" value="<?=$data->id_product ?>"/>
-		<input type="submit" name="Envoyer" title="Envoyer" value="Save" class="btn btn-outline btn-outline-primary">
+		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
 		</div>
 
@@ -205,29 +207,60 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
 	
 
 /**
- * Search bar. The visitors and the customers get a simple text search, the back office keeps the search by field.
+ * Search bar. The back office keeps the search by field; in the shop, the search is in the header of the page.
  * @return void
  */
 public function search(array $fieldsList = [], $task = 'viewlist'):void{
-    if(\Apgenic\Classes\Auth::canEdit() || $task != 'viewlist'){
+    if(self::layout() == 'admin' || $task != 'viewlist'){
         parent::search($fieldsList, $task);
-        return;
     }
-    ?>
-    <form class="form-inline" method="get" action="<?=BASE_URL?>/index.php" role="search">
-        <input type="hidden" name="component" value="product">
-        <input type="hidden" name="task" value="viewlist">
-        <label class="sr-only" for="text_search">Search a product</label>
-        <div class="input-group w-100">
-            <input class="form-control" type="search" name="text_search" id="text_search" value="<?=htmlspecialchars((string)($_GET['text_search'] ?? ''))?>" placeholder="Search a product">
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="submit">Search</button>
-            </div>
-        </div>
-    </form>
-    <?php
 }
 
+
+/**
+ * Header of the pages of the shop: title of the catalog, path to the product. The back office keeps the usual header.
+ * @return void
+ */
+function mainHeader($title){
+    $task = (string)($_GET['task'] ?? '');
+    if(self::layout() == 'admin' || !in_array($task, array('viewlist', 'view'), true)){
+        parent::mainHeader($title);
+        return;
+    }
+
+    $catalogUrl = BASE_URL.'/index.php?component=product&task=viewlist';
+    $search = trim((string)($_GET['text_search'] ?? ''));
+    echo '<main id="main" class="k-shop-main"><div class="container k-container">';
+
+    if($task == 'viewlist'){
+        ?>
+        <div class="k-catalog-hero">
+            <div>
+                <div class="k-eyebrow"><?=T_SHOP?></div>
+                <?php if($search != ''){ ?>
+                <h1 class="k-page-title"><?=sprintf(T_RESULTS_FOR, htmlspecialchars($search))?></h1>
+                <a class="k-link-muted" href="<?=$catalogUrl?>"><?=self::icon('x-lg', 12)?> <?=T_CLEAR_SEARCH?></a>
+                <?php } else { ?>
+                <h1 class="k-page-title"><?=T_ALL_PRODUCTS?></h1>
+                <?php } ?>
+            </div>
+        </div>
+        <?php
+    }
+    else{
+        // The name of the product is displayed by view()
+        ?>
+        <nav aria-label="<?=T_BREADCRUMB?>">
+            <ol class="breadcrumb k-breadcrumb">
+                <li class="breadcrumb-item"><a href="<?=BASE_URL?>/"><?=T_HOME?></a></li>
+                <li class="breadcrumb-item"><a href="<?=$catalogUrl?>"><?=T_SHOP?></a></li>
+                <li class="breadcrumb-item active" aria-current="page"><?=$title?></li>
+            </ol>
+        </nav>
+        <?php
+    }
+    echo '<div id="main_content">';
+}
 
 /**
  * Url of an image of a product.
@@ -269,6 +302,19 @@ public static function priceWithTax(int $priceAmount):int{
 
 
 /**
+ * Status of a product as a colored badge (back office)
+ * @return string
+ */
+public static function statusBadge(string $status, bool $deleted = false):string{
+    if($deleted){
+        return '<span class="badge badge-danger">'.T_VALUE_DELETED.'</span>';
+    }
+    $types = array('active' => 'success', 'draft' => 'warning', 'archived' => 'secondary');
+    return '<span class="badge badge-'.($types[$status] ?? 'secondary').'">'.self::value($status).'</span>';
+}
+
+
+/**
  * Catalog of the shop: the products as a grid of cards, with image, price and "Add to cart"
  * @parameter array $data rows of the table product
  * @parameter string $orderBy current sort field
@@ -282,60 +328,75 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
     $canEdit = \Apgenic\Classes\Auth::canEdit();
     $currentOrder = $order == 'asc' ? 'desc' : 'asc';
     $sorts = array(
-        'Newest' => array('id_product', 'desc'),
-        'Price: low to high' => array('price_amount', 'asc'),
-        'Price: high to low' => array('price_amount', 'desc'),
-        'Name' => array('name', 'asc'),
+        T_SORT_NEWEST => array('id_product', 'desc'),
+        T_SORT_PRICE_ASC => array('price_amount', 'asc'),
+        T_SORT_PRICE_DESC => array('price_amount', 'desc'),
+        T_SORT_NAME => array('name', 'asc'),
     );
     $search = trim((string)($_GET['text_search'] ?? ''));
     $sortUrl = BASE_URL.'/index.php?component=product&task=viewlist&'.$this->filtersGet.($search != '' ? 'text_search='.urlencode($search).'&' : '');
 	?>
-	<div class="d-flex flex-wrap justify-content-between align-items-center mt-4 mb-3">
-	    <span class="text-muted mb-2"><?=count($data)?> product<?=count($data) > 1 ? 's' : ''?> on this page</span>
-	    <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Sort the products">
+	<div class="k-catalog-toolbar">
+	    <span class="k-result-count"><?=sprintf(count($data) > 1 ? T_PRODUCTS_ON_PAGE : T_PRODUCTS_ON_PAGE_ONE, count($data))?></span>
+	    <nav class="k-chips" aria-label="<?=T_SORT_PRODUCTS?>">
+	        <span class="k-chips-label"><?=T_SORT_BY?></span>
 	        <?php foreach($sorts as $label => $sort){
 	            $active = $orderBy == $sort[0] && $currentOrder == $sort[1]; ?>
-	        <a class="btn btn-outline-secondary <?php if($active) echo 'active';?>" href="<?=htmlspecialchars($sortUrl.'orderBy='.$sort[0].'&order='.$sort[1])?>"><?=$label?></a>
+	        <a class="k-chip <?php if($active) echo 'active';?>" href="<?=htmlspecialchars($sortUrl.'orderBy='.$sort[0].'&order='.$sort[1])?>" <?php if($active) echo 'aria-current="true"';?>><?=$label?></a>
 	        <?php } ?>
-	    </div>
+	    </nav>
 	</div>
 
 	<?php if(!count($data)){ ?>
-	<div class="alert alert-info">No product found</div>
+	<div class="k-empty">
+	    <div class="k-empty-icon"><?=self::icon('search', 28)?></div>
+	    <h2 class="k-empty-title"><?=T_NO_PRODUCT?></h2>
+	    <?php if($search != ''){ ?>
+	    <p><?=T_NO_PRODUCT_HINT?></p>
+	    <a class="btn btn-primary" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_SEE_ALL_PRODUCTS?></a>
+	    <?php } ?>
+	</div>
 	<?php } ?>
 
-	<div class="row">
+	<div class="row k-product-grid">
 	<?php
 	foreach ($data as $element){
 	    $id = (int)$element['id_product'];
 	    $url = BASE_URL.'/index.php?component=product&task=view&id_product='.$id;
 	    $image = $this->imageUrl($id, 0, 'medium');
 	    $price = (int)$element['price_amount'];
+	    $onSale = $element['status'] == 'active';
 		?>
-		<div class="col-sm-6 col-lg-4 col-xl-3 mb-4">
-		    <div class="card h-100 shadow-sm">
-		        <a class="embed-responsive embed-responsive-1by1 bg-light" href="<?=$url?>">
+		<div class="col-6 col-md-4 col-xl-3">
+		    <article class="k-product-card">
+		        <a class="k-product-media" href="<?=$url?>" tabindex="-1" aria-hidden="true">
 		            <?php if($image != ''){ ?>
-		            <img class="embed-responsive-item" style="object-fit: cover" src="<?=htmlspecialchars($image)?>" alt="<?=$element['name']?>" loading="lazy">
+		            <img src="<?=htmlspecialchars($image)?>" alt="" loading="lazy">
+		            <?php } else { ?>
+		            <span class="k-product-placeholder"><?=self::icon('image', 32)?></span>
+		            <?php } ?>
+		            <?php if($canEdit && !$onSale){ ?>
+		            <span class="k-product-flag"><?=self::statusBadge((string)$element['status'])?></span>
 		            <?php } ?>
 		        </a>
-		        <div class="card-body d-flex flex-column pb-2">
-		            <h2 class="card-title h5 mt-0 mb-1"><a class="text-dark" href="<?=$url?>"><?=$element['name']?></a></h2>
-		            <?php if($canEdit && $element['status'] != 'active'){ ?>
-		            <div><span class="badge badge-secondary"><?=$element['status']?></span></div>
+		        <div class="k-product-body">
+		            <h2 class="k-product-name"><a href="<?=$url?>"><?=$element['name']?></a></h2>
+		            <?php if((string)$element['summary'] != ''){ ?>
+		            <p class="k-product-summary"><?=$element['summary']?></p>
 		            <?php } ?>
-		            <p class="card-text text-muted small flex-grow-1 mb-2"><?=$element['summary']?></p>
-		            <div class="h5 mb-0"><?=self::money(self::priceWithTax($price))?></div>
-		            <small class="text-muted"><?=self::money($price)?> excl. tax</small>
+		            <div class="k-price">
+		                <span class="k-price-main"><?=self::money(self::priceWithTax($price))?></span>
+		                <span class="k-price-sub"><?=self::money($price)?> <?=T_EXCL_TAX?></span>
+		            </div>
 		        </div>
-		        <div class="card-footer bg-white border-0 pt-0">
-		            <?php if($element['status'] == 'active'){
+		        <div class="k-product-footer">
+		            <?php if($onSale){
 		                self::addToCart($id, false, true);
 		            } else { ?>
-		            <button type="button" class="btn btn-outline-secondary btn-block" disabled>Not on sale</button>
+		            <button type="button" class="btn btn-light btn-block" disabled><?=T_NOT_ON_SALE?></button>
 		            <?php } ?>
 		        </div>
-		    </div>
+		    </article>
 		</div>
 		<?php
 	}?>
@@ -350,7 +411,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 /**
  * Page of a product of the shop: images, name, price, "Add to cart", description
  *
- * @parameter ModelProduct $data 
+ * @parameter ModelProduct $data
  * @parameter array $message
  * @return void
  */
@@ -362,6 +423,7 @@ public function view(ModelProduct $data , array $message=null){
 	    $canEdit = \Apgenic\Classes\Auth::canEdit();
 	    $onSale = $data->status == 'active' && $data->deleted_at === null;
 	    $price = (int)$data->price_amount;
+	    $taxRate = self::taxRateText();
 
 	    // All the images of the product, or one illustration
 	    $gallery = array();
@@ -372,72 +434,93 @@ public function view(ModelProduct $data , array $message=null){
 	        }
 	    }
 	?>
-	
-    <p class="mt-3"><a href="<?=BASE_URL?>/index.php?component=product&task=viewlist">&laquo; All the products</a></p>
 
-    <div class="row">
-        <div class="col-md-6 col-lg-5 mb-4">
-            <div class="embed-responsive embed-responsive-1by1 bg-light border rounded">
-                <?php if(count($gallery)){ ?>
-                <img id="product_image" class="embed-responsive-item" style="object-fit: contain" src="<?=htmlspecialchars($gallery[0]['large'])?>" alt="<?=$data->name?>">
+    <div class="row k-product-page">
+        <div class="col-lg-7 mb-4">
+            <div class="k-gallery">
+                <div class="k-gallery-main">
+                    <?php if(count($gallery)){ ?>
+                    <img id="product_image" src="<?=htmlspecialchars($gallery[0]['large'])?>" alt="<?=$data->name?>">
+                    <?php } else { ?>
+                    <span class="k-product-placeholder"><?=self::icon('image', 48)?></span>
+                    <?php } ?>
+                </div>
+                <?php if(count($gallery) > 1){ ?>
+                <div class="k-gallery-thumbs">
+                    <?php foreach($gallery as $n => $picture){ ?>
+                    <a class="k-gallery-thumb <?php if($n == 0) echo 'active';?>" href="<?=htmlspecialchars($picture['large'])?>" onclick="document.getElementById('product_image').src = this.href; this.parentNode.querySelectorAll('a').forEach(a => a.classList.remove('active')); this.classList.add('active'); return false;">
+                        <img src="<?=htmlspecialchars($picture['thumb'])?>" alt="<?=sprintf(T_IMAGE_N, $data->name, $n + 1)?>" loading="lazy">
+                    </a>
+                    <?php } ?>
+                </div>
                 <?php } ?>
             </div>
-            <?php if(count($gallery) > 1){ ?>
-            <div class="d-flex flex-wrap mt-2">
-                <?php foreach($gallery as $n => $picture){ ?>
-                <a class="mr-2 mb-2" href="<?=htmlspecialchars($picture['large'])?>" onclick="document.getElementById('product_image').src = this.href; return false;">
-                    <img class="img-thumbnail" style="width: 72px; height: 72px; object-fit: cover" src="<?=htmlspecialchars($picture['thumb'])?>" alt="<?=$data->name?> - image <?=$n + 1?>" loading="lazy">
-                </a>
-                <?php } ?>
-            </div>
-            <?php } ?>
         </div>
 
-        <div class="col-md-6 col-lg-7">
-            <h2 class="mt-0 mb-2"><?=$data->name?>
-                <?php if($canEdit && !$onSale){ ?><span class="badge badge-secondary align-middle"><?=$data->deleted_at !== null ? 'deleted' : $data->status?></span><?php } ?>
-            </h2>
-            <?php if((string)$data->summary != ''){ ?>
-            <p class="lead"><?=$data->summary?></p>
-            <?php } ?>
+        <div class="col-lg-5">
+            <div class="k-buybox">
+                <?php if($canEdit && !$onSale){ ?>
+                <div class="mb-2"><?=self::statusBadge((string)$data->status, $data->deleted_at !== null)?></div>
+                <?php } ?>
+                <h1 class="k-product-title"><?=$data->name?></h1>
+                <?php if((string)$data->summary != ''){ ?>
+                <p class="k-product-lead"><?=$data->summary?></p>
+                <?php } ?>
 
-            <div class="my-4">
-                <span class="h2"><?=self::money(self::priceWithTax($price))?></span> <span class="text-muted">incl. tax</span>
-                <div class="text-muted small"><?=self::money($price)?> excl. tax</div>
+                <div class="k-price k-price-lg">
+                    <span class="k-price-main"><?=self::money(self::priceWithTax($price))?></span>
+                    <span class="k-price-sub"><?=self::money($price)?> <?=T_EXCL_TAX?> &middot; <?=sprintf(T_VAT_INCLUDED, $taxRate)?></span>
+                </div>
+
+                <?php if($onSale){
+                    self::addToCart($id, true);
+                } else { ?>
+                <div class="alert alert-secondary k-alert"><?=self::icon('info-circle', 20)?><div><?=T_PRODUCT_NOT_ON_SALE?></div></div>
+                <?php } ?>
+
+                <ul class="k-feature-list">
+                    <li><?=self::icon('bag-check', 18)?> <?=T_FEATURE_GUEST?></li>
+                    <li><?=self::icon('truck', 18)?> <?=T_FEATURE_DELIVERY?></li>
+                </ul>
             </div>
-
-            <?php if($onSale){
-                self::addToCart($id, true);
-            } else { ?>
-            <div class="alert alert-secondary d-inline-block mt-0">This product is not on sale</div>
-            <?php } ?>
-
-            <?php if((string)$data->description != ''){ ?>
-            <hr class="my-4">
-            <h3 class="h5">Description</h3>
-            <div><?=nl2br((string)$data->description)?></div>
-            <?php } ?>
-
-            <?php if($canEdit){ // Back office ?>
-            <hr class="my-4">
-            <dl class="row small text-muted mb-2">
-                <dt class="col-sm-4">Id&nbsp;product</dt><dd class="col-sm-8"><?php echo $data->id_product?></dd>
-                <dt class="col-sm-4">Id&nbsp;user</dt><dd class="col-sm-8"><?php echo $this->userList2[$data->id_user]['email'] ?? '';?></dd>
-                <dt class="col-sm-4">Slug</dt><dd class="col-sm-8"><?php echo $data->slug?></dd>
-                <dt class="col-sm-4">Status</dt><dd class="col-sm-8"><?php echo $data->status?></dd>
-                <dt class="col-sm-4">Published&nbsp;at</dt><dd class="col-sm-8"><?php echo $data->published_at?></dd>
-                <dt class="col-sm-4">Created&nbsp;at</dt><dd class="col-sm-8"><?php echo $data->created_at?></dd>
-                <dt class="col-sm-4">Updated&nbsp;at</dt><dd class="col-sm-8"><?php echo $data->updated_at?></dd>
-                <dt class="col-sm-4">Deleted&nbsp;at</dt><dd class="col-sm-8"><?php echo $data->deleted_at?></dd>
-            </dl>
-            <a class="btn btn-outline btn-outline-primary btn-sm" href="<?=BASE_URL?>/index.php?component=product&task=edit&id_product=<?=$id?>"><?=self::icon('pencil', 16)?> Edit</a>
-            <?php } ?>
         </div>
     </div>
+
+    <?php if((string)$data->description != ''){ ?>
+    <section class="k-section">
+        <h2 class="k-section-title"><?=T_FIELD_DESCRIPTION?></h2>
+        <div class="k-prose"><?=nl2br((string)$data->description)?></div>
+    </section>
+    <?php } ?>
+
+    <?php if($canEdit){ // Back office ?>
+    <section class="k-section k-staff-panel">
+        <div class="k-staff-panel-header">
+            <h2 class="k-section-title"><?=self::icon('speedometer2', 18)?> <?=T_BACK_OFFICE?></h2>
+            <a class="btn btn-primary btn-sm" href="<?=BASE_URL?>/index.php?component=product&task=edit&id_product=<?=$id?>"><?=self::icon('pencil', 14)?> <?=T_EDIT?></a>
+        </div>
+        <dl class="k-meta-list">
+            <div><dt><?=T_FIELD_ID?></dt><dd><?php echo $data->id_product?></dd></div>
+            <div><dt><?=T_FIELD_ID_USER?></dt><dd><?php echo $this->userList2[$data->id_user]['email'] ?? '';?></dd></div>
+            <div><dt><?=T_FIELD_SLUG?></dt><dd><?php echo $data->slug?></dd></div>
+            <div><dt><?=T_FIELD_STATUS?></dt><dd><?=self::statusBadge((string)$data->status, $data->deleted_at !== null)?></dd></div>
+            <div><dt><?=T_FIELD_PUBLISHED_AT?></dt><dd><?php echo $data->published_at?></dd></div>
+            <div><dt><?=T_FIELD_CREATED_AT?></dt><dd><?php echo $data->created_at?></dd></div>
+            <div><dt><?=T_FIELD_UPDATED_AT?></dt><dd><?php echo $data->updated_at?></dd></div>
+            <div><dt><?=T_FIELD_DELETED_AT?></dt><dd><?php echo $data->deleted_at?></dd></div>
+        </dl>
+    </section>
+    <?php } ?>
 	<?php
     }
     else{
-        $this->message(array('text' => 'No data', 'type' => 'warning'));
+        ?>
+        <div class="k-empty">
+            <div class="k-empty-icon"><?=self::icon('emoji-frown', 28)?></div>
+            <h2 class="k-empty-title"><?=T_PRODUCT_UNAVAILABLE?></h2>
+            <a class="btn btn-primary" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_SEE_ALL_PRODUCTS?></a>
+        </div>
+        <?php
     }
 
 
@@ -445,7 +528,8 @@ public function view(ModelProduct $data , array $message=null){
 }
 
 
-        
+
+
 /**
  * Display rows from the table product
  * @parameter int $pkVal
@@ -460,7 +544,7 @@ public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonIcon[1] = self::icon('check2');
    
     ?>
-    <a hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=<?=$task?>&value=<?php echo $value?>&id_product=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=<?=$task?>&value=<?php echo $value?>&id_product=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
     <?php
 }
 
@@ -477,21 +561,19 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>">Id&nbsp;user</a></th>
-	<th scope="col" id="name"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=name&<?=$this->filtersGet?>&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>">Name</a></th>
-	<th scope="col" id="price_amount"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "price_amount") echo $order; else echo 'asc';?>">Price</a></th>
-	<th scope="col" id="status"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>">Status</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="name"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=name&<?=$this->filtersGet?>&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
+	<th scope="col" id="price_amount"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="status"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist" class="btn btn-outline btn-outline-secondary">
-check2   
-            </a></th>
+		<th><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3')?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -504,23 +586,23 @@ check2
 		<tr id="row-<?php echo $element['id_product']?>">
 		<td class="shrink"><?php echo $element['id_product']?></td>
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=editList&id_user=<?php echo $element['id_user']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=editList&id_user=<?php echo $element['id_user']?>">
                                             <?php echo $this->userList2[$element['id_user']]['email'] ?? '';?>
                                             </a>
                                             </td>
                                             
 		<td ><?php echo $element['name']?></td>
 		<td class="text-right text-nowrap"><?=self::money((int)$element['price_amount'])?></td>
-		<td ><?php echo $element['status']?></td>
+		<td ><?=self::statusBadge((string)$element['status'])?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=view&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=view&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 			<?=self::icon('view');?></a></td>
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=edit&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=edit&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil');?>
             </a></td>
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_product']?>" hx-post="<?=BASE_URL?>/htmx.php?component=product&task=logicaldeleteHtmx&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?>" hx-post="<?=BASE_URL?>/htmx.php?component=product&task=logicaldeleteHtmx&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">
             <?=self::icon('x-lg');?>
             </a></td>
 		</tr>
@@ -540,6 +622,7 @@ check2
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -561,14 +644,14 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_user"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;user</a></th>
-	<th scope="col" id="name"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=name&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Name</a></th>
-	<th scope="col" id="status"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Status</a></th>
-	<th scope="col" id="created_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="name"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=name&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_NAME?></a></th>
+	<th scope="col" id="status"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
@@ -584,23 +667,23 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<tr id="row-<?php echo $element['id_product']?>">
 		<td class="shrink"><?php echo $element['id_product']?></td>
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=editList&id_user=<?php echo $element['id_user']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=editList&id_user=<?php echo $element['id_user']?>">
                                             <?php echo $this->userList2[$element['id_user']]['email'];?>
                                             </a>
                                             </td>
                                             
 		<td ><?php echo $element['name']?></td>
-		<td ><?php echo $element['status']?></td>
+		<td ><?=self::statusBadge((string)$element['status'])?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=view&showTabs=0&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=view&showTabs=0&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 	        <?=self::icon('view');?>		
             </a></td>
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childList&showTabs=0&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn  btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childList&showTabs=0&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver');?>
             </a></td>    
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_product']?>" hx-post="<?=BASE_URL?>/htmx.php?component=product&task=delHtmx&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">Del</a></td>
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?>" hx-post="<?=BASE_URL?>/htmx.php?component=product&task=delHtmx&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -614,14 +697,15 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	<tfoot>
 	<tr>
 	<td colspan="14" class="phppistolsTFooter" style="text-align: right;">
-	    <a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
-        <?=self::icon('plus-lg');?>
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
+        <?=self::icon('plus-lg');?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
 	</tfoot>
 
 	</table>
+	</div>
 	
 	<?php
 }
@@ -640,14 +724,14 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<table class="table table-bordered table-sm">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>">Id&nbsp;user</a></th>
-	<th scope="col" id="name"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=name&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>">Name</a></th>
-	<th scope="col" id="status"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>">Status</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>">Updated&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="name"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=name&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
+	<th scope="col" id="status"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -663,11 +747,11 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		<td class="shrink"><?php echo $element['id_product']?></td>
 		<td ><?php echo $this->userList2[$element['id_user']]['email'] ?? '';?></td>
 		<td ><?php echo $element['name']?></td>
-		<td ><?php echo $element['status']?></td>
+		<td ><?=self::statusBadge((string)$element['status'])?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#row-<?php echo $element['id_product']?>" hx-post="<?=BASE_URL?>/htmx.php?component=product&task=undelHtmx&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary">
+		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?>" hx-post="<?=BASE_URL?>/htmx.php?component=product&task=undelHtmx&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
             <?=self::icon('undel')?>	    
             </a></td>
 		</tr>
@@ -687,6 +771,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 

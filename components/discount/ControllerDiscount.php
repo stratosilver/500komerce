@@ -45,7 +45,7 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
         $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLDiscount->header('Discount');
+            $this->HTMLDiscount->header(T_COMPONENT_DISCOUNT);
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLDiscount->search(self::$fieldsNames, $task);
             }
@@ -69,7 +69,7 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
                 case 'viewlist':   $this->viewList($textSearch); break;
 
 
-                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+                default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
             }
         }
         catch(Exception $e){
@@ -101,7 +101,7 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
 
                 $this->dataDiscount->save();
                 $this->message['type'] = 'success';
-                $this->message['text'] = 'The entry has been saved';
+                $this->message['text'] = T_MSG_SAVED;
             }
 
         else{
@@ -140,11 +140,11 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
         if($this->dataDiscount->id_discount){
             $this->dataDiscount->del();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         $this->editlist();
@@ -170,7 +170,7 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         if(count($this->message)){
@@ -276,11 +276,11 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
         if($this->dataDiscount->id_discount){
             $this->dataDiscount->logicalUnDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -299,11 +299,11 @@ class ControllerDiscount  extends \Apgenic\Classes\Controller {
         if($this->dataDiscount->id_discount){
             $this->dataDiscount->logicalDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);

@@ -36,7 +36,7 @@ public static function tabs(int $id, string $activeTab){
 
     <ul id="tabs_list" class="nav nav-tabs">
       <li class="nav-item">
-        <a id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=customer_order_item&task=edit&id_customer_order_item=<?=$id?>">Info</a>
+        <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=customer_order_item&task=edit&id_customer_order_item=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
       
     </ul>
@@ -82,7 +82,7 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
                         
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Id&nbsp;customer&nbsp;order&nbsp;*:</label>
+            <label class="control-label"><?=T_FIELD_ID_CUSTOMER_ORDER?>&nbsp;*</label>
             <select  class="form-control" name="id_customer_order" id="id_customer_order">
                 <option value=""></option>
         <?php
@@ -113,7 +113,7 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
                         
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Id&nbsp;product&nbsp;variant:</label>
+            <label class="control-label"><?=T_FIELD_ID_PRODUCT_VARIANT?></label>
             <select  class="form-control" name="id_product_variant" id="id_product_variant">
                 <option value=""></option>
         <?php
@@ -140,58 +140,58 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
                         
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Product&nbsp;name&nbsp;*:</label>
+		<label class="control-label"><?=T_FIELD_PRODUCT_NAME?>&nbsp;*</label>
 		<input required class="form-control" type="text" name="product_name" id="product_name" size="10" value="<?=htmlentities((string)(string)$data->product_name)?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Sku&nbsp;*:</label>
+		<label class="control-label"><?=T_FIELD_SKU?>&nbsp;*</label>
 		<input required class="form-control" type="text" name="sku" id="sku" size="10" value="<?=htmlentities((string)(string)$data->sku)?>"/>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Quantity&nbsp;*:</label>
+		<label class="control-label"><?=T_FIELD_QUANTITY?>&nbsp;*</label>
 		<input required="required" class="form-control" type="number" name="quantity" id="quantity" value="<?=$data->quantity?>"/>
 	    </div>
 	    </div>
 	    
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Unit&nbsp;price&nbsp;amount&nbsp;*:</label>
+		<label class="control-label"><?=T_FIELD_UNIT_PRICE_AMOUNT?>&nbsp;*</label>
 		<input required="required" class="form-control" type="number" name="unit_price_amount" id="unit_price_amount" value="<?=$data->unit_price_amount?>"/>
 	    </div>
 	    </div>
 	    
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Discount&nbsp;amount:</label>
+		<label class="control-label"><?=T_FIELD_DISCOUNT_AMOUNT?></label>
 		<input required="" class="form-control" type="number" name="discount_amount" id="discount_amount" value="<?=$data->discount_amount?>"/>
 	    </div>
 	    </div>
 	    
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Tax&nbsp;amount:</label>
+		<label class="control-label"><?=T_FIELD_TAX_AMOUNT?></label>
 		<input required="" class="form-control" type="number" name="tax_amount" id="tax_amount" value="<?=$data->tax_amount?>"/>
 	    </div>
 	    </div>
 	    
 
         <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label">Line&nbsp;total&nbsp;amount&nbsp;*:</label>
+		<label class="control-label"><?=T_FIELD_LINE_TOTAL_AMOUNT?>&nbsp;*</label>
 		<input required="required" class="form-control" type="number" name="line_total_amount" id="line_total_amount" value="<?=$data->line_total_amount?>"/>
 	    </div>
 	    </div>
 	    
 		<div class="col-12">
 		
-		<div class="form-group">
+		<div class="form-group k-form-actions">
 		<input type="hidden" name="id_customer_order_item" id="id" value="<?=$data->id_customer_order_item ?>"/>
-		<input type="submit" name="Envoyer" title="Envoyer" value="Save" class="btn btn-outline btn-outline-primary">
+		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
 		</div>
 
@@ -225,17 +225,17 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order_item"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=id_customer_order_item&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order&nbsp;item</a></th>
-	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="product_name"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=product_name&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>">Product&nbsp;name</a></th>
-	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>">Quantity</a></th>
-	<th scope="col" id="unit_price_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=unit_price_amount&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>">Unit&nbsp;price&nbsp;amount</a></th>
-	<th scope="col" id="discount_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=discount_amount&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>">Discount&nbsp;amount</a></th>
-	<th scope="col" id="tax_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=tax_amount&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>">Tax&nbsp;amount</a></th>
-	<th scope="col" id="line_total_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=line_total_amount&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>">Line&nbsp;total&nbsp;amount</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order_item"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=id_customer_order_item&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CUSTOMER_ORDER?></a></th>
+	<th scope="col" id="product_name"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=product_name&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>"><?=T_FIELD_PRODUCT_NAME?></a></th>
+	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>"><?=T_FIELD_QUANTITY?></a></th>
+	<th scope="col" id="unit_price_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=unit_price_amount&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_UNIT_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="discount_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=discount_amount&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_DISCOUNT_AMOUNT?></a></th>
+	<th scope="col" id="tax_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=tax_amount&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_TAX_AMOUNT?></a></th>
+	<th scope="col" id="line_total_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=line_total_amount&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_LINE_TOTAL_AMOUNT?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -258,7 +258,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		<td ><?php echo $element['line_total_amount']?></td>
 		<td ><?php echo $element['created_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=view&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn">
+		    <td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=view&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
             <?=self::icon('view')?>		    
             </a></td>
 		</tr>
@@ -278,6 +278,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -308,17 +309,17 @@ public function view(ModelCustomerOrderItem $data , array $message=null){
             <div class="col-sm-12">
                 <dl class="row">
                     
-		        <dt class="col-sm-3"><h5>Id&nbsp;customer&nbsp;order&nbsp;item</h5></dt><dd class="col-sm-9"><?php echo $data->id_customer_order_item?></dd>
-		        <dt class="col-sm-3"><h5>Id&nbsp;customer&nbsp;order</h5></dt><dd class="col-sm-9"><?php echo $this->customerOrderList1[$data->id_customer_order]['id_user'] ?? '';?></dd>
-		        <dt class="col-sm-3"><h5>Id&nbsp;product&nbsp;variant</h5></dt><dd class="col-sm-9"><?php echo $this->productVariantList1[$data->id_product_variant]['name'] ?? '';?></dd>
-		        <dt class="col-sm-3"><h5>Product&nbsp;name</h5></dt><dd class="col-sm-9"><?php echo $data->product_name?></dd>
-		        <dt class="col-sm-3"><h5>Sku</h5></dt><dd class="col-sm-9"><?php echo $data->sku?></dd>
-		        <dt class="col-sm-3"><h5>Quantity</h5></dt><dd class="col-sm-9"><?php echo $data->quantity?></dd>
-		        <dt class="col-sm-3"><h5>Unit&nbsp;price&nbsp;amount</h5></dt><dd class="col-sm-9"><?php echo $data->unit_price_amount?></dd>
-		        <dt class="col-sm-3"><h5>Discount&nbsp;amount</h5></dt><dd class="col-sm-9"><?php echo $data->discount_amount?></dd>
-		        <dt class="col-sm-3"><h5>Tax&nbsp;amount</h5></dt><dd class="col-sm-9"><?php echo $data->tax_amount?></dd>
-		        <dt class="col-sm-3"><h5>Line&nbsp;total&nbsp;amount</h5></dt><dd class="col-sm-9"><?php echo $data->line_total_amount?></dd>
-		        <dt class="col-sm-3"><h5>Created&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID?></h5></dt><dd class="col-sm-9"><?php echo $data->id_customer_order_item?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_CUSTOMER_ORDER?></h5></dt><dd class="col-sm-9"><?php echo $this->customerOrderList1[$data->id_customer_order]['id_user'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_PRODUCT_VARIANT?></h5></dt><dd class="col-sm-9"><?php echo $this->productVariantList1[$data->id_product_variant]['name'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_PRODUCT_NAME?></h5></dt><dd class="col-sm-9"><?php echo $data->product_name?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_SKU?></h5></dt><dd class="col-sm-9"><?php echo $data->sku?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_QUANTITY?></h5></dt><dd class="col-sm-9"><?php echo $data->quantity?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_UNIT_PRICE_AMOUNT?></h5></dt><dd class="col-sm-9"><?php echo $data->unit_price_amount?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_DISCOUNT_AMOUNT?></h5></dt><dd class="col-sm-9"><?php echo $data->discount_amount?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_TAX_AMOUNT?></h5></dt><dd class="col-sm-9"><?php echo $data->tax_amount?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_LINE_TOTAL_AMOUNT?></h5></dt><dd class="col-sm-9"><?php echo $data->line_total_amount?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_CREATED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
 	             </dl></div>
             </div>
 	    </div>
@@ -326,7 +327,7 @@ public function view(ModelCustomerOrderItem $data , array $message=null){
 	<?php
     }
     else{
-        $this->message(array('text' => 'No data', 'type' => 'warning'));
+        $this->message(array('text' => T_NO_DATA, 'type' => 'warning'));
     }
 
 
@@ -348,7 +349,7 @@ public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonIcon[1] = self::icon('check2');
    
     ?>
-    <a hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=<?=$task?>&value=<?php echo $value?>&id_customer_order_item=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=<?=$task?>&value=<?php echo $value?>&id_customer_order_item=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
     <?php
 }
 
@@ -365,17 +366,17 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order_item"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=id_customer_order_item&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order&nbsp;item</a></th>
-	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="product_name"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=product_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>">Product&nbsp;name</a></th>
-	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=quantity&<?=$this->filtersGet?>&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>">Quantity</a></th>
-	<th scope="col" id="unit_price_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=unit_price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>">Unit&nbsp;price&nbsp;amount</a></th>
-	<th scope="col" id="discount_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=discount_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>">Discount&nbsp;amount</a></th>
-	<th scope="col" id="tax_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=tax_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>">Tax&nbsp;amount</a></th>
-	<th scope="col" id="line_total_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=line_total_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>">Line&nbsp;total&nbsp;amount</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order_item"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=id_customer_order_item&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CUSTOMER_ORDER?></a></th>
+	<th scope="col" id="product_name"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=product_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>"><?=T_FIELD_PRODUCT_NAME?></a></th>
+	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=quantity&<?=$this->filtersGet?>&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>"><?=T_FIELD_QUANTITY?></a></th>
+	<th scope="col" id="unit_price_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=unit_price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_UNIT_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="discount_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=discount_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_DISCOUNT_AMOUNT?></a></th>
+	<th scope="col" id="tax_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=tax_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_TAX_AMOUNT?></a></th>
+	<th scope="col" id="line_total_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=line_total_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_LINE_TOTAL_AMOUNT?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
@@ -392,7 +393,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<tr id="row-<?php echo $element['id_customer_order_item']?>">
 		<td class="shrink"><?php echo $element['id_customer_order_item']?></td>
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=editList&id_customer_order=<?php echo $element['id_customer_order']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=editList&id_customer_order=<?php echo $element['id_customer_order']?>">
                                             <?php echo $this->customerOrderList1[$element['id_customer_order']]['id_user'] ?? '';?>
                                             </a>
                                             </td>
@@ -405,12 +406,12 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td ><?php echo $element['line_total_amount']?></td>
 		<td ><?php echo $element['created_at']?></td>
 	
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=view&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=view&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 			<?=self::icon('view');?></a></td>
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=edit&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=edit&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil');?>
             </a></td>
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_customer_order_item']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=delHtmx&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">            
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_customer_order_item']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=delHtmx&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">            
             <?=self::icon('x-lg');?>
             </a></td>
 		</tr>
@@ -430,6 +431,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -451,17 +453,17 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order_item"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=id_customer_order_item&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;customer&nbsp;order&nbsp;item</a></th>
-	<th scope="col" id="id_customer_order"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="product_name"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=product_name&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Product&nbsp;name</a></th>
-	<th scope="col" id="quantity"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Quantity</a></th>
-	<th scope="col" id="unit_price_amount"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=unit_price_amount&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Unit&nbsp;price&nbsp;amount</a></th>
-	<th scope="col" id="discount_amount"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=discount_amount&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Discount&nbsp;amount</a></th>
-	<th scope="col" id="tax_amount"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=tax_amount&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Tax&nbsp;amount</a></th>
-	<th scope="col" id="line_total_amount"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=line_total_amount&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Line&nbsp;total&nbsp;amount</a></th>
-	<th scope="col" id="created_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order_item"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=id_customer_order_item&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_customer_order"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_CUSTOMER_ORDER?></a></th>
+	<th scope="col" id="product_name"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=product_name&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_PRODUCT_NAME?></a></th>
+	<th scope="col" id="quantity"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_QUANTITY?></a></th>
+	<th scope="col" id="unit_price_amount"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=unit_price_amount&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_UNIT_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="discount_amount"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=discount_amount&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_DISCOUNT_AMOUNT?></a></th>
+	<th scope="col" id="tax_amount"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=tax_amount&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_TAX_AMOUNT?></a></th>
+	<th scope="col" id="line_total_amount"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=line_total_amount&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_LINE_TOTAL_AMOUNT?></a></th>
+	<th scope="col" id="created_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
@@ -477,7 +479,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<tr id="row-<?php echo $element['id_customer_order_item']?>">
 		<td class="shrink"><?php echo $element['id_customer_order_item']?></td>
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=editList&id_customer_order=<?php echo $element['id_customer_order']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=editList&id_customer_order=<?php echo $element['id_customer_order']?>">
                                             <?php echo $this->customerOrderList1[$element['id_customer_order']]['id_user'];?>
                                             </a>
                                             </td>
@@ -490,13 +492,13 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['line_total_amount']?></td>
 		<td ><?php echo $element['created_at']?></td>
 	
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=view&showTabs=0&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=view&showTabs=0&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 	        <?=self::icon('view');?>		
             </a></td>
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childList&showTabs=0&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn  btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=childList&showTabs=0&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver');?>
             </a></td>    
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_customer_order_item']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=delHtmx&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">Del</a></td>
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_customer_order_item']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=delHtmx&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -510,14 +512,15 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	<tfoot>
 	<tr>
 	<td colspan="14" class="phppistolsTFooter" style="text-align: right;">
-	    <a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
-        <?=self::icon('plus-lg');?>
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
+        <?=self::icon('plus-lg');?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
 	</tfoot>
 
 	</table>
+	</div>
 	
 	<?php
 }
@@ -536,17 +539,17 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<table class="table table-bordered table-sm">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order_item"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=id_customer_order_item&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order&nbsp;item</a></th>
-	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="product_name"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=product_name&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>">Product&nbsp;name</a></th>
-	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>">Quantity</a></th>
-	<th scope="col" id="unit_price_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=unit_price_amount&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>">Unit&nbsp;price&nbsp;amount</a></th>
-	<th scope="col" id="discount_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=discount_amount&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>">Discount&nbsp;amount</a></th>
-	<th scope="col" id="tax_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=tax_amount&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>">Tax&nbsp;amount</a></th>
-	<th scope="col" id="line_total_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=line_total_amount&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>">Line&nbsp;total&nbsp;amount</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order_item"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=id_customer_order_item&order=<?php if($orderBy == "id_customer_order_item") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CUSTOMER_ORDER?></a></th>
+	<th scope="col" id="product_name"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=product_name&order=<?php if($orderBy == "product_name") echo $order; else echo 'asc';?>"><?=T_FIELD_PRODUCT_NAME?></a></th>
+	<th scope="col" id="quantity"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=quantity&order=<?php if($orderBy == "quantity") echo $order; else echo 'asc';?>"><?=T_FIELD_QUANTITY?></a></th>
+	<th scope="col" id="unit_price_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=unit_price_amount&order=<?php if($orderBy == "unit_price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_UNIT_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="discount_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=discount_amount&order=<?php if($orderBy == "discount_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_DISCOUNT_AMOUNT?></a></th>
+	<th scope="col" id="tax_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=tax_amount&order=<?php if($orderBy == "tax_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_TAX_AMOUNT?></a></th>
+	<th scope="col" id="line_total_amount"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=line_total_amount&order=<?php if($orderBy == "line_total_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_LINE_TOTAL_AMOUNT?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorderitem&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -569,7 +572,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		<td ><?php echo $element['line_total_amount']?></td>
 		<td ><?php echo $element['created_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#row-<?php echo $element['id_customer_order_item']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=undelHtmx&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary">
+		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_customer_order_item']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorderitem&task=undelHtmx&id_customer_order_item=<?php echo $element['id_customer_order_item']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
             <?=self::icon('undel')?>	    
             </a></td>
 		</tr>
@@ -589,6 +592,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 

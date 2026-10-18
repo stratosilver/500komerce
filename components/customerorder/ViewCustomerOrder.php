@@ -34,11 +34,11 @@ public static function tabs(int $id, string $activeTab){
 
     <ul id="tabs_list" class="nav nav-tabs">
       <li class="nav-item">
-        <a id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=customer_order&task=edit&id_customer_order=<?=$id?>">Info</a>
+        <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=customer_order&task=edit&id_customer_order=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
       
         <li class="nav-item">
-            <a id="tab_0" class="form_tabs nav-link <?php if($activeTab == 'customerorderitem') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=customerorderitem&task=childlist&filters[id_customer_order]=<?=$id ?>&showTabs=0">Customer_order_item</a>
+            <a href="#" id="tab_0" class="form_tabs nav-link <?php if($activeTab == 'customerorderitem') echo 'active';?>" hx-target="#core_content" hx-swap="innerHTML" hx-get="/htmx.php?component=customerorderitem&task=childlist&filters[id_customer_order]=<?=$id ?>&showTabs=0"><?=T_MENU_CUSTOMERORDERITEM?></a>
         </li>
         
     </ul>
@@ -84,7 +84,7 @@ public function edit(ModelCustomerOrder $data , int $showTabs = 1, array $messag
                         
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Id&nbsp;user&nbsp;*:</label>
+            <label class="control-label"><?=T_FIELD_ID_USER?>&nbsp;*</label>
             <select  class="form-control" name="id_user" id="id_user">
                 <option value=""></option>
         <?php
@@ -111,9 +111,9 @@ public function edit(ModelCustomerOrder $data , int $showTabs = 1, array $messag
                         
 		<div class="col-12">
 		
-		<div class="form-group">
+		<div class="form-group k-form-actions">
 		<input type="hidden" name="id_customer_order" id="id" value="<?=$data->id_customer_order ?>"/>
-		<input type="submit" name="Envoyer" title="Envoyer" value="Save" class="btn btn-outline btn-outline-primary">
+		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
 		</div>
 
@@ -147,11 +147,11 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>">Id&nbsp;user</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -168,7 +168,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		<td ><?php echo $this->productList4[$element['id_user']]['name'] ?? '';?></td>
 		<td ><?php echo $element['created_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn">
+		    <td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
             <?=self::icon('view')?>		    
             </a></td>
 		</tr>
@@ -188,6 +188,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -218,9 +219,9 @@ public function view(ModelCustomerOrder $data , array $message=null){
             <div class="col-sm-12">
                 <dl class="row">
                     
-		        <dt class="col-sm-3"><h5>Id&nbsp;customer&nbsp;order</h5></dt><dd class="col-sm-9"><?php echo $data->id_customer_order?></dd>
-		        <dt class="col-sm-3"><h5>Id&nbsp;user</h5></dt><dd class="col-sm-9"><?php echo $this->productList4[$data->id_user]['name'] ?? '';?></dd>
-		        <dt class="col-sm-3"><h5>Created&nbsp;at</h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID?></h5></dt><dd class="col-sm-9"><?php echo $data->id_customer_order?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_USER?></h5></dt><dd class="col-sm-9"><?php echo $this->productList4[$data->id_user]['name'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_CREATED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
 	             </dl></div>
             </div>
 	    </div>
@@ -228,7 +229,7 @@ public function view(ModelCustomerOrder $data , array $message=null){
 	<?php
     }
     else{
-        $this->message(array('text' => 'No data', 'type' => 'warning'));
+        $this->message(array('text' => T_NO_DATA, 'type' => 'warning'));
     }
 
 
@@ -250,7 +251,7 @@ public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonIcon[1] = self::icon('check2');
    
     ?>
-    <a hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=<?=$task?>&value=<?php echo $value?>&id_customer_order=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=<?=$task?>&value=<?php echo $value?>&id_customer_order=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
     <?php
 }
 
@@ -267,11 +268,11 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>">Id&nbsp;user</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
@@ -288,19 +289,19 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<tr id="row-<?php echo $element['id_customer_order']?>">
 		<td class="shrink"><?php echo $element['id_customer_order']?></td>
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=editList&id_user=<?php echo $element['id_user']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=editList&id_user=<?php echo $element['id_user']?>">
                                             <?php echo $this->productList4[$element['id_user']]['name'] ?? '';?>
                                             </a>
                                             </td>
                                             
 		<td ><?php echo $element['created_at']?></td>
 	
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 			<?=self::icon('view');?></a></td>
-			<td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=edit&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=edit&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil');?>
             </a></td>
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=delHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">            
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=delHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">            
             <?=self::icon('x-lg');?>
             </a></td>
 		</tr>
@@ -320,6 +321,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -341,11 +343,11 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="id_user"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;user</a></th>
-	<th scope="col" id="created_at"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 		<th></th>
@@ -361,20 +363,20 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<tr id="row-<?php echo $element['id_customer_order']?>">
 		<td class="shrink"><?php echo $element['id_customer_order']?></td>
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=editList&id_user=<?php echo $element['id_user']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=editList&id_user=<?php echo $element['id_user']?>">
                                             <?php echo $this->productList4[$element['id_user']]['name'];?>
                                             </a>
                                             </td>
                                             
 		<td ><?php echo $element['created_at']?></td>
 	
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&showTabs=0&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&showTabs=0&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
 	        <?=self::icon('view');?>		
             </a></td>
-			<td class="shrink"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childList&showTabs=0&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn  btn-outline btn-outline-primary">
+			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childList&showTabs=0&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver');?>
             </a></td>    
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=delHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">Del</a></td>
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=delHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -388,14 +390,15 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	<tfoot>
 	<tr>
 	<td colspan="6" class="phppistolsTFooter" style="text-align: right;">
-	    <a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
-        <?=self::icon('plus-lg');?>
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
+        <?=self::icon('plus-lg');?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
 	</tfoot>
 
 	</table>
+	</div>
 	
 	<?php
 }
@@ -414,11 +417,11 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<table class="table table-bordered table-sm">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
 	<thead>
-	<tr>	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>">Id&nbsp;customer&nbsp;order</a></th>
-	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>">Id&nbsp;user</a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>">Created&nbsp;at</a></th>
+	<tr>	<th scope="col" id="id_customer_order"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th></th>
 	</tr>
@@ -435,7 +438,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		<td ><?php echo $this->productList4[$element['id_user']]['name'] ?? '';?></td>
 		<td ><?php echo $element['created_at']?></td>
 	
-		    <td class="shrink"><a hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=undelHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary">
+		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=undelHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
             <?=self::icon('undel')?>	    
             </a></td>
 		</tr>
@@ -455,6 +458,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 

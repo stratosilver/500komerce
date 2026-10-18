@@ -47,7 +47,7 @@ class ControllerShop {
             case 'cart':         $this->cart(); break;
             case 'checkout':     $this->checkout(); break;
             case 'confirmation': $this->confirmation(); break;
-            default: throw new \ErrorException('Page not found', 404, E_ERROR);
+            default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
         }
     }
 
@@ -78,10 +78,10 @@ class ControllerShop {
             $quantity = (int)filter_var($_POST['quantity'] ?? 1, FILTER_VALIDATE_INT);
 
             if($idProduct > 0 && $this->dataCart->add($idProduct, max(1, $quantity))){
-                self::flash('success', 'The product has been added to your cart');
+                self::flash('success', T_MSG_ADDED_TO_CART);
             }
             else{
-                self::flash('danger', 'This product cannot be added to the cart');
+                self::flash('danger', T_MSG_CANNOT_ADD_TO_CART);
             }
         }
         self::redirect(self::url('cart'));
@@ -107,7 +107,7 @@ class ControllerShop {
                     }
                 }
             }
-            self::flash('success', 'Your cart has been updated');
+            self::flash('success', T_MSG_CART_UPDATED);
         }
         self::redirect(self::url('cart'));
     }
@@ -115,7 +115,7 @@ class ControllerShop {
 
     private function cart():void{
         $this->dataCart->load();
-        $this->HTMLShop->header('Cart');
+        $this->HTMLShop->header(T_CART);
         $this->HTMLShop->cart($this->dataCart, $this->message);
         $this->HTMLShop->footer();
     }
@@ -146,7 +146,7 @@ class ControllerShop {
      */
     private function checkout():void{
         if(!$this->dataCart->load()){
-            self::flash('warning', 'Your cart is empty');
+            self::flash('warning', T_CART_EMPTY);
             self::redirect(self::url('cart'));
             return;
         }
@@ -194,7 +194,7 @@ class ControllerShop {
                 return;
             }
             if(!count($this->message)){
-                $this->message = array('type' => 'danger', 'text' => 'Some fields are missing or not valid');
+                $this->message = array('type' => 'danger', 'text' => T_MSG_FIELDS_INVALID);
             }
             // The account or an address may have been saved before the failure
             if(isset($_SESSION['user']['id_user'])){
@@ -203,7 +203,7 @@ class ControllerShop {
             }
         }
 
-        $this->HTMLShop->header('Checkout');
+        $this->HTMLShop->header(T_CHECKOUT_TITLE);
         $this->HTMLShop->checkout($this->dataCart, $values, $errors, $addresses->list, $logged, $this->message, ControllerUser::PASSWORD_MIN_LENGTH);
         $this->HTMLShop->footer();
     }
@@ -221,15 +221,15 @@ class ControllerShop {
         foreach(array('first_name' => 100, 'last_name' => 100) as $field => $max){
             $values[$field] = trim((string)filter_var($_POST[$field] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
             if($values[$field] == ''){
-                $errors[$field] = 'Required';
+                $errors[$field] = T_ERROR_REQUIRED;
             }
             elseif(strlen($values[$field]) > $max){
-                $errors[$field] = 'Too long';
+                $errors[$field] = T_ERROR_TOO_LONG;
             }
         }
         $values['phone'] = trim((string)filter_var($_POST['phone'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
         if(strlen($values['phone']) > 30){
-            $errors['phone'] = 'Too long';
+            $errors['phone'] = T_ERROR_TOO_LONG;
         }
 
         // New customer: his account is created with the order
@@ -240,10 +240,10 @@ class ControllerShop {
             $password = (string)($_POST['password'] ?? '');
 
             if(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
-                $errors['email'] = 'The email address is not valid';
+                $errors['email'] = T_ERROR_EMAIL_INVALID;
             }
             elseif((new ModelUser())->getByEmail($email, false)){
-                $errors['email'] = 'An account already exists with this email address: sign in above';
+                $errors['email'] = T_ERROR_ACCOUNT_EXISTS_SIGN_IN;
             }
             $passwordError = ControllerUser::passwordError($password, (string)($_POST['password_confirmation'] ?? ''));
             if($passwordError != ''){
@@ -293,7 +293,7 @@ class ControllerShop {
             $user->last_name = $values['last_name'];
             $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
             if(!$user->register()){
-                $this->message = array('type' => 'danger', 'text' => 'The account could not be created');
+                $this->message = array('type' => 'danger', 'text' => T_ERROR_ACCOUNT_NOT_CREATED);
                 return 0;
             }
             $user->get();
@@ -312,7 +312,7 @@ class ControllerShop {
         foreach($new as $type => $address){
             $address->id_user = $idUser;
             if(!$address->add()){
-                $this->message = array('type' => 'danger', 'text' => 'The address could not be saved');
+                $this->message = array('type' => 'danger', 'text' => T_ERROR_ADDRESS_NOT_SAVED);
                 return 0;
             }
             $ids[$type] = (int)$address->id_address;
@@ -325,7 +325,7 @@ class ControllerShop {
         $order = new ModelOrder();
         $idOrder = $order->create($idUser, $this->dataCart->items, $this->dataCart->total, $ids['delivery'], $ids['postal']);
         if($idOrder < 1){
-            $this->message = array('type' => 'danger', 'text' => 'The order could not be created, your cart has been kept');
+            $this->message = array('type' => 'danger', 'text' => T_ERROR_ORDER_NOT_CREATED);
             return 0;
         }
 
@@ -353,7 +353,7 @@ class ControllerShop {
             }
         }
 
-        $this->HTMLShop->header('Order');
+        $this->HTMLShop->header(T_ORDER);
         $this->HTMLShop->confirmation($found ? $order : null, $addresses);
         $this->HTMLShop->footer();
     }

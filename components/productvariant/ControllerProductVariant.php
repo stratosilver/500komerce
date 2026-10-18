@@ -45,7 +45,7 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
         $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLProductVariant->header('Product variant');
+            $this->HTMLProductVariant->header(T_COMPONENT_PRODUCTVARIANT);
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLProductVariant->search(self::$fieldsNames, $task);
             }
@@ -69,7 +69,7 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
                 case 'viewlist':   $this->viewList($textSearch); break;
 
 
-                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+                default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
             }
         }
         catch(Exception $e){
@@ -98,12 +98,12 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
 
                 $this->dataProductVariant->save();
                 $this->message['type'] = 'success';
-                $this->message['text'] = 'The entry has been saved';
+                $this->message['text'] = T_MSG_SAVED;
             }
 
             else{
                 $this->message['type'] = 'danger';
-                $this->message['text'] = 'Fill all mandatory fields';
+                $this->message['text'] = T_MSG_FILL_MANDATORY;
             }
         }
 
@@ -143,11 +143,11 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
         if($this->dataProductVariant->id_product_variant){
             $this->dataProductVariant->del();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         $this->editlist();
@@ -173,7 +173,7 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         if(count($this->message)){
@@ -279,11 +279,11 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
         if($this->dataProductVariant->id_product_variant){
             $this->dataProductVariant->logicalUnDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -302,11 +302,11 @@ class ControllerProductVariant  extends \Apgenic\Classes\Controller {
         if($this->dataProductVariant->id_product_variant){
             $this->dataProductVariant->logicalDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);

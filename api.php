@@ -42,6 +42,8 @@
 session_start();
 
 require_once('config.php');
+// Messages shared with the web interface (passwords, images...): constants T_...
+require_once('translations.php');
 require_once('autoload.php');
 
 // The errors must not break the JSON: they go to the error log of PHP

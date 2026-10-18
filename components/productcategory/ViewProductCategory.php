@@ -36,7 +36,7 @@ public static function tabs(int $id, string $activeTab){
 
     <ul id="tabs_list" class="nav nav-tabs">
       <li class="nav-item">
-        <a id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=product_category&task=edit&id_product=<?=$id?>&id_category=<?=$id?>">Info</a>
+        <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=product_category&task=edit&id_product=<?=$id?>&id_category=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
       
     </ul>
@@ -82,7 +82,7 @@ public function edit(ModelProductCategory $data , int $showTabs = 1, array $mess
                         
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Id&nbsp;product&nbsp;*:</label>
+            <label class="control-label"><?=T_FIELD_ID_PRODUCT?>&nbsp;*</label>
             <select  class="form-control" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
@@ -113,7 +113,7 @@ public function edit(ModelProductCategory $data , int $showTabs = 1, array $mess
                         
         <div class="col-lg-4 col-md-6">
         <div class="form-group">
-            <label class="control-label">Id&nbsp;category&nbsp;*:</label>
+            <label class="control-label"><?=T_FIELD_ID_CATEGORY?>&nbsp;*</label>
             <select  class="form-control" name="id_category" id="id_category">
                 <option value=""></option>
         <?php
@@ -141,7 +141,7 @@ public function edit(ModelProductCategory $data , int $showTabs = 1, array $mess
 		<div class="col-12">
 		
 		<div class="form-group">
-		<input type="submit" name="Envoyer" title="Envoyer" value="Save" class="btn btn-outline btn-outline-primary">
+		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
 		</div>
 
@@ -175,10 +175,10 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=viewlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>">Id&nbsp;category</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=viewlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th></th>
 	</tr>
@@ -194,7 +194,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		<td class="shrink"><?php echo $this->productList2[$element['id_product']]['name'] ?? '';?></td>
 		<td ><?php echo $this->categoryList2[$element['id_category']]['name'] ?? '';?></td>
 	
-		    <td class="shrink"><a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=view&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>" class="btn">
+		    <td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=view&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
             <?=self::icon('view')?>		    
             </a></td>
 		</tr>
@@ -214,6 +214,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -244,8 +245,8 @@ public function view(ModelProductCategory $data , array $message=null){
             <div class="col-sm-12">
                 <dl class="row">
                     
-		        <dt class="col-sm-3"><h5>Id&nbsp;product</h5></dt><dd class="col-sm-9"><?php echo $this->productList2[$data->id_product]['name'] ?? '';?></dd>
-		        <dt class="col-sm-3"><h5>Id&nbsp;category</h5></dt><dd class="col-sm-9"><?php echo $this->categoryList2[$data->id_category]['name'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_PRODUCT?></h5></dt><dd class="col-sm-9"><?php echo $this->productList2[$data->id_product]['name'] ?? '';?></dd>
+		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_CATEGORY?></h5></dt><dd class="col-sm-9"><?php echo $this->categoryList2[$data->id_category]['name'] ?? '';?></dd>
 	             </dl></div>
             </div>
 	    </div>
@@ -253,7 +254,7 @@ public function view(ModelProductCategory $data , array $message=null){
 	<?php
     }
     else{
-        $this->message(array('text' => 'No data', 'type' => 'warning'));
+        $this->message(array('text' => T_NO_DATA, 'type' => 'warning'));
     }
 
 
@@ -275,7 +276,7 @@ public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonIcon[1] = self::icon('check2');
    
     ?>
-    <a hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=<?=$task?>&value=<?php echo $value?>&id_product=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=<?=$task?>&value=<?php echo $value?>&id_product=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
     <?php
 }
 
@@ -292,10 +293,10 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=editlist&orderBy=id_category&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>">Id&nbsp;category</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=editlist&orderBy=id_category&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th></th>
 	</tr>
@@ -309,18 +310,18 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		?>
 		<tr id="row-<?php echo $element['id_product']?><?php echo $element['id_category']?>">
 		<td class="shrink">
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_product=<?php echo $element['id_product']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_product=<?php echo $element['id_product']?>">
                                             <?php echo $this->productList2[$element['id_product']]['name'] ?? '';?>
                                             </a>
                                             </td>
                                             
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_category=<?php echo $element['id_category']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_category=<?php echo $element['id_category']?>">
                                             <?php echo $this->categoryList2[$element['id_category']]['name'] ?? '';?>
                                             </a>
                                             </td>
                                             
-	<td class="shrink"><a hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_category']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productcategory&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">            
+	<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_category']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productcategory&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">            
             <?=self::icon('x-lg');?>
             </a></td>
 		</tr>
@@ -340,6 +341,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 
@@ -361,10 +363,10 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<table class="table table-bordered">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_category"><a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=childlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>">Id&nbsp;category</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=childlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th>
 	</thead>
@@ -377,19 +379,19 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		?>
 		<tr id="row-<?php echo $element['id_product']?><?php echo $element['id_category']?>">
 		<td class="shrink">
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_product=<?php echo $element['id_product']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_product=<?php echo $element['id_product']?>">
                                             <?php echo $this->productList2[$element['id_product']]['name'];?>
                                             </a>
                                             </td>
                                             
 		<td >
-                                            <a hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_category=<?php echo $element['id_category']?>">
+                                            <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productcategory&task=editList&id_category=<?php echo $element['id_category']?>">
                                             <?php echo $this->categoryList2[$element['id_category']]['name'];?>
                                             </a>
                                             </td>
                                             
 	    
-			<td class="shrink"><a hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_category']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productcategory&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="Are you sure?" class="btn btn-outline btn-outline-danger">Del</a></td>
+			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_category']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productcategory&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -403,14 +405,15 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	<tfoot>
 	<tr>
 	<td colspan="3" class="phppistolsTFooter" style="text-align: right;">
-	    <a hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-success" style="margin-top: 10px;">
-        <?=self::icon('plus-lg');?>
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
+        <?=self::icon('plus-lg');?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
 	</tfoot>
 
 	</table>
+	</div>
 	
 	<?php
 }
@@ -429,10 +432,10 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<table class="table table-bordered table-sm">
+	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
 	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>">Id&nbsp;product</a></th>
-	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=trashedlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>">Id&nbsp;category</a></th>
+	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=productcategory&task=trashedlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th></th>
 	</tr>
@@ -448,7 +451,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		<td class="shrink"><?php echo $this->productList2[$element['id_product']]['name'] ?? '';?></td>
 		<td ><?php echo $this->categoryList2[$element['id_category']]['name'] ?? '';?></td>
 	
-		    <td class="shrink"><a hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_category']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productcategory&task=undelHtmx&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary">
+		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_category']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productcategory&task=undelHtmx&id_product=<?php echo $element['id_product']?>&id_category=<?php echo $element['id_category']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
             <?=self::icon('undel')?>	    
             </a></td>
 		</tr>
@@ -468,6 +471,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	</tfoot>
 
 	</table>
+	</div>
 	<?php
 }
 

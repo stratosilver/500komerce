@@ -51,7 +51,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
         $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
 
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
-            $this->HTMLMedia->header('Media');
+            $this->HTMLMedia->header(T_COMPONENT_MEDIA);
             if($task == 'viewlist' || $task == 'editlist' || $task == 'trashedlist'){
                 $this->HTMLMedia->search(self::$fieldsNames, $task);
             }
@@ -75,7 +75,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
                 case 'viewlist':   $this->viewList($textSearch); break;
 
 
-                default: throw new \ErrorException('Page not found', 404, E_ERROR);
+                default: throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
             }
         }
         catch(Exception $e){
@@ -104,11 +104,11 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
 
             if(!$isNew && !$this->dataMedia->get()){
                 $this->message['type'] = 'danger';
-                $this->message['text'] = 'This media does not exist anymore';
+                $this->message['text'] = T_ERROR_MEDIA_GONE;
             }
             elseif($isNew && !$hasFile){
                 $this->message['type'] = 'danger';
-                $this->message['text'] = 'Choose an image';
+                $this->message['text'] = T_ERROR_CHOOSE_IMAGE;
             }
             else{
                 // The file of the image before the change: filename, mime type, size and dimensions come from the file
@@ -140,7 +140,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
                     }
 
                     if(!$this->dataMedia->save()){
-                        throw new \RuntimeException('The entry could not be saved');
+                        throw new \RuntimeException(T_ERROR_NOT_SAVED);
                     }
 
                     // The files of the replaced image are not used anymore
@@ -149,7 +149,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
                     }
 
                     $this->message['type'] = 'success';
-                    $this->message['text'] = 'The entry has been saved';
+                    $this->message['text'] = T_MSG_SAVED;
                 }
                 catch(\Throwable $e){
                     // The new files are useless if the entry is not saved
@@ -160,7 +160,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
                         error_log('Media upload: '.$e->getMessage());
                     }
                     $this->message['type'] = 'danger';
-                    $this->message['text'] = $e instanceof \RuntimeException && !($e instanceof \PDOException) ? $e->getMessage() : 'The entry could not be saved';
+                    $this->message['text'] = $e instanceof \RuntimeException && !($e instanceof \PDOException) ? $e->getMessage() : T_ERROR_NOT_SAVED;
                     if($isNew){
                         $this->dataMedia->id_media = null;
                     }
@@ -179,7 +179,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
                     catch(\Throwable $e){
                         error_log('Media upload, link to the product: '.$e->getMessage());
                         $this->message['type'] = 'warning';
-                        $this->message['text'] = 'The image has been saved, but it could not be added to the product';
+                        $this->message['text'] = T_ERROR_IMAGE_NOT_LINKED;
                     }
                 }
             }
@@ -221,11 +221,11 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
         if($this->dataMedia->id_media){
             $this->delWithFiles();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         $this->editlist();
@@ -251,7 +251,7 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
 
         if(count($this->message)){
@@ -357,11 +357,11 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
         if($this->dataMedia->id_media){
             $this->dataMedia->logicalUnDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);
@@ -380,11 +380,11 @@ class ControllerMedia  extends \Apgenic\Classes\Controller {
         if($this->dataMedia->id_media){
             $this->dataMedia->logicalDel();
             $this->message['type'] = 'success';
-            $this->message['text'] = 'Done';
+            $this->message['text'] = T_MSG_DONE;
         }
         else{
             $this->message['type'] = 'danger';
-            $this->message['text'] = 'Missing parameter';
+            $this->message['text'] = T_MSG_MISSING_PARAMETER;
         }
         if(count($this->message)){
             //http_response_code(204);

@@ -1,0 +1,130 @@
+/* =====================================================================
+   100Komerce - THEME
+   ---------------------------------------------------------------------
+   The design tokens of the site: colors, fonts, sizes, shapes, shadows.
+   styles.css reads these variables, it contains no color of its own:
+   all the colors of the interface are here, the ones of Bootstrap too.
+   To recolor the site: change the "main colors" below.
+
+   To create a new design: copy this file, change the values, and load
+   the new file instead of this one in ViewTemplate::header() and
+   ViewUser::authHeader(). Bootstrap 4.6.2 is loaded before this file.
+   ===================================================================== */
+
+
+/* Fonts, hosted in public/fonts (SIL Open Font License, see the LICENSE files)
+   -------------------------------------------------------------------- */
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 800; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/bricolage-grotesque-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/bricolage-grotesque-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 800; font-display: swap; src: url("../fonts/bricolage-grotesque-latin-800-normal.woff2") format("woff2"); }
+
+
+:root {
+
+	/* =================================================================
+	   COLORS
+	   1. Main colors: the only values to change to recolor the site.
+	   2. Shades: computed from the main colors with color-mix(), they follow
+	      them automatically. Each one can be replaced by a fixed value,
+	      ex: --k-border: #E2E6EC;
+	   Change the values here, in :root: a variable changed elsewhere does
+	   not recompute the shades.
+	   ================================================================= */
+
+	/* 1. Main colors
+	   ---------------------------------------------------------------- */
+	--k-brand:            #002B59;   /* links, primary buttons, active states, banner of the catalog */
+	--k-brand-contrast:   #FFFFFF;   /* text on --k-brand */
+	--k-accent:           #FFB21E;   /* the buying actions only: add to cart, checkout, confirm the order */
+	--k-accent-contrast:  #14213D;   /* text on --k-accent */
+	--k-ink:              #0F1E33;   /* text; the greys are mixed from --k-ink and --k-surface */
+	--k-bg:               #F5F6F8;   /* background of the pages */
+	--k-surface:          #FFFFFF;   /* cards, tables, fields, header */
+	--k-dark:             #0B1B33;   /* dark zones: side menu of the back office, footer of the shop */
+	--k-on-dark:          #FFFFFF;   /* text on the dark zones and on the strong colors (success...) */
+	--k-success:          #13795B;   /* messages, badges, validation */
+	--k-danger:           #C23A2F;
+	--k-warning:          #9A5700;
+	--k-info:             #1E5FA8;
+
+	/* 2. Shades
+	   ---------------------------------------------------------------- */
+	/* Brand and accent */
+	--k-brand-hover:      color-mix(in srgb, var(--k-brand) 70%, #000);
+	--k-brand-soft:       color-mix(in srgb, var(--k-brand) 9%, var(--k-surface));    /* light background of the brand */
+	--k-accent-hover:     color-mix(in srgb, var(--k-accent) 93%, #000);
+	--k-accent-soft:      color-mix(in srgb, var(--k-accent) 15%, var(--k-surface));
+
+	/* Greys */
+	--k-ink-2:            color-mix(in srgb, var(--k-ink) 80%, var(--k-surface));     /* secondary text */
+	--k-muted:            color-mix(in srgb, var(--k-ink) 66%, var(--k-surface));     /* hints, captions: keep a contrast of 4.5:1 at least */
+	--k-surface-2:        color-mix(in srgb, var(--k-ink) 5%, var(--k-surface));      /* zones inside a card, disabled fields */
+	--k-border:           color-mix(in srgb, var(--k-ink) 12%, var(--k-surface));
+	--k-border-strong:    color-mix(in srgb, var(--k-ink) 21%, var(--k-surface));
+
+	/* Status: light backgrounds of the messages and badges */
+	--k-success-soft:     color-mix(in srgb, var(--k-success) 11%, var(--k-surface));
+	--k-danger-soft:      color-mix(in srgb, var(--k-danger) 10%, var(--k-surface));
+	--k-warning-soft:     color-mix(in srgb, var(--k-warning) 12%, var(--k-surface));
+	--k-info-soft:        color-mix(in srgb, var(--k-info) 11%, var(--k-surface));
+
+	/* Back office: side menu */
+	--k-sidebar-bg:       var(--k-dark);
+	--k-sidebar-ink:      color-mix(in srgb, var(--k-on-dark) 75%, var(--k-dark));
+	--k-sidebar-muted:    color-mix(in srgb, var(--k-on-dark) 52%, var(--k-dark));    /* titles of the sections */
+	--k-sidebar-active:   var(--k-on-dark);
+	--k-sidebar-active-bg: color-mix(in srgb, var(--k-on-dark) 9%, transparent);
+	--k-sidebar-marker:   var(--k-accent);
+
+	/* Shop: footer */
+	--k-footer-bg:        var(--k-dark);
+	--k-footer-ink:       color-mix(in srgb, var(--k-on-dark) 75%, var(--k-dark));
+	--k-footer-title:     var(--k-on-dark);
+
+	/* Lines and transparencies */
+	--k-line-on-dark:     color-mix(in srgb, var(--k-on-dark) 10%, transparent);       /* separators in the dark zones */
+	--k-header-bg:        color-mix(in srgb, var(--k-surface) 92%, transparent);       /* header and top bar, above the content that scrolls */
+	--k-overlay:          color-mix(in srgb, var(--k-dark) 45%, transparent);          /* behind the side menu opened on a phone */
+	--k-focus-color:      color-mix(in srgb, var(--k-brand) 22%, transparent);         /* ring around the field or button that has the focus */
+
+	/* Color of the bar of the mobile browsers: <meta name="theme-color">, set in ViewTemplate::THEME_COLOR (PHP) */
+
+	/* Typography
+	   ---------------------------------------------------------------- */
+	--k-font-body:        "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+	--k-font-display:     "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+	--k-font-mono:        ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	--k-text:             1rem;      /* 16px, the shop */
+	--k-text-sm:          .875rem;   /* 14px, tables and forms of the back office */
+	--k-text-xs:          .75rem;    /* 12px, labels in capitals */
+	--k-weight-body:      400;
+	--k-weight-strong:    600;
+	--k-weight-display:   700;
+	--k-tracking-display: -.02em;    /* letter spacing of the titles */
+
+	/* Shapes
+	   ---------------------------------------------------------------- */
+	--k-radius-sm:        6px;       /* badges, small buttons */
+	--k-radius:           10px;      /* buttons, fields */
+	--k-radius-lg:        16px;      /* cards, tables, panels */
+	--k-radius-pill:      999px;
+
+	/* Elevation
+	   ---------------------------------------------------------------- */
+	--k-shadow-sm:        0 1px 2px color-mix(in srgb, var(--k-ink) 6%, transparent);
+	--k-shadow:           0 1px 2px color-mix(in srgb, var(--k-ink) 4%, transparent), 0 6px 20px color-mix(in srgb, var(--k-ink) 6%, transparent);
+	--k-shadow-lg:        0 12px 40px color-mix(in srgb, var(--k-ink) 14%, transparent);
+	--k-focus-ring:       0 0 0 3px var(--k-focus-color);
+
+	/* Layout
+	   ---------------------------------------------------------------- */
+	--k-container:        1240px;    /* width of the content of the shop */
+	--k-header-h:         72px;      /* height of the header of the shop */
+	--k-sidebar-w:        256px;     /* width of the side menu of the back office */
+	--k-gap:              24px;      /* space between the blocks */
+}

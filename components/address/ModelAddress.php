@@ -16,7 +16,8 @@ class ModelAddress extends \Apgenic\Classes\Model{
     const COLUMNS = array('id_address', 'id_user', 'type', 'street', 'number', 'box', 'postal_code', 'city', 'country', 'phone', 'created_at', 'updated_at', 'deleted_at');
     const TYPES = array('postal', 'delivery');
     // Countries proposed in the forms, ISO code => name
-    const COUNTRIES = array('BE' => 'Belgium', 'FR' => 'France', 'LU' => 'Luxembourg', 'NL' => 'Netherlands', 'DE' => 'Germany');
+    // Names in translations.php
+    const COUNTRIES = array('BE' => T_COUNTRY_BE, 'FR' => T_COUNTRY_FR, 'LU' => T_COUNTRY_LU, 'NL' => T_COUNTRY_NL, 'DE' => T_COUNTRY_DE);
     // Fields typed by the user => maximum length
     const FIELDS = array('street' => 200, 'number' => 20, 'box' => 20, 'postal_code' => 20, 'city' => 100, 'phone' => 30);
     const REQUIRED = array('street', 'number', 'postal_code', 'city');
@@ -50,17 +51,17 @@ class ModelAddress extends \Apgenic\Classes\Model{
             $value = is_string($value) ? trim((string)filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS)) : '';
 
             if($value == '' && in_array($field, self::REQUIRED, true)){
-                $errors[$prefix.$field] = 'Required';
+                $errors[$prefix.$field] = T_ERROR_REQUIRED;
             }
             elseif(strlen($value) > $max){
-                $errors[$prefix.$field] = 'Too long';
+                $errors[$prefix.$field] = T_ERROR_TOO_LONG;
             }
             $this->$field = $value;
         }
 
         $country = $input[$prefix.'country'] ?? '';
         if(!is_string($country) || !isset(self::COUNTRIES[$country])){
-            $errors[$prefix.'country'] = 'Required';
+            $errors[$prefix.'country'] = T_ERROR_REQUIRED;
         }
         else{
             $this->country = $country;
@@ -156,7 +157,7 @@ class ModelAddress extends \Apgenic\Classes\Model{
     public static function line(array $row):string{
         $line = $row['street'].' '.$row['number'];
         if(($row['box'] ?? '') != ''){
-            $line .= ' box '.$row['box'];
+            $line .= ' '.T_ADDRESS_BOX.' '.$row['box'];
         }
         return $line.', '.$row['postal_code'].' '.$row['city'].', '.(self::COUNTRIES[$row['country']] ?? $row['country']);
     }
