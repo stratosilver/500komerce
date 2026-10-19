@@ -231,7 +231,7 @@ class MediaImage {
         if($url == ''){
             return '';
         }
-        return '<img class="media-thumb" src="'.htmlspecialchars($url).'" alt="'.htmlspecialchars($alt).'" loading="lazy">';
+        return '<img class="rounded border bg-body object-fit-cover align-middle me-2" width="48" height="48" src="'.htmlspecialchars($url).'" alt="'.htmlspecialchars($alt).'" loading="lazy">';
     }
 
 

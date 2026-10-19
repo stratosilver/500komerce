@@ -79,6 +79,7 @@ $translations = array(
     'T_CONFIRM_DELETE'            => array('fr' => 'Êtes-vous sûr ?', 'en' => 'Are you sure?'),
     'T_NO_DATA'                   => array('fr' => 'Aucune donnée', 'en' => 'No data'),
     'T_MENU'                      => array('fr' => 'Menu', 'en' => 'Menu'),
+    'T_CLOSE'                     => array('fr' => 'Fermer', 'en' => 'Close'),
     'T_HOME'                      => array('fr' => 'Accueil', 'en' => 'Home'),
     'T_BREADCRUMB'                => array('fr' => 'Fil d’Ariane', 'en' => 'Breadcrumb'),
     'T_SKIP_TO_CONTENT'           => array('fr' => 'Aller au contenu', 'en' => 'Skip to content'),

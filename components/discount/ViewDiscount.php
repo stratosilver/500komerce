@@ -1,11 +1,11 @@
-<?php 
+<?php
 /**
  * @author ApGenic.com <support@apgenic.com>
  * @author ApGenic generate a boilerplate web app from your database structure
  * @license GPL
  * @license https://opensource.org/licenses/gpl-license.php GNU Public License
  */
- 
+
 declare(strict_types=1);
 namespace Apgenic\Discount;
 
@@ -23,8 +23,8 @@ function __construct() {
 
 /**
 * Display tabs above form or detail page of an record
-* Tabs can display lists of decords of an other table having a forign key with the 
-* displayed record.  
+* Tabs can display lists of decords of an other table having a forign key with the
+* displayed record.
 * @param int $id
 * @param string $activeTab
 * @return void
@@ -32,21 +32,21 @@ function __construct() {
 public static function tabs(int $id, string $activeTab){
 ?>
 
-    <ul id="tabs_list" class="nav nav-tabs">
+    <ul id="tabs_list" class="nav nav-tabs mb-3">
       <li class="nav-item">
         <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=edit&id_discount=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
-      
-    </ul>
-    
 
-     
+    </ul>
+
+
+
 <?php
 }
 /**
  * Edit form for the table discount
  * @parameter ModelDiscount $data
- * @parameter int $showTabs 
+ * @parameter int $showTabs
  * @parameter array $message
  * @return void
  */
@@ -68,57 +68,57 @@ public function edit(ModelDiscount $data , int $showTabs = 1, array $message=nul
 		<?php
 		$this->message($message);
 		?>
-		
-		<form method="POST" enctype="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
+
+		<form class="card card-body shadow-sm p-lg-4 mb-4" method="POST" enctype="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
 		<input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
 		<fieldset>
         <div class="row">
-	
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_DATE_FROM?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="date_from"><?=T_FIELD_DATE_FROM?></label>
 		<input  class="form-control" type="datetime-local" name="date_from" id="date_from" value="<?=htmlentities((string)$data->date_from)?>"/>
 	    </div>
 	    </div>
-	    
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_DATE_TO?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="date_to"><?=T_FIELD_DATE_TO?></label>
 		<input  class="form-control" type="datetime-local" name="date_to" id="date_to" value="<?=htmlentities((string)$data->date_to)?>"/>
 	    </div>
 	    </div>
-	    
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_ID_CATEGORY?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="id_category"><?=T_FIELD_ID_CATEGORY?></label>
 		<input required="" class="form-control" type="number" name="id_category" id="id_category" value="<?=$data->id_category?>"/>
 	    </div>
 	    </div>
-	    
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_ID_PRODUCT?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="id_product"><?=T_FIELD_ID_PRODUCT?></label>
 		<input required="" class="form-control" type="number" name="id_product" id="id_product" value="<?=$data->id_product?>"/>
 	    </div>
 	    </div>
-	    
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_AMOUNT?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="amount"><?=T_FIELD_AMOUNT?></label>
 		<input required="" class="form-control" type="number" name="amount" id="amount" value="<?=$data->amount?>"/>
 	    </div>
 	    </div>
-	    
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_PERCENTAGE?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="percentage"><?=T_FIELD_PERCENTAGE?></label>
 		<input required="" class="form-control" type="number" name="percentage" id="percentage" value="<?=$data->percentage?>"/>
 	    </div>
 	    </div>
-	    
+
 		<div class="col-12">
-		
-		<div class="form-group k-form-actions">
+
+		<div class="border-top pt-3">
 		<input type="hidden" name="id_discount" id="id" value="<?=$data->id_discount ?>"/>
 		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
@@ -139,11 +139,11 @@ public function edit(ModelDiscount $data , int $showTabs = 1, array $message=nul
 
 	}
 
-	
+
 
 /**
  * Display rows from the table discount
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter string $orderBy
  * @parameter string $order
  * @parameter array $message
@@ -154,19 +154,19 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered">
-	<thead>
-	<tr>	<th scope="col" id="id_discount"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=id_discount&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="date_from"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=date_from&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_FROM?></a></th>
-	<th scope="col" id="date_to"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=date_to&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_TO?></a></th>
-	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
-	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="amount"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=amount&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>"><?=T_FIELD_AMOUNT?></a></th>
-	<th scope="col" id="percentage"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=percentage&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>"><?=T_FIELD_PERCENTAGE?></a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_discount" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=id_discount&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="date_from" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=date_from&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_FROM?></a></th>
+	<th scope="col" id="date_to" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=date_to&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_TO?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=amount&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>"><?=T_FIELD_AMOUNT?></a></th>
+	<th scope="col" id="percentage" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=percentage&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>"><?=T_FIELD_PERCENTAGE?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
-		<th></th>
+		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -177,7 +177,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	foreach ($data as $element){
 		?>
 		<tr>
-		<td class="shrink"><?php echo $element['id_discount']?></td>
+		<td class="text-nowrap"><?php echo $element['id_discount']?></td>
 		<td ><?php echo $element['date_from']?></td>
 		<td ><?php echo $element['date_to']?></td>
 		<td ><?php echo $element['id_category']?></td>
@@ -186,9 +186,9 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		<td ><?php echo $element['percentage']?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
-	
-		    <td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=view&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-            <?=self::icon('view')?>		    
+
+		    <td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=view&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
+            <?=self::icon('view', 16)?>
             </a></td>
 		</tr>
 		<?php
@@ -200,11 +200,6 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 		?>
-	<tfoot>
-	<tr>
-	<td colspan="13" class="phppistolsTFooter"></td>
-	</tr>
-	</tfoot>
 
 	</table>
 	</div>
@@ -219,35 +214,35 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 /**
  * Display details of a record from the table discount
  *
- * @parameter ModelDiscount $data 
+ * @parameter ModelDiscount $data
  * @parameter array $message
  * @return void
  */
 public function view(ModelDiscount $data , array $message=null){
         $this->message($message);
-	
+
 
 	$i=1;
 
 	if ($data->id_discount != null){
 	?>
-	
-    <div class="panel panel-default">
-        <div class="panel-body">
+
+    <div class="card shadow-sm">
+        <div class="card-body p-lg-4">
             <div class="row">
             <div class="col-sm-12">
-                <dl class="row">
-                    
-		        <dt class="col-sm-3"><h5><?=T_FIELD_ID?></h5></dt><dd class="col-sm-9"><?php echo $data->id_discount?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_DATE_FROM?></h5></dt><dd class="col-sm-9"><?php echo $data->date_from?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_DATE_TO?></h5></dt><dd class="col-sm-9"><?php echo $data->date_to?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_CATEGORY?></h5></dt><dd class="col-sm-9"><?php echo $data->id_category?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_PRODUCT?></h5></dt><dd class="col-sm-9"><?php echo $data->id_product?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_AMOUNT?></h5></dt><dd class="col-sm-9"><?php echo $data->amount?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_PERCENTAGE?></h5></dt><dd class="col-sm-9"><?php echo $data->percentage?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_CREATED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_UPDATED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->updated_at?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_DELETED_AT?></h5></dt><dd class="col-sm-9"><?php echo $data->deleted_at?></dd>
+                <dl class="row mb-0">
+
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID?></dt><dd class="col-sm-9"><?php echo $data->id_discount?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_DATE_FROM?></dt><dd class="col-sm-9"><?php echo $data->date_from?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_DATE_TO?></dt><dd class="col-sm-9"><?php echo $data->date_to?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_CATEGORY?></dt><dd class="col-sm-9"><?php echo $data->id_category?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_PRODUCT?></dt><dd class="col-sm-9"><?php echo $data->id_product?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_AMOUNT?></dt><dd class="col-sm-9"><?php echo $data->amount?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_PERCENTAGE?></dt><dd class="col-sm-9"><?php echo $data->percentage?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_CREATED_AT?></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_UPDATED_AT?></dt><dd class="col-sm-9"><?php echo $data->updated_at?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_DELETED_AT?></dt><dd class="col-sm-9"><?php echo $data->deleted_at?></dd>
 	             </dl></div>
             </div>
 	    </div>
@@ -262,7 +257,7 @@ public function view(ModelDiscount $data , array $message=null){
 
 }
 
-        
+
 /**
  * Display rows from the table discount
  * @parameter int $pkVal
@@ -273,17 +268,17 @@ public function view(ModelDiscount $data , array $message=null){
 public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonTyp[0] = 'secondary';
     $buttonTyp[1] = 'success';
-    $buttonIcon[0] = self::icon('x-lg');
-    $buttonIcon[1] = self::icon('check2');
-   
+    $buttonIcon[0] = self::icon('x-lg', 16);
+    $buttonIcon[1] = self::icon('check2', 16);
+
     ?>
-    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=<?=$task?>&value=<?php echo $value?>&id_discount=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=<?=$task?>&value=<?php echo $value?>&id_discount=<?php echo $pkVal;?>" class="btn btn-sm btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>
     <?php
 }
 
 /**
  * Display rows from the table discount with edit and del buttons
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter string $orderBy
  * @parameter string $order
  * @parameter array $message
@@ -294,21 +289,21 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered">
-	<thead>
-	<tr>	<th scope="col" id="id_discount"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=id_discount&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="date_from"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=date_from&<?=$this->filtersGet?>&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_FROM?></a></th>
-	<th scope="col" id="date_to"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=date_to&<?=$this->filtersGet?>&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_TO?></a></th>
-	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=id_category&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
-	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="amount"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>"><?=T_FIELD_AMOUNT?></a></th>
-	<th scope="col" id="percentage"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=percentage&<?=$this->filtersGet?>&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>"><?=T_FIELD_PERCENTAGE?></a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_discount" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=id_discount&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="date_from" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=date_from&<?=$this->filtersGet?>&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_FROM?></a></th>
+	<th scope="col" id="date_to" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=date_to&<?=$this->filtersGet?>&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_TO?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=id_category&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>"><?=T_FIELD_AMOUNT?></a></th>
+	<th scope="col" id="percentage" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=percentage&<?=$this->filtersGet?>&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>"><?=T_FIELD_PERCENTAGE?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
-		<th></th>
-		<th></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3')?></a></th>
+		<th class="tight"></th>
+		<th class="tight"></th>
+		<th><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -319,7 +314,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_discount']?>">
-		<td class="shrink"><?php echo $element['id_discount']?></td>
+		<td class="text-nowrap"><?php echo $element['id_discount']?></td>
 		<td ><?php echo $element['date_from']?></td>
 		<td ><?php echo $element['date_to']?></td>
 		<td ><?php echo $element['id_category']?></td>
@@ -328,14 +323,14 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td ><?php echo $element['percentage']?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
-	
-			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=view&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-			<?=self::icon('view');?></a></td>
-			<td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=edit&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
-            <?=self::icon('pencil');?>
+
+			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=view&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
+			<?=self::icon('view', 16);?></a></td>
+			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=edit&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
+            <?=self::icon('pencil', 16);?>
             </a></td>
-			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_discount']?>" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=logicaldeleteHtmx&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">
-            <?=self::icon('x-lg');?>
+			<td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_discount']?>" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=logicaldeleteHtmx&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-sm btn-outline-danger" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">
+            <?=self::icon('x-lg', 16);?>
             </a></td>
 		</tr>
 		<?php
@@ -347,22 +342,17 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 		?>
-	<tfoot>
-	<tr>
-	<td colspan="13" class="phppistolsTFooter"></td>
-	</tr>
-	</tfoot>
 
 	</table>
 	</div>
 	<?php
 }
 
-        
+
 /**
  * Display rows from the table discount with edit and del buttons
  * specificly to be displayed below a tab
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter array $filters
  * @parameter string $orderBy
  * @parameter string $order
@@ -376,21 +366,22 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered">
-	<thead>
-	<tr>	<th scope="col" id="id_discount"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=id_discount&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="date_from"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=date_from&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_DATE_FROM?></a></th>
-	<th scope="col" id="date_to"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=date_to&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_DATE_TO?></a></th>
-	<th scope="col" id="id_category"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_CATEGORY?></a></th>
-	<th scope="col" id="id_product"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="amount"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=amount&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_AMOUNT?></a></th>
-	<th scope="col" id="percentage"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=percentage&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_PERCENTAGE?></a></th>
-	<th scope="col" id="created_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_discount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=id_discount&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="date_from" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=date_from&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_DATE_FROM?></a></th>
+	<th scope="col" id="date_to" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=date_to&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_DATE_TO?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=amount&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_AMOUNT?></a></th>
+	<th scope="col" id="percentage" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=percentage&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_PERCENTAGE?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
-		<th></th>
-		<th></th>
-		<th>
+		<th class="tight"></th>
+		<th class="tight"></th>
+		<th class="tight"></th>
+	</tr>
 	</thead>
 	<tbody>
 	<?php
@@ -400,7 +391,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_discount']?>">
-		<td class="shrink"><?php echo $element['id_discount']?></td>
+		<td class="text-nowrap"><?php echo $element['id_discount']?></td>
 		<td ><?php echo $element['date_from']?></td>
 		<td ><?php echo $element['date_to']?></td>
 		<td ><?php echo $element['id_category']?></td>
@@ -409,14 +400,14 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['percentage']?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
-	
-			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=view&showTabs=0&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-	        <?=self::icon('view');?>		
+
+			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=view&showTabs=0&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
+	        <?=self::icon('view', 16);?>
             </a></td>
-			<td class="shrink"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childList&showTabs=0&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-outline btn-outline-primary k-btn-icon" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
-            <?=self::icon('screwdriver');?>
-            </a></td>    
-			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_discount']?>" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=delHtmx&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
+			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=discount&task=childList&showTabs=0&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
+            <?=self::icon('screwdriver', 16);?>
+            </a></td>
+			<td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_discount']?>" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=delHtmx&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-sm btn-outline-danger" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3', 16)?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -429,9 +420,9 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		?>
 	<tfoot>
 	<tr>
-	<td colspan="13" class="phppistolsTFooter" style="text-align: right;">
-	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
-        <?=self::icon('plus-lg');?> <?=T_ADD?>
+	<td colspan="13" class="text-end">
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+        <?=self::icon('plus-lg', 16);?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
@@ -439,14 +430,14 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 	</table>
 	</div>
-	
+
 	<?php
 }
 
 
 /**
  * Display trashed rows from the table discount
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter string $orderBy
  * @parameter string $order
  * @parameter array $message
@@ -457,19 +448,19 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
-	<thead>
-	<tr>	<th scope="col" id="id_discount"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=id_discount&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="date_from"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=date_from&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_FROM?></a></th>
-	<th scope="col" id="date_to"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=date_to&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_TO?></a></th>
-	<th scope="col" id="id_category"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
-	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="amount"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=amount&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>"><?=T_FIELD_AMOUNT?></a></th>
-	<th scope="col" id="percentage"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=percentage&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>"><?=T_FIELD_PERCENTAGE?></a></th>
-	<th scope="col" id="created_at"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at"><a href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_discount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=id_discount&order=<?php if($orderBy == "id_discount") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="date_from" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=date_from&order=<?php if($orderBy == "date_from") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_FROM?></a></th>
+	<th scope="col" id="date_to" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=date_to&order=<?php if($orderBy == "date_to") echo $order; else echo 'asc';?>"><?=T_FIELD_DATE_TO?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=amount&order=<?php if($orderBy == "amount") echo $order; else echo 'asc';?>"><?=T_FIELD_AMOUNT?></a></th>
+	<th scope="col" id="percentage" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=percentage&order=<?php if($orderBy == "percentage") echo $order; else echo 'asc';?>"><?=T_FIELD_PERCENTAGE?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=discount&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
-		<th></th>
+		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -480,7 +471,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_discount']?>">
-		<td class="shrink"><?php echo $element['id_discount']?></td>
+		<td class="text-nowrap"><?php echo $element['id_discount']?></td>
 		<td ><?php echo $element['date_from']?></td>
 		<td ><?php echo $element['date_to']?></td>
 		<td ><?php echo $element['id_category']?></td>
@@ -489,9 +480,9 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		<td ><?php echo $element['percentage']?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
-	
-		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_discount']?>" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=undelHtmx&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
-            <?=self::icon('undel')?>	    
+
+		    <td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_discount']?>" hx-post="<?=BASE_URL?>/htmx.php?component=discount&task=undelHtmx&id_discount=<?php echo $element['id_discount']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-sm btn-outline-secondary" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
+            <?=self::icon('undel', 16)?>
             </a></td>
 		</tr>
 		<?php
@@ -503,11 +494,6 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 		?>
-	<tfoot>
-	<tr>
-	<td colspan="13" class="phppistolsTFooter"></td>
-	</tr>
-	</tfoot>
 
 	</table>
 	</div>

@@ -1,11 +1,11 @@
-<?php 
+<?php
 /**
  * @author ApGenic.com <support@apgenic.com>
  * @author ApGenic generate a boilerplate web app from your database structure
  * @license GPL
  * @license https://opensource.org/licenses/gpl-license.php GNU Public License
  */
- 
+
 declare(strict_types=1);
 namespace Apgenic\ProductMedia;
 
@@ -25,8 +25,8 @@ $this->productList1 = $productList1;
 
 /**
 * Display tabs above form or detail page of an record
-* Tabs can display lists of decords of an other table having a forign key with the 
-* displayed record.  
+* Tabs can display lists of decords of an other table having a forign key with the
+* displayed record.
 * @param int $id
 * @param string $activeTab
 * @return void
@@ -34,21 +34,21 @@ $this->productList1 = $productList1;
 public static function tabs(int $id, string $activeTab){
 ?>
 
-    <ul id="tabs_list" class="nav nav-tabs">
+    <ul id="tabs_list" class="nav nav-tabs mb-3">
       <li class="nav-item">
         <a href="#" id="tab_info" class="nav-link <?php if($activeTab == 'info') echo 'active';?>" hx-target="#main_content" hx-swap="innerHTML"  hx-get="<?=BASE_URL?>/htmx.php?component=product_media&task=edit&id_product=<?=$id?>&id_media=<?=$id?>"><?=T_TAB_INFO?></a>
       </li>
-      
-    </ul>
-    
 
-     
+    </ul>
+
+
+
 <?php
 }
 /**
  * Edit form for the table product_media
  * @parameter ModelProductMedia $data
- * @parameter int $showTabs 
+ * @parameter int $showTabs
  * @parameter array $message
  * @return void
  */
@@ -70,86 +70,86 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
 		<?php
 		$this->message($message);
 		?>
-		
-		<form method="POST" enctype="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
+
+		<form class="card card-body shadow-sm p-lg-4 mb-4" method="POST" enctype="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
 		<input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
 		<fieldset>
         <div class="row">
-	
 
-                        <?php 
+
+                        <?php
                         if(!isset($this->filters['id_product'])){ ?>
-                        
+
         <div class="col-lg-4 col-md-6">
-        <div class="form-group">
-            <label class="control-label"><?=T_FIELD_ID_PRODUCT?>&nbsp;*</label>
-            <select  class="form-control" name="id_product" id="id_product">
+        <div class="mb-3">
+            <label class="form-label" for="id_product"><?=T_FIELD_ID_PRODUCT?>&nbsp;*</label>
+            <select  class="form-select" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
         foreach ($this->productList1 as $key => $val){
                 ?>
                 <option value="<?=$val['id_product']?>" <?php if($data->id_product == $val['id_product']) echo 'selected="selected"';?>><?=$val['name']?></option>
-        <?php 
+        <?php
         }
         ?>
-       
+
             </select>
 		</div>
 		</div>
-		
+
                         <?php
                         }
                         else{
                             ?>
-                            
+
                             <input type="hidden" name="id_product" id="id_product" value="<?php if(!isset($data->id_product) || $data->id_product < 1) echo $_GET['filters']['id_product']; else echo $data->id_product?>"/>
                             <?php
                         }
-                        ?>                     
-                        
+                        ?>
 
-                        <?php 
+
+                        <?php
                         if(!isset($this->filters['id_media'])){ ?>
-                        
+
         <div class="col-lg-4 col-md-6">
-        <div class="form-group">
-            <label class="control-label"><?=T_FIELD_ID_MEDIA?>&nbsp;*</label>
-            <select  class="form-control" name="id_media" id="id_media" onchange="var i=document.getElementById('id_media_thumb'),u=this.options[this.selectedIndex].getAttribute('data-thumb')||'';i.src=u;i.style.display=u?'':'none';">
+        <div class="mb-3">
+            <label class="form-label" for="id_media"><?=T_FIELD_ID_MEDIA?>&nbsp;*</label>
+            <select  class="form-select" name="id_media" id="id_media" onchange="var i=document.getElementById('id_media_thumb'),u=this.options[this.selectedIndex].getAttribute('data-thumb')||'';i.src=u;i.classList.toggle('d-none',!u);">
                 <option value=""></option>
         <?php
         foreach ($this->mediaList1 as $key => $val){
                 ?>
                 <option data-thumb="<?=htmlspecialchars(\Apgenic\Media\MediaImage::thumbnailUrl($val['filename']))?>" value="<?=$val['id_media']?>" <?php if($data->id_media == $val['id_media']) echo 'selected="selected"';?>><?=$val['filename']?></option>
-        <?php 
+        <?php
         }
         ?>
-       
+
             </select>
             <?php $thumbUrl = \Apgenic\Media\MediaImage::thumbnailUrl($this->mediaList1[$data->id_media]['filename'] ?? ''); ?>
-            <div><img id="id_media_thumb" class="media-thumb mt-2" src="<?=htmlspecialchars($thumbUrl)?>" alt="" <?php if($thumbUrl == '') echo 'style="display:none"';?>></div>
+            <div><img id="id_media_thumb" class="rounded border bg-body object-fit-cover mt-2 <?php if($thumbUrl == '') echo 'd-none';?>" width="48" height="48" src="<?=htmlspecialchars($thumbUrl)?>" alt=""></div>
 		</div>
 		</div>
-		
+
                         <?php
                         }
                         else{
                             ?>
-                            
+
                             <input type="hidden" name="id_media" id="id_media" value="<?php if(!isset($data->id_media) || $data->id_media < 1) echo $_GET['filters']['id_media']; else echo $data->id_media?>"/>
                             <?php
                         }
-                        ?>                     
-                        
+                        ?>
 
-        <div class="col-lg-4 col-md-6"><div class="form-group">
-		<label class="control-label"><?=T_FIELD_POSITION?></label>
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="position"><?=T_FIELD_POSITION?></label>
 		<input required="" class="form-control" type="number" name="position" id="position" value="<?=$data->position?>"/>
 	    </div>
 	    </div>
-	    
+
 		<div class="col-12">
-		
-		<div class="form-group">
+
+		<div class="border-top pt-3">
 		<input type="submit" name="Envoyer" title="<?=T_SAVE?>" value="<?=T_SAVE?>" class="btn btn-primary">
 		</div>
 		</div>
@@ -169,11 +169,11 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
 
 	}
 
-	
+
 
 /**
  * Display rows from the table product_media
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter string $orderBy
  * @parameter string $order
  * @parameter array $message
@@ -184,13 +184,13 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered">
-	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
 
-		<th></th>
+		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -201,12 +201,12 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	foreach ($data as $element){
 		?>
 		<tr>
-		<td class="shrink"><?php echo $this->productList1[$element['id_product']]['name'] ?? '';?></td>
+		<td class="text-nowrap"><?php echo $this->productList1[$element['id_product']]['name'] ?? '';?></td>
 		<td ><?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$element['id_media']]['filename'] ?? '')?> <?php echo $this->mediaList1[$element['id_media']]['filename'] ?? '';?></td>
 		<td ><?php echo $element['position']?></td>
-	
-		    <td class="shrink"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=view&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn k-btn-icon" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-            <?=self::icon('view')?>		    
+
+		    <td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=view&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
+            <?=self::icon('view', 16)?>
             </a></td>
 		</tr>
 		<?php
@@ -218,11 +218,6 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 		?>
-	<tfoot>
-	<tr>
-	<td colspan="6" class="phppistolsTFooter"></td>
-	</tr>
-	</tfoot>
 
 	</table>
 	</div>
@@ -237,28 +232,28 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 /**
  * Display details of a record from the table product_media
  *
- * @parameter ModelProductMedia $data 
+ * @parameter ModelProductMedia $data
  * @parameter array $message
  * @return void
  */
 public function view(ModelProductMedia $data , array $message=null){
         $this->message($message);
-	
+
 
 	$i=1;
 
 	if ($data->id_product != null){
 	?>
-	
-    <div class="panel panel-default">
-        <div class="panel-body">
+
+    <div class="card shadow-sm">
+        <div class="card-body p-lg-4">
             <div class="row">
             <div class="col-sm-12">
-                <dl class="row">
-                    
-		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_PRODUCT?></h5></dt><dd class="col-sm-9"><?php echo $this->productList1[$data->id_product]['name'] ?? '';?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_ID_MEDIA?></h5></dt><dd class="col-sm-9"><?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$data->id_media]['filename'] ?? '')?> <?php echo $this->mediaList1[$data->id_media]['filename'] ?? '';?></dd>
-		        <dt class="col-sm-3"><h5><?=T_FIELD_POSITION?></h5></dt><dd class="col-sm-9"><?php echo $data->position?></dd>
+                <dl class="row mb-0">
+
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_PRODUCT?></dt><dd class="col-sm-9"><?php echo $this->productList1[$data->id_product]['name'] ?? '';?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_MEDIA?></dt><dd class="col-sm-9"><?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$data->id_media]['filename'] ?? '')?> <?php echo $this->mediaList1[$data->id_media]['filename'] ?? '';?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_POSITION?></dt><dd class="col-sm-9"><?php echo $data->position?></dd>
 	             </dl></div>
             </div>
 	    </div>
@@ -273,7 +268,7 @@ public function view(ModelProductMedia $data , array $message=null){
 
 }
 
-        
+
 /**
  * Display rows from the table product_media
  * @parameter int $pkVal
@@ -284,17 +279,17 @@ public function view(ModelProductMedia $data , array $message=null){
 public function buttonToggle(int $pkVal, string $task, int $value = 0){
     $buttonTyp[0] = 'secondary';
     $buttonTyp[1] = 'success';
-    $buttonIcon[0] = self::icon('x-lg');
-    $buttonIcon[1] = self::icon('check2');
-   
+    $buttonIcon[0] = self::icon('x-lg', 16);
+    $buttonIcon[1] = self::icon('check2', 16);
+
     ?>
-    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=<?=$task?>&value=<?php echo $value?>&id_product=<?php echo $pkVal;?>" class="btn btn-outline btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>        
+    <a href="#" hx-swap="outerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=<?=$task?>&value=<?php echo $value?>&id_product=<?php echo $pkVal;?>" class="btn btn-sm btn-outline-<?=$buttonTyp[$value]?>"><?php echo $buttonIcon[$value];?></a>
     <?php
 }
 
 /**
  * Display rows from the table product_media with edit and del buttons
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter string $orderBy
  * @parameter string $order
  * @parameter array $message
@@ -305,13 +300,13 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered">
-	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=position&<?=$this->filtersGet?>&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=position&<?=$this->filtersGet?>&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
 
-		<th></th>
+		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -322,21 +317,21 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_product']?><?php echo $element['id_media']?>">
-		<td class="shrink">
+		<td class="text-nowrap">
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=editList&id_product=<?php echo $element['id_product']?>">
                                             <?php echo $this->productList1[$element['id_product']]['name'] ?? '';?>
                                             </a>
                                             </td>
-                                            
+
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=editList&id_media=<?php echo $element['id_media']?>">
                                             <?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$element['id_media']]['filename'] ?? '')?> <?php echo $this->mediaList1[$element['id_media']]['filename'] ?? '';?>
                                             </a>
                                             </td>
-                                            
+
 		<td ><?php echo $element['position']?></td>
-	<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">            
-            <?=self::icon('x-lg');?>
+	<td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-sm btn-outline-danger" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>">
+            <?=self::icon('x-lg', 16);?>
             </a></td>
 		</tr>
 		<?php
@@ -348,22 +343,17 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 
 		?>
-	<tfoot>
-	<tr>
-	<td colspan="4" class="phppistolsTFooter"></td>
-	</tr>
-	</tfoot>
 
 	</table>
 	</div>
 	<?php
 }
 
-        
+
 /**
  * Display rows from the table product_media with edit and del buttons
  * specificly to be displayed below a tab
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter array $filters
  * @parameter string $orderBy
  * @parameter string $order
@@ -377,13 +367,14 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered">
-	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_POSITION?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_POSITION?></a></th>
 
-		<th>
+		<th class="tight"></th>
+	</tr>
 	</thead>
 	<tbody>
 	<?php
@@ -393,21 +384,21 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_product']?><?php echo $element['id_media']?>">
-		<td class="shrink">
+		<td class="text-nowrap">
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=editList&id_product=<?php echo $element['id_product']?>">
                                             <?php echo $this->productList1[$element['id_product']]['name'];?>
                                             </a>
                                             </td>
-                                            
+
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=editList&id_media=<?php echo $element['id_media']?>">
                                             <?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$element['id_media']]['filename'] ?? '')?> <?php echo $this->mediaList1[$element['id_media']]['filename'];?>
                                             </a>
                                             </td>
-                                            
+
 		<td ><?php echo $element['position']?></td>
-	    
-			<td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-outline btn-outline-danger k-btn-icon" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3')?></a></td>
+
+			<td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=delHtmx&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" hx-confirm="<?=T_CONFIRM_DELETE?>" class="btn btn-sm btn-outline-danger" title="<?=T_DELETE?>" aria-label="<?=T_DELETE?>"><?=self::icon('trash3', 16)?></a></td>
 		</tr>
 		<?php
 	}?>
@@ -420,9 +411,9 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		?>
 	<tfoot>
 	<tr>
-	<td colspan="4" class="phppistolsTFooter" style="text-align: right;">
-	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm">
-        <?=self::icon('plus-lg');?> <?=T_ADD?>
+	<td colspan="4" class="text-end">
+	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+        <?=self::icon('plus-lg', 16);?> <?=T_ADD?>
     </a>
     </td>
 	</tr>
@@ -430,14 +421,14 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 	</table>
 	</div>
-	
+
 	<?php
 }
 
 
 /**
  * Display trashed rows from the table product_media
- * @parameter array $data , 
+ * @parameter array $data ,
  * @parameter string $orderBy
  * @parameter string $order
  * @parameter array $message
@@ -448,13 +439,13 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 	?>
-	<div class="table-responsive k-table-card">	<table class="table table-bordered table-sm">
-	<thead>
-	<tr>	<th scope="col" id="id_product"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position"><a href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
+	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
+	<thead class="table-light">
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
 
-		<th></th>
+		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -465,12 +456,12 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_product']?><?php echo $element['id_media']?>">
-		<td class="shrink"><?php echo $this->productList1[$element['id_product']]['name'] ?? '';?></td>
+		<td class="text-nowrap"><?php echo $this->productList1[$element['id_product']]['name'] ?? '';?></td>
 		<td ><?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$element['id_media']]['filename'] ?? '')?> <?php echo $this->mediaList1[$element['id_media']]['filename'] ?? '';?></td>
 		<td ><?php echo $element['position']?></td>
-	
-		    <td class="shrink"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=undelHtmx&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-outline btn-outline-secondary k-btn-icon" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
-            <?=self::icon('undel')?>	    
+
+		    <td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_product']?><?php echo $element['id_media']?>" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=undelHtmx&id_product=<?php echo $element['id_product']?>&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-sm btn-outline-secondary" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">
+            <?=self::icon('undel', 16)?>
             </a></td>
 		</tr>
 		<?php
@@ -482,11 +473,6 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
 
 		?>
-	<tfoot>
-	<tr>
-	<td colspan="6" class="phppistolsTFooter"></td>
-	</tr>
-	</tfoot>
 
 	</table>
 	</div>

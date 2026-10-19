@@ -6,10 +6,11 @@
  * Time: 19:18
  * Project: exsilicon
  *
- * Layout of all the pages (Bootstrap 4.6.2 + public/css/theme.css + public/css/styles.css).
+ * Layout of all the pages: Bootstrap 5.3.8 and its classes only, public/css/theme.css changes the colors,
+ * the rounded corners, the shadows and the fonts.
  * Two layouts, chosen by layout():
  *   shop   the visitors and the customers, and the pages of the shop for everybody: header with the cart, footer
- *   admin  the back office (users who can edit): side menu, top bar
+ *   admin  the back office (users who can edit): side menu (offcanvas on the small screens), top bar
  */
 namespace Apgenic\Classes;
 
@@ -53,7 +54,7 @@ class ViewTemplate
         'customerorderitem' => 'customerorder',
     ];
 
-    /** Color of the bar of the mobile browsers (<meta name="theme-color">): the same as --k-brand of public/css/theme.css */
+    /** Color of the bar of the mobile browsers (<meta name="theme-color">): the same as --bs-primary of public/css/theme.css */
     const THEME_COLOR = '#002B59';
 
     /** Links of the back office in the header of the page: Edit list, View list, Trash, New */
@@ -141,16 +142,17 @@ class ViewTemplate
 
 
     /**
-     * Links to change the language: FR | EN
-     * @param string $class extra class
+     * Buttons to change the language: FR | EN
+     * @param string $class extra classes
+     * @param string $button class of the buttons: btn-outline-secondary, btn-outline-light on the dark backgrounds
      * @return void
      */
-    static function languageSwitch(string $class = ''): void{
+    static function languageSwitch(string $class = '', string $button = 'btn-outline-secondary'): void{
         if(!defined('LANGUAGES') || count(LANGUAGES) < 2) return;
         ?>
-        <nav class="k-lang <?=$class?>" aria-label="<?=T_LANGUAGE?>">
+        <nav class="btn-group btn-group-sm <?=$class?>" aria-label="<?=T_LANGUAGE?>">
             <?php foreach(LANGUAGES as $code => $name){ ?>
-            <a class="<?php if($code == LANG) echo 'active';?>" href="<?=htmlspecialchars(self::languageUrl($code))?>" hreflang="<?=$code?>" lang="<?=$code?>" title="<?=$name?>" <?php if($code == LANG) echo 'aria-current="true"';?>><?=strtoupper($code)?></a>
+            <a class="btn <?=$button?> fw-semibold <?php if($code == LANG) echo 'active';?>" href="<?=htmlspecialchars(self::languageUrl($code))?>" hreflang="<?=$code?>" lang="<?=$code?>" title="<?=$name?>" <?php if($code == LANG) echo 'aria-current="true"';?>><?=strtoupper($code)?></a>
             <?php } ?>
         </nav>
         <?php
@@ -164,19 +166,28 @@ class ViewTemplate
      * @return void
      */
     static function addToCart(int $idProduct, bool $withQuantity = false, bool $block = false): void{
+        $formClass = $withQuantity ? 'row g-2' : ($block ? 'd-grid' : 'd-inline-block');
         ?>
-        <form class="k-add-to-cart <?=$block ? 'd-block' : ''?> <?=$withQuantity ? 'k-add-to-cart-lg' : ''?>" method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=add">
+        <form class="<?=$formClass?>" method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=add">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
             <input type="hidden" name="id_product" value="<?=$idProduct?>" />
             <?php if($withQuantity){ ?>
-            <div class="k-qty">
-                <button type="button" class="k-qty-btn" aria-label="<?=T_LESS?>" onclick="this.parentNode.querySelector('input').stepDown()"><?=self::icon('dash', 16)?></button>
-                <label class="sr-only" for="quantity_<?=$idProduct?>"><?=T_QUANTITY?></label>
-                <input class="k-qty-input" type="number" name="quantity" id="quantity_<?=$idProduct?>" value="1" min="1" max="99" step="1" inputmode="numeric" />
-                <button type="button" class="k-qty-btn" aria-label="<?=T_MORE?>" onclick="this.parentNode.querySelector('input').stepUp()"><?=self::icon('plus', 16)?></button>
+            <div class="col-12 col-sm-5">
+                <label class="visually-hidden" for="quantity_<?=$idProduct?>"><?=T_QUANTITY?></label>
+                <div class="input-group input-group-lg flex-nowrap">
+                    <button type="button" class="btn btn-outline-secondary d-flex align-items-center px-3" aria-label="<?=T_LESS?>" onclick="this.parentNode.querySelector('input').stepDown()"><?=self::icon('dash', 16)?></button>
+                    <input class="form-control text-center px-1" type="number" name="quantity" id="quantity_<?=$idProduct?>" value="1" min="1" max="99" step="1" inputmode="numeric" />
+                    <button type="button" class="btn btn-outline-secondary d-flex align-items-center px-3" aria-label="<?=T_MORE?>" onclick="this.parentNode.querySelector('input').stepUp()"><?=self::icon('plus', 16)?></button>
+                </div>
             </div>
+            <div class="col-12 col-sm-7">
+                <button type="submit" class="btn btn-warning btn-lg fw-semibold w-100 h-100 d-flex align-items-center justify-content-center gap-2 text-nowrap"><?=self::icon('bag-plus', 20)?> <?=T_ADD_TO_CART?></button>
+            </div>
+            <?php } elseif($block){ ?>
+            <button type="submit" class="btn btn-warning fw-semibold d-flex align-items-center justify-content-center gap-2 px-2"><span class="d-none d-sm-inline-flex"><?=self::icon('bag-plus', 18)?></span> <?=T_ADD_TO_CART?></button>
+            <?php } else { ?>
+            <button type="submit" class="btn btn-warning fw-semibold d-inline-flex align-items-center gap-2 text-nowrap"><?=self::icon('bag-plus', 18)?> <?=T_ADD_TO_CART?></button>
             <?php } ?>
-            <button type="submit" class="btn btn-accent text-nowrap <?=$block ? 'btn-block' : ''?> <?=$withQuantity ? 'btn-lg' : ''?>"><?=self::icon('bag-plus', $withQuantity ? 20 : 18)?> <?=T_ADD_TO_CART?></button>
         </form>
         <?php
     }
@@ -184,26 +195,97 @@ class ViewTemplate
 
     /**
      * Icon of classes/Icons.php, in the color of the text
+     * @param string $class classes of the <svg>
      * @return string <svg>
      */
-    static function icon(string $name, int $size = 20, string $viewBox = '0 0 16 16'): string{
+    static function icon(string $name, int $size = 20, string $viewBox = '0 0 16 16', string $class = 'flex-shrink-0 align-text-bottom'): string{
         $paths = Icons::PATHS[$name] ?? self::ICONS[$name] ?? '';
-        return '<svg class="icon icon-'.$name.'" width="'.$size.'" height="'.$size.'" fill="currentColor" viewBox="'.$viewBox.'" aria-hidden="true" focusable="false">'.$paths.'</svg>';
+        return '<svg class="'.$class.'" width="'.$size.'" height="'.$size.'" fill="currentColor" viewBox="'.$viewBox.'" aria-hidden="true" focusable="false">'.$paths.'</svg>';
     }
 
 
     /**
      * Logo of the site: mark + name
-     * @param string $class extra class
+     * @param bool $inverse on a dark background (side menu, footer, page of connection)
+     * @param string $class extra classes
      * @return void
      */
-    static function brand(string $class = ''): void{
+    static function brand(bool $inverse = false, string $class = ''): void{
         ?>
-        <a class="k-brand <?=$class?>" href="<?=BASE_URL?>/">
-            <span class="k-brand-mark" aria-hidden="true"><?=self::icon('bag', 18)?></span>
-            <span class="k-brand-name"><?=self::appName()?></span>
+        <a class="d-inline-flex align-items-center gap-2 text-decoration-none <?=$inverse ? 'link-light' : 'link-body-emphasis'?> <?=$class?>" href="<?=BASE_URL?>/">
+            <span class="d-inline-flex p-2 rounded-2 <?=$inverse ? 'text-bg-warning' : 'bg-primary text-warning'?>" aria-hidden="true"><?=self::icon('bag', 18)?></span>
+            <span class="h5 fw-bold mb-0"><?=self::appName()?></span>
         </a>
         <?php
+    }
+
+
+    /**
+     * Menu of the account of the connected user: items of a .dropdown-menu
+     * @param bool $admin back office: link to the shop instead of the link to the back office
+     * @return void
+     */
+    static function accountMenu(bool $admin = false): void{
+        ?>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=self::icon('person', 16)?> <?=T_MY_PROFILE?></a></li>
+        <?php if($admin){ ?>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 16)?> <?=T_VIEW_SHOP?></a></li>
+        <?php } elseif(Auth::canEdit()){ ?>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php"><?=self::icon('speedometer2', 16)?> <?=T_BACK_OFFICE?></a></li>
+        <?php } else {
+            // Consultation pages allowed by the permissions of the user
+            $links = '';
+            foreach(self::MENU as $menuComponent => $item){
+                if($menuComponent == 'product' || !Auth::can($menuComponent, $menuComponent == 'user' ? 'editlist' : 'viewlist')) continue;
+                $links .= '<li><a class="dropdown-item d-flex align-items-center gap-2" href="'.BASE_URL.'/index.php?component='.$menuComponent.'">'.self::icon($item[1], 16).' '.$item[0].'</a></li>';
+            }
+            if($links != ''){
+                echo '<li><hr class="dropdown-divider"></li><li><h6 class="dropdown-header">'.T_BROWSE.'</h6></li>'.$links;
+            }
+        } ?>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=logout">
+                <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
+                <button type="submit" class="dropdown-item d-flex align-items-center gap-2"><?=self::icon('box-arrow-right', 16)?> <?=T_SIGN_OUT?></button>
+            </form>
+        </li>
+        <?php
+    }
+
+
+    /**
+     * <head> of the pages: Bootstrap, then the theme
+     * @return string
+     */
+    static function head(string $title): string{
+        return '<!doctype html>
+        <html lang="'.LANG.'">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="description" content="">
+            <meta name="theme-color" content="'.self::THEME_COLOR.'">
+            <title>'.ucfirst($title).' &middot; '.self::appName().'</title>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js"></script>
+            <!-- Bootstrap 5, then the theme: colors, rounded corners, shadows, fonts -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+            <link href="'.BASE_URL.'/css/theme.css" rel="stylesheet">
+            <style>
+            .tight{
+                width:10px;
+            }
+            </style>
+          </head>';
+    }
+
+
+    /**
+     * Scripts at the end of the pages
+     * @return string
+     */
+    static function scripts(): string{
+        return '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>';
     }
 
 
@@ -213,23 +295,9 @@ class ViewTemplate
     function header(string $title){
         if(strtolower($_SERVER['PHP_SELF']) == '/ajax.php') return '';
         $layout = self::layout();
-        echo '<!doctype html>
-        <html lang="'.LANG.'">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-            <meta name="description" content="">
-            <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-            <meta name="theme-color" content="'.self::THEME_COLOR.'">
-            <title>'.ucfirst($title).' &middot; '.self::appName().'</title>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js"></script>
-            <!-- Bootstrap core CSS, then the theme (design tokens) and the styles of the site -->
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-            <link href="'.BASE_URL.'/css/theme.css" rel="stylesheet">
-            <link href="'.BASE_URL.'/css/styles.css" rel="stylesheet">
-          </head>
-          <body class="k-layout-'.$layout.'">
-            <a class="k-skip-link" href="#main_content">'.T_SKIP_TO_CONTENT.'</a>
+        echo self::head($title).'
+          <body class="bg-body-tertiary'.($layout == 'shop' ? ' d-flex flex-column min-vh-100' : '').'">
+            <a class="visually-hidden-focusable d-block p-2 text-center text-bg-primary" href="#main_content">'.T_SKIP_TO_CONTENT.'</a>
         ';
         $this->topNav();
         $this->leftNav();
@@ -244,7 +312,7 @@ class ViewTemplate
     function topNav(){
         if(strtolower($_SERVER['PHP_SELF']) == '/ajax.php') return '';
         if(self::layout() == 'admin'){
-            echo '<div class="k-admin">';
+            echo '<div class="container-fluid px-0"><div class="row g-0 min-vh-100">';
             return;
         }
 
@@ -252,75 +320,58 @@ class ViewTemplate
         $component = defined('COMPONENT') ? COMPONENT : '';
         $catalogActive = $component == 'product' && in_array((string)($_GET['task'] ?? ''), array('viewlist', 'view'), true);
         ?>
-        <header class="k-shop-header">
-            <nav class="navbar navbar-expand-lg k-navbar" aria-label="<?=T_MAIN_MENU?>">
-                <div class="container k-container">
-                    <?php self::brand(); ?>
+        <header class="sticky-top bg-body border-bottom shadow-sm">
+            <nav class="navbar navbar-expand-lg" aria-label="<?=T_MAIN_MENU?>">
+                <div class="container">
+                    <?php self::brand(false, 'me-lg-4'); ?>
 
-                    <div class="k-header-tools order-lg-last">
-                        <a class="k-cart-button <?php if($component == 'shop') echo 'active';?>" href="<?=BASE_URL?>/index.php?component=shop&task=cart" aria-label="<?=sprintf($cartCount > 1 ? T_CART_COUNT : T_CART_COUNT_ONE, $cartCount)?>">
+                    <div class="d-flex align-items-center gap-2 ms-auto order-lg-last ms-lg-3">
+                        <a class="btn btn-light rounded-circle position-relative d-inline-flex p-2 my-1 <?php if($component == 'shop') echo 'active';?>" href="<?=BASE_URL?>/index.php?component=shop&task=cart" aria-label="<?=sprintf($cartCount > 1 ? T_CART_COUNT : T_CART_COUNT_ONE, $cartCount)?>">
                             <?=self::icon('bag', 22)?>
-                            <?php if($cartCount > 0){ ?><span class="k-cart-count"><?=$cartCount?></span><?php } ?>
+                            <?php if($cartCount > 0){ ?><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-warning"><?=$cartCount?></span><?php } ?>
                         </a>
-                        <button class="navbar-toggler k-icon-button" type="button" data-toggle="collapse" data-target="#k_shop_nav" aria-controls="k_shop_nav" aria-expanded="false" aria-label="<?=T_MENU?>">
+                        <button class="navbar-toggler border-0 p-2" type="button" data-bs-toggle="collapse" data-bs-target="#shop_nav" aria-controls="shop_nav" aria-expanded="false" aria-label="<?=T_MENU?>">
                             <?=self::icon('list', 24)?>
                         </button>
                     </div>
 
-                    <div class="collapse navbar-collapse" id="k_shop_nav">
-                        <ul class="navbar-nav k-main-nav">
+                    <div class="collapse navbar-collapse" id="shop_nav">
+                        <ul class="navbar-nav">
                             <li class="nav-item">
-                                <a class="nav-link <?php if($catalogActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist" <?php if($catalogActive) echo 'aria-current="page"';?>><?=T_SHOP?></a>
+                                <a class="nav-link fw-semibold <?php if($catalogActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist" <?php if($catalogActive) echo 'aria-current="page"';?>><?=T_SHOP?></a>
                             </li>
                         </ul>
 
-                        <form class="k-header-search" method="get" action="<?=BASE_URL?>/index.php" role="search">
+                        <form class="col-lg-5 mx-lg-auto my-2 my-lg-0" method="get" action="<?=BASE_URL?>/index.php" role="search">
                             <input type="hidden" name="component" value="product">
                             <input type="hidden" name="task" value="viewlist">
-                            <label class="sr-only" for="k_header_search"><?=T_SEARCH_PRODUCT?></label>
-                            <?=self::icon('search', 16)?>
-                            <input class="form-control" type="search" name="text_search" id="k_header_search" value="<?=$component == 'product' ? htmlspecialchars((string)($_GET['text_search'] ?? '')) : ''?>" placeholder="<?=T_SEARCH_PRODUCT?>">
+                            <label class="visually-hidden" for="header_search"><?=T_SEARCH_PRODUCT?></label>
+                            <div class="input-group">
+                                <input class="form-control rounded-start-pill ps-3" type="search" name="text_search" id="header_search" value="<?=$component == 'product' ? htmlspecialchars((string)($_GET['text_search'] ?? '')) : ''?>" placeholder="<?=T_SEARCH_PRODUCT?>">
+                                <button class="btn btn-light border rounded-end-pill px-3" type="submit" aria-label="<?=T_SEARCH?>"><?=self::icon('search', 16)?></button>
+                            </div>
                         </form>
 
-                        <?php self::languageSwitch('k-lang-header'); ?>
-
-                        <ul class="navbar-nav k-account-nav">
-                        <?php if(isset($_SESSION['user'])){
-                            $name = trim($_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name']);
-                            ?>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle k-account-toggle" href="<?=BASE_URL?>/index.php?component=user&task=profile" id="k_account_menu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="k-avatar" aria-hidden="true"><?=mb_strtoupper(mb_substr((string)$_SESSION['user']['first_name'], 0, 1).mb_substr((string)$_SESSION['user']['last_name'], 0, 1))?></span>
-                                    <span class="k-account-name"><?=$name?></span>
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="k_account_menu">
-                                    <a class="dropdown-item" href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=self::icon('person', 16)?> <?=T_MY_PROFILE?></a>
-                                    <?php if(Auth::canEdit()){ ?>
-                                    <a class="dropdown-item" href="<?=BASE_URL?>/index.php"><?=self::icon('speedometer2', 16)?> <?=T_BACK_OFFICE?></a>
-                                    <?php } else {
-                                        // Consultation pages allowed by the permissions of the user
-                                        $links = '';
-                                        foreach(self::MENU as $menuComponent => $item){
-                                            if($menuComponent == 'product' || !Auth::can($menuComponent, $menuComponent == 'user' ? 'editlist' : 'viewlist')) continue;
-                                            $links .= '<a class="dropdown-item" href="'.BASE_URL.'/index.php?component='.$menuComponent.'">'.self::icon($item[1], 16).' '.$item[0].'</a>';
-                                        }
-                                        if($links != ''){
-                                            echo '<div class="dropdown-divider"></div><h6 class="dropdown-header">'.T_BROWSE.'</h6>'.$links;
-                                        }
-                                    } ?>
-                                    <div class="dropdown-divider"></div>
-                                    <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=logout">
-                                        <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
-                                        <button type="submit" class="dropdown-item"><?=self::icon('box-arrow-right', 16)?> <?=T_SIGN_OUT?></button>
-                                    </form>
-                                </div>
-                            </li>
-                        <?php } else { ?>
-                            <li class="nav-item">
-                                <a class="nav-link k-signin-link" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=self::icon('person', 20)?> <span><?=T_SIGN_IN?></span></a>
-                            </li>
-                        <?php } ?>
-                        </ul>
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <?php self::languageSwitch(); ?>
+                            <ul class="navbar-nav">
+                            <?php if(isset($_SESSION['user'])){ ?>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=profile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <?=self::icon('person-circle', 22)?>
+                                        <span><?=trim($_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name'])?></span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                                        <?php self::accountMenu(); ?>
+                                    </ul>
+                                </li>
+                            <?php } else { ?>
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=self::icon('person', 20)?> <?=T_SIGN_IN?></a>
+                                </li>
+                            <?php } ?>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -342,66 +393,64 @@ class ViewTemplate
         if($active == ''){ $active = defined('COMPONENT') ? COMPONENT : ''; }
         $active = self::MENU_PARENT[$active] ?? $active;
         ?>
-        <aside class="k-sidebar" id="k_sidebar" aria-label="<?=T_BACK_OFFICE_MENU?>">
-            <div class="k-sidebar-brand">
-                <?php self::brand('k-brand-inverse'); ?>
-                <span class="k-sidebar-tag"><?=T_ADMIN_TAG?></span>
-            </div>
+        <aside class="col-lg-3 col-xl-2 offcanvas-lg offcanvas-start text-bg-dark" tabindex="-1" id="admin_sidebar" aria-label="<?=T_BACK_OFFICE_MENU?>">
+            <div class="sticky-lg-top d-flex flex-column h-100 overflow-y-auto p-3">
+                <div class="d-flex align-items-center gap-2 mb-3 px-2">
+                    <?php self::brand(true); ?>
+                    <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#admin_sidebar" aria-label="<?=T_CLOSE?>"></button>
+                </div>
 
-            <nav class="k-sidebar-nav">
-                <?php
-                $section = '';
-                foreach(self::MENU as $component => $item){
-                    // The users are managed by the administrators only
-                    if(!Auth::can($component, $component == 'user' ? 'editlist' : 'viewlist')) continue;
-                    if($item[2] != $section){
-                        if($section != '') echo '</ul>';
-                        $section = $item[2];
-                        echo '<div class="k-sidebar-section">'.$section.'</div><ul class="nav flex-column">';
-                    }
-                    $isActive = $active == $component;
-                    ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?php if($isActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=<?=$component?>" <?php if($isActive) echo 'aria-current="page"';?>>
-                            <?=self::icon($item[1], 18)?><span><?=$item[0]?></span>
-                        </a>
-                    </li>
+                <nav class="flex-grow-1">
                     <?php
-                }
-                if($section != '') echo '</ul>';
-                ?>
-            </nav>
+                    $section = '';
+                    foreach(self::MENU as $component => $item){
+                        // The users are managed by the administrators only
+                        if(!Auth::can($component, $component == 'user' ? 'editlist' : 'viewlist')) continue;
+                        if($item[2] != $section){
+                            if($section != '') echo '</ul>';
+                            $section = $item[2];
+                            echo '<div class="small text-uppercase fw-semibold text-white-50 px-3 mt-3 mb-1">'.$section.'</div><ul class="nav nav-pills flex-column gap-1">';
+                        }
+                        $isActive = $active == $component;
+                        ?>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-2 link-light <?=$isActive ? 'active bg-white bg-opacity-10 fw-semibold' : 'link-opacity-75 link-opacity-100-hover'?>" href="<?=BASE_URL?>/index.php?component=<?=$component?>" <?php if($isActive) echo 'aria-current="page"';?>>
+                                <span class="d-inline-flex <?php if($isActive) echo 'text-warning';?>"><?=self::icon($item[1], 18)?></span><?=$item[0]?>
+                            </a>
+                        </li>
+                        <?php
+                    }
+                    if($section != '') echo '</ul>';
+                    ?>
+                </nav>
 
-            <div class="k-sidebar-footer">
-                <a class="nav-link" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 18)?><span><?=T_VIEW_SHOP?></span></a>
+                <div class="border-top border-white border-opacity-10 pt-3 mt-4">
+                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 18)?> <?=T_VIEW_SHOP?></a>
+                </div>
             </div>
         </aside>
-        <div class="k-sidebar-backdrop" data-k-sidebar-close></div>
 
-        <div class="k-admin-body">
-            <header class="k-admin-topbar">
-                <button type="button" class="k-icon-button k-sidebar-toggle" aria-controls="k_sidebar" aria-expanded="false" aria-label="<?=T_MENU?>" data-k-sidebar-toggle><?=self::icon('list', 24)?></button>
-                <div class="k-topbar-brand"><?php self::brand(); ?></div>
-                <div class="k-topbar-spacer"></div>
-                <?php self::languageSwitch(); ?>
-                <a class="k-topbar-link d-none d-sm-inline-flex" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=self::icon('bag', 18)?> <?=T_CART?></a>
-                <?php if(isset($_SESSION['user'])){ ?>
-                <div class="dropdown">
-                    <a class="k-account-toggle dropdown-toggle" href="<?=BASE_URL?>/index.php?component=user&task=profile" id="k_admin_account" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="k-avatar" aria-hidden="true"><?=mb_strtoupper(mb_substr((string)$_SESSION['user']['first_name'], 0, 1).mb_substr((string)$_SESSION['user']['last_name'], 0, 1))?></span>
-                        <span class="k-account-name"><?=$_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name']?></span>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="k_admin_account">
-                        <a class="dropdown-item" href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=self::icon('person', 16)?> <?=T_MY_PROFILE?></a>
-                        <a class="dropdown-item" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 16)?> <?=T_VIEW_SHOP?></a>
-                        <div class="dropdown-divider"></div>
-                        <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=logout">
-                            <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
-                            <button type="submit" class="dropdown-item"><?=self::icon('box-arrow-right', 16)?> <?=T_SIGN_OUT?></button>
-                        </form>
+        <div class="col-lg-9 col-xl-10 d-flex flex-column">
+            <header class="sticky-top bg-body border-bottom">
+                <div class="d-flex align-items-center gap-2 px-3 px-lg-4 py-2">
+                    <button type="button" class="btn btn-light d-inline-flex d-lg-none p-2" data-bs-toggle="offcanvas" data-bs-target="#admin_sidebar" aria-controls="admin_sidebar" aria-label="<?=T_MENU?>"><?=self::icon('list', 24)?></button>
+                    <div class="d-lg-none"><?php self::brand(); ?></div>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <?php self::languageSwitch(); ?>
+                        <a class="btn btn-light btn-sm d-none d-sm-inline-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=self::icon('bag', 16)?> <?=T_CART?></a>
+                        <?php if(isset($_SESSION['user'])){ ?>
+                        <div class="dropdown">
+                            <a class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=profile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <?=self::icon('person-circle', 18)?>
+                                <span class="d-none d-md-inline"><?=trim($_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name'])?></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <?php self::accountMenu(true); ?>
+                            </ul>
+                        </div>
+                        <?php } ?>
                     </div>
                 </div>
-                <?php } ?>
             </header>
         <?php
     }
@@ -425,27 +474,27 @@ class ViewTemplate
         $base = BASE_URL.'/index.php?component='.$component.'&task=';
 
         if(self::layout() == 'admin'){
-            echo '<main id="main" class="k-admin-main">';
+            echo '<main id="main" class="flex-grow-1 p-3 p-lg-4">';
         }
         else{
-            echo '<main id="main" class="k-shop-main"><div class="container k-container">';
+            echo '<main id="main" class="flex-grow-1 py-4 py-lg-5"><div class="container">';
         }
         ?>
-        <div class="k-page-header">
-            <div class="k-page-heading">
+        <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+            <div>
                 <?php if(self::layout() == 'admin'){ ?>
-                <div class="k-eyebrow"><?=$this->eyebrow != '' ? $this->eyebrow : (self::MENU[self::MENU_PARENT[$component] ?? $component][2] ?? T_BACK_OFFICE)?></div>
+                <div class="small text-uppercase fw-semibold text-body-secondary mb-1"><?=$this->eyebrow != '' ? $this->eyebrow : (self::MENU[self::MENU_PARENT[$component] ?? $component][2] ?? T_BACK_OFFICE)?></div>
                 <?php } else { ?>
                 <nav aria-label="<?=T_BREADCRUMB?>">
-                    <ol class="breadcrumb k-breadcrumb">
-                        <li class="breadcrumb-item"><a href="<?=BASE_URL?>/"><?=T_HOME?></a></li>
+                    <ol class="breadcrumb small mb-2">
+                        <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/"><?=T_HOME?></a></li>
                         <li class="breadcrumb-item active" aria-current="page"><?=ucfirst($title)?></li>
                     </ol>
                 </nav>
                 <?php } ?>
-                <h1 class="k-page-title">
+                <h1 class="h2 fw-bold mb-0">
                     <?php if($listUrl != '' && $task != $listUrl){ ?>
-                    <a href="<?=$base.$listUrl?>"><?=ucfirst($title)?></a>
+                    <a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-50-hover" href="<?=$base.$listUrl?>"><?=ucfirst($title)?></a>
                     <?php } else { ?>
                     <?=ucfirst($title)?>
                     <?php } ?>
@@ -453,22 +502,22 @@ class ViewTemplate
             </div>
 
             <?php if($canEditList || $canViewList || $canAdd){ ?>
-            <div class="k-page-actions">
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 <?php if(($canEditList ? 1 : 0) + ($canViewList ? 1 : 0) + ($canTrash ? 1 : 0) > 1){ ?>
-                <nav class="k-segmented" aria-label="<?=T_LISTS?>">
+                <nav class="btn-group" aria-label="<?=T_LISTS?>">
                     <?php if($canEditList){ ?>
-                    <a class="<?php if($task == 'editlist') echo 'active';?>" href="<?=$base?>editlist" <?php if($task == 'editlist') echo 'aria-current="page"';?>><?=self::icon('pencil', 14)?> <?=T_EDIT_LIST?></a>
+                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'editlist') echo 'active';?>" href="<?=$base?>editlist" title="<?=T_EDIT_LIST?>" <?php if($task == 'editlist') echo 'aria-current="page"';?>><?=self::icon('pencil', 14)?> <span class="d-none d-sm-inline"><?=T_EDIT_LIST?></span></a>
                     <?php } ?>
                     <?php if($canViewList){ ?>
-                    <a class="<?php if($task == 'viewlist') echo 'active';?>" href="<?=$base?>viewlist" <?php if($task == 'viewlist') echo 'aria-current="page"';?>><?=self::icon('eye', 14)?> <?=T_VIEW_LIST?></a>
+                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'viewlist') echo 'active';?>" href="<?=$base?>viewlist" title="<?=T_VIEW_LIST?>" <?php if($task == 'viewlist') echo 'aria-current="page"';?>><?=self::icon('eye', 14)?> <span class="d-none d-sm-inline"><?=T_VIEW_LIST?></span></a>
                     <?php } ?>
                     <?php if($canTrash){ ?>
-                    <a class="<?php if($task == 'trashedlist') echo 'active';?>" href="<?=$base?>trashedlist" <?php if($task == 'trashedlist') echo 'aria-current="page"';?>><?=self::icon('trash3', 14)?> <?=T_TRASH?></a>
+                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'trashedlist') echo 'active';?>" href="<?=$base?>trashedlist" title="<?=T_TRASH?>" <?php if($task == 'trashedlist') echo 'aria-current="page"';?>><?=self::icon('trash3', 14)?> <span class="d-none d-sm-inline"><?=T_TRASH?></span></a>
                     <?php } ?>
                 </nav>
                 <?php } ?>
                 <?php if($canAdd){ ?>
-                <a href="<?=$base?>edit" class="btn btn-primary"><?=self::icon('plus-lg', 16)?> <?=T_NEW_ENTRY?></a>
+                <a href="<?=$base?>edit" class="btn btn-primary d-inline-flex align-items-center gap-2"><?=self::icon('plus-lg', 16)?> <?=T_NEW_ENTRY?></a>
                 <?php } ?>
             </div>
             <?php } ?>
@@ -489,30 +538,36 @@ class ViewTemplate
         $component = defined('COMPONENT') ? COMPONENT : '';
         $active = $fieldSearch != '' || $fieldSearchValue != '' || $textSearch != '';
         ?>
-        <form class="k-filterbar" method="get" action="<?=BASE_URL?>/index.php" role="search" aria-label="<?=T_SEARCH?>">
-            <div class="k-filterbar-text">
-                <label class="sr-only" for="k_text_search"><?=T_TEXT_SEARCH?></label>
-                <?=self::icon('search', 16)?>
-                <input class="form-control" name="text_search" id="k_text_search" value="<?=htmlspecialchars((string)$textSearch)?>" type="search" placeholder="<?=T_SEARCH?>">
-            </div>
-            <div class="k-filterbar-field">
-                <label class="sr-only" for="k_field_search"><?=T_FIELD?></label>
-                <select name="field_search" id="k_field_search" class="custom-select">
-                    <option value=""><?=T_FILTER_ON_FIELD?></option>
-                    <?php foreach ($fieldsList as $field) { ?>
-                    <option <?php if($fieldSearch == $field) echo 'selected';?> value="<?=$field?>"><?=self::fieldLabel($field)?></option>
-                    <?php } ?>
-                </select>
-                <label class="sr-only" for="k_field_search_value"><?=T_VALUE?></label>
-                <input class="form-control" name="field_search_value" id="k_field_search_value" value="<?=htmlspecialchars((string)$fieldSearchValue)?>" type="search" placeholder="<?=T_VALUE?>">
-            </div>
+        <form class="card card-body shadow-sm p-2 mb-3" method="get" action="<?=BASE_URL?>/index.php" role="search" aria-label="<?=T_SEARCH?>">
             <input type="hidden" name="component" value="<?=$component?>">
             <input type="hidden" name="task" value="<?=$task?>">
-            <div class="k-filterbar-actions">
-                <button class="btn btn-primary" type="submit"><?=self::icon('funnel', 16)?> <?=T_SEARCH?></button>
-                <?php if($active){ ?>
-                <a class="btn btn-link" href="<?=BASE_URL?>/index.php?component=<?=$component?>&task=<?=$task?>"><?=T_RESET?></a>
-                <?php } ?>
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md">
+                    <label class="visually-hidden" for="search_text"><?=T_TEXT_SEARCH?></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-body text-body-secondary"><?=self::icon('search', 16)?></span>
+                        <input class="form-control" name="text_search" id="search_text" value="<?=htmlspecialchars((string)$textSearch)?>" type="search" placeholder="<?=T_SEARCH?>">
+                    </div>
+                </div>
+                <div class="col-12 col-md">
+                    <label class="visually-hidden" for="search_field"><?=T_FIELD?></label>
+                    <label class="visually-hidden" for="search_value"><?=T_VALUE?></label>
+                    <div class="input-group">
+                        <select name="field_search" id="search_field" class="form-select">
+                            <option value=""><?=T_FILTER_ON_FIELD?></option>
+                            <?php foreach ($fieldsList as $field) { ?>
+                            <option <?php if($fieldSearch == $field) echo 'selected';?> value="<?=$field?>"><?=self::fieldLabel($field)?></option>
+                            <?php } ?>
+                        </select>
+                        <input class="form-control" name="field_search_value" id="search_value" value="<?=htmlspecialchars((string)$fieldSearchValue)?>" type="search" placeholder="<?=T_VALUE?>">
+                    </div>
+                </div>
+                <div class="col-12 col-md-auto d-flex gap-2">
+                    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit"><?=self::icon('funnel', 16)?> <?=T_SEARCH?></button>
+                    <?php if($active){ ?>
+                    <a class="btn btn-link" href="<?=BASE_URL?>/index.php?component=<?=$component?>&task=<?=$task?>"><?=T_RESET?></a>
+                    <?php } ?>
+                </div>
             </div>
         </form>
         <?php
@@ -528,8 +583,9 @@ class ViewTemplate
             ?>
             </div><!-- end of #main_content -->
             </main>
-            </div><!-- end of .k-admin-body -->
-            </div><!-- end of .k-admin -->
+            </div><!-- end of the column of the content -->
+            </div><!-- end of .row -->
+            </div><!-- end of .container-fluid -->
             <?php
         }
         else{
@@ -551,63 +607,57 @@ class ViewTemplate
         $this->mainFooter();
 
         if(self::layout() == 'shop'){
+            $link = 'link-light link-opacity-75 link-opacity-100-hover link-underline-opacity-0 link-underline-opacity-75-hover';
             ?>
-            <footer class="k-shop-footer">
-                <div class="container k-container">
-                    <div class="row">
-                        <div class="col-lg-5 mb-4">
-                            <?php self::brand('k-brand-inverse'); ?>
-                            <p class="k-footer-text"><?=sprintf(T_FOOTER_VAT, self::taxRateText())?></p>
-                            <?php self::languageSwitch('k-lang-footer'); ?>
+            <footer class="text-bg-dark pt-5 pb-4">
+                <div class="container">
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <?php self::brand(true); ?>
+                            <p class="small text-white-50 mt-3"><?=sprintf(T_FOOTER_VAT, self::taxRateText())?></p>
+                            <?php self::languageSwitch('', 'btn-outline-light'); ?>
                         </div>
-                        <div class="col-6 col-lg-2 offset-lg-1 mb-4">
-                            <h2 class="k-footer-title"><?=T_SHOP?></h2>
-                            <ul class="list-unstyled k-footer-links">
-                                <li><a href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_ALL_PRODUCTS?></a></li>
-                                <li><a href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=T_CART?></a></li>
-                                <li><a href="<?=BASE_URL?>/index.php?component=shop&task=checkout"><?=T_CHECKOUT_TITLE?></a></li>
+                        <div class="col-6 col-lg-2 offset-lg-1">
+                            <h2 class="h6 text-uppercase fw-semibold text-white-50 mb-3"><?=T_SHOP?></h2>
+                            <ul class="list-unstyled d-grid gap-2 mb-0">
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_ALL_PRODUCTS?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=T_CART?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=shop&task=checkout"><?=T_CHECKOUT_TITLE?></a></li>
                             </ul>
                         </div>
-                        <div class="col-6 col-lg-2 mb-4">
-                            <h2 class="k-footer-title"><?=T_ACCOUNT?></h2>
-                            <ul class="list-unstyled k-footer-links">
+                        <div class="col-6 col-lg-2">
+                            <h2 class="h6 text-uppercase fw-semibold text-white-50 mb-3"><?=T_ACCOUNT?></h2>
+                            <ul class="list-unstyled d-grid gap-2 mb-0">
                                 <?php if(isset($_SESSION['user'])){ ?>
-                                <li><a href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=T_MY_PROFILE?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=T_MY_PROFILE?></a></li>
                                 <?php } else { ?>
-                                <li><a href="<?=BASE_URL?>/index.php?component=user&task=login"><?=T_SIGN_IN?></a></li>
-                                <li><a href="<?=BASE_URL?>/index.php?component=user&task=register"><?=T_CREATE_ACCOUNT?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=T_SIGN_IN?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=register"><?=T_CREATE_ACCOUNT?></a></li>
                                 <?php } ?>
-                                <li><a href="<?=BASE_URL?>/index.php?component=user&task=forgot"><?=T_FORGOT_PASSWORD?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=forgot"><?=T_FORGOT_PASSWORD?></a></li>
                             </ul>
                         </div>
                     </div>
-                    <div class="k-footer-bottom">
-                        <span>&copy; <?=date('Y')?> <?=self::appName()?></span>
+                    <div class="border-top border-white border-opacity-10 small text-white-50 pt-4 mt-4">
+                        &copy; <?=date('Y')?> <?=self::appName()?>
                     </div>
                 </div>
             </footer>
             <?php
         }
+        echo self::scripts();
         ?>
-        <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
         <script>
-            // Tabs above the forms: the clicked tab becomes the active one
-            document.addEventListener('htmx:afterSwap', function(evt) {
-                const items = document.querySelectorAll('#tabs_list a');
-                items.forEach(item => {
-                    item.addEventListener('click', () => {
-                        items.forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-                    });
+            // Tabs above the forms (loaded by HTMX): the clicked tab becomes the active one
+            document.addEventListener('click', function(evt){
+                const tab = evt.target.closest('#tabs_list .nav-link');
+                if(!tab) return;
+                document.querySelectorAll('#tabs_list .nav-link').forEach(function(item){
+                    item.classList.remove('active');
+                    item.removeAttribute('aria-current');
                 });
-            });
-            // Back office: side menu of the small screens
-            document.querySelectorAll('[data-k-sidebar-toggle], [data-k-sidebar-close]').forEach(function(button){
-                button.addEventListener('click', function(){
-                    const open = document.body.classList.toggle('k-sidebar-open');
-                    document.querySelectorAll('[data-k-sidebar-toggle]').forEach(b => b.setAttribute('aria-expanded', open ? 'true' : 'false'));
-                });
+                tab.classList.add('active');
+                tab.setAttribute('aria-current', 'page');
             });
         </script>
         </body>
@@ -633,8 +683,8 @@ class ViewTemplate
             }
         }
         ?>
-        <nav class="k-pagination" aria-label="<?=T_PAGINATION?>">
-            <ul class="pagination">
+        <nav class="mt-3" aria-label="<?=T_PAGINATION?>">
+            <ul class="pagination justify-content-center mb-0">
                 <li class="page-item <?php if($curentPage == 1) echo 'disabled';?>">
                     <a class="page-link" href="<?=$link?>page=<?=$curentPage - 1?>" aria-label="<?=T_PREVIOUS_PAGE?>" <?php if($curentPage == 1) echo 'tabindex="-1" aria-disabled="true"';?>><?=self::icon('chevron-left', 14)?></a>
                 </li>
@@ -668,12 +718,42 @@ class ViewTemplate
             $icons = array('success' => 'check-circle', 'danger' => 'x-circle', 'warning' => 'exclamation-triangle', 'info' => 'info-circle');
             $type = (string)($message['type'] ?? 'info');
             ?>
-            <div class="alert alert-<?=$type?> k-alert" role="<?=in_array($type, array('danger', 'warning'), true) ? 'alert' : 'status'?>">
+            <div class="alert alert-<?=$type?> d-flex align-items-start gap-2" role="<?=in_array($type, array('danger', 'warning'), true) ? 'alert' : 'status'?>">
                 <?=self::icon($icons[$type] ?? 'info-circle', 20)?>
                 <div><?=$message['text']?></div>
             </div>
             <?php
         }
+    }
+
+    /**
+     * Badge in soft colors: status of an order, of a product...
+     * @param string $type success|warning|danger|info|primary|secondary
+     * @return string
+     */
+    static function badge(string $text, string $type = 'secondary'): string{
+        return '<span class="badge rounded-pill bg-'.$type.'-subtle text-'.$type.'-emphasis border border-'.$type.'-subtle">'.$text.'</span>';
+    }
+
+
+    /**
+     * Nothing to display: icon, title, text and a link
+     * @param array $link array(url, label) or array()
+     * @return void
+     */
+    static function emptyState(string $icon, string $title, string $text = '', array $link = array()): void{
+        ?>
+        <div class="card card-body shadow-sm text-center py-5 px-4 mb-4">
+            <div class="d-inline-flex rounded-circle bg-primary-subtle text-primary mx-auto mb-3 p-3"><?=self::icon($icon, 28)?></div>
+            <h2 class="h5 fw-bold"><?=$title?></h2>
+            <?php if($text != ''){ ?>
+            <p class="text-body-secondary mb-0"><?=$text?></p>
+            <?php } ?>
+            <?php if(count($link) == 2){ ?>
+            <div class="mt-3"><a class="btn btn-primary" href="<?=$link[0]?>"><?=$link[1]?></a></div>
+            <?php } ?>
+        </div>
+        <?php
     }
 
 

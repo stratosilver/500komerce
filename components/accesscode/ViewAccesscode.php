@@ -18,44 +18,65 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
     }
 
 
-    public function code(string $code, array $message = null):void{
+    /**
+     * Beginning of a narrow centered card: icon, title, text
+     * @param string $color color of the icon: primary, success, warning
+     * @return void
+     */
+    private function cardStart(string $icon, string $title, string $text, string $color = 'primary'):void{
         ?>
-        <div class="k-narrow">
-            <section class="k-card k-card-centered">
-                <div class="k-card-icon"><?=self::icon('key', 24)?></div>
-                <h2 class="k-card-title"><?=T_ACCESS_CODE_TITLE?></h2>
-                <p class="k-card-subtitle"><?=T_ACCESS_CODE_INTRO?></p>
-                <?php $this->message($message); ?>
-                <form method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=code">
-                    <?php $this->csrf(); ?>
-                    <div class="form-group text-left">
-                        <label class="control-label" for="code"><?=T_CODE?>&nbsp;*</label>
-                        <input class="form-control form-control-lg k-code-input" type="text" name="code" id="code" value="<?=$code?>" maxlength="64" required autofocus autocomplete="off"/>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-lg btn-block"><?=T_NEXT_STEP?> <?=self::icon('arrow-right', 18)?></button>
-                </form>
-            </section>
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 col-xl-5">
+                <section class="card shadow-sm text-center p-4 p-sm-5">
+                    <div class="d-inline-flex rounded-circle bg-<?=$color?>-subtle text-<?=$color?>-emphasis mx-auto mb-3 p-3"><?=self::icon($icon, 24)?></div>
+                    <h2 class="h4 fw-bold"><?=$title?></h2>
+                    <p class="text-body-secondary mb-4"><?=$text?></p>
+        <?php
+    }
+
+
+    private function cardEnd():void{
+        ?>
+                </section>
+            </div>
         </div>
         <?php
+    }
+
+
+    public function code(string $code, array $message = null):void{
+        $this->cardStart('key', T_ACCESS_CODE_TITLE, T_ACCESS_CODE_INTRO);
+        $this->message($message);
+        ?>
+        <form class="text-start" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=code">
+            <?php $this->csrf(); ?>
+            <div class="mb-4">
+                <label class="form-label" for="code"><?=T_CODE?>&nbsp;*</label>
+                <input class="form-control form-control-lg font-monospace text-center" type="text" name="code" id="code" value="<?=$code?>" maxlength="64" required autofocus autocomplete="off"/>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2"><?=T_NEXT_STEP?> <?=self::icon('arrow-right', 18)?></button>
+        </form>
+        <?php
+        $this->cardEnd();
     }
 
 
     public function form(array $fields, array $values, array $errors, int $maxLength, array $message = null):void{
         $this->message($message);
         ?>
-        <form class="k-card k-fieldset" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=form">
+        <form class="card card-body shadow-sm p-4" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=form">
             <?php $this->csrf(); ?>
-            <div class="row">
+            <div class="row g-3">
                 <?php foreach($fields as $name => $label){ ?>
-                <div class="col-md-6 col-lg-4"><div class="form-group">
-                    <label class="control-label" for="<?=$name?>"><?=$label?></label>
+                <div class="col-md-6 col-lg-4">
+                    <label class="form-label" for="<?=$name?>"><?=$label?></label>
                     <input class="form-control <?php if(isset($errors[$name])) echo 'is-invalid';?>" type="text" name="<?=$name?>" id="<?=$name?>" value="<?=$values[$name] ?? ''?>" maxlength="<?=$maxLength?>" <?php if(isset($errors[$name])) echo 'aria-invalid="true" aria-describedby="'.$name.'_error"';?>/>
                     <?php if(isset($errors[$name])){ ?><div class="invalid-feedback" id="<?=$name?>_error"><?=$errors[$name]?></div><?php } ?>
-                </div></div>
+                </div>
                 <?php } ?>
             </div>
-            <div class="k-form-footer justify-content-end">
-                <button type="submit" class="btn btn-primary btn-lg"><?=T_NEXT_STEP?> <?=self::icon('arrow-right', 18)?></button>
+            <div class="d-flex justify-content-end border-top pt-4 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg d-inline-flex align-items-center gap-2"><?=T_NEXT_STEP?> <?=self::icon('arrow-right', 18)?></button>
             </div>
         </form>
         <?php
@@ -63,72 +84,63 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
 
 
     public function email(string $email, array $message = null):void{
+        $this->cardStart('envelope', T_YOUR_EMAIL, T_ACCESS_EMAIL_INTRO);
+        $this->message($message);
         ?>
-        <div class="k-narrow">
-            <section class="k-card k-card-centered">
-                <div class="k-card-icon"><?=self::icon('envelope', 24)?></div>
-                <h2 class="k-card-title"><?=T_YOUR_EMAIL?></h2>
-                <p class="k-card-subtitle"><?=T_ACCESS_EMAIL_INTRO?></p>
-                <?php $this->message($message); ?>
-                <form method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=email">
-                    <?php $this->csrf(); ?>
-                    <div class="form-group text-left">
-                        <label class="control-label" for="email"><?=T_EMAIL?>&nbsp;*</label>
-                        <input class="form-control form-control-lg" type="email" name="email" id="email" value="<?=$email?>" maxlength="255" required autofocus autocomplete="email"/>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-lg btn-block"><?=self::icon('envelope', 18)?> <?=T_SEND_LINK?></button>
-                    <a class="k-link-muted mt-3" href="<?=BASE_URL?>/index.php?component=accesscode&task=form"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_FORM?></a>
-                </form>
-            </section>
-        </div>
+        <form class="text-start" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=email">
+            <?php $this->csrf(); ?>
+            <div class="mb-4">
+                <label class="form-label" for="email"><?=T_EMAIL?>&nbsp;*</label>
+                <input class="form-control form-control-lg" type="email" name="email" id="email" value="<?=$email?>" maxlength="255" required autofocus autocomplete="email"/>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2"><?=self::icon('envelope', 18)?> <?=T_SEND_LINK?></button>
+            <div class="text-center mt-4">
+                <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=accesscode&task=form"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_FORM?></a>
+            </div>
+        </form>
         <?php
+        $this->cardEnd();
     }
 
 
     public function sent(string $email, bool $mailSent, string $devLink, array $devCodes = array()):void{
-        ?>
-        <div class="k-narrow">
-            <section class="k-card k-card-centered">
-                <div class="k-card-icon <?=$mailSent ? 'k-card-icon-success' : 'k-card-icon-warning'?>"><?=self::icon($mailSent ? 'check-lg' : 'exclamation-triangle', 24)?></div>
-                <h2 class="k-card-title"><?=$mailSent ? T_CHECK_INBOX : T_FORM_SAVED?></h2>
-                <p class="k-card-subtitle">
-                    <?php if($mailSent){ ?>
-                    <?=sprintf(T_FORM_SAVED_SENT, '<strong>'.$email.'</strong>')?>
-                    <?php } else { ?>
-                    <?=sprintf(T_FORM_SAVED_NOT_SENT, '<strong>'.$email.'</strong>')?>
-                    <?php } ?>
-                </p>
-                <?php if($devLink != ''){ ?>
-                <div class="alert alert-secondary k-alert text-left">
-                    <?=self::icon('gear', 20)?>
-                    <div><?=T_DEV_MODE?> (AUTH_SHOW_RESET_LINK): <a href="<?=htmlspecialchars($devLink)?>"><?=htmlspecialchars($devLink)?></a>
-                    <br/><?=T_CODES?> <?=htmlspecialchars(implode(', ', $devCodes))?></div>
-                </div>
-                <?php } ?>
-            </section>
-        </div>
-        <?php
+        $this->cardStart(
+            $mailSent ? 'check-lg' : 'exclamation-triangle',
+            $mailSent ? T_CHECK_INBOX : T_FORM_SAVED,
+            sprintf($mailSent ? T_FORM_SAVED_SENT : T_FORM_SAVED_NOT_SENT, '<strong class="text-body">'.$email.'</strong>'),
+            $mailSent ? 'success' : 'warning'
+        );
+        if($devLink != ''){
+            ?>
+            <div class="alert alert-secondary d-flex align-items-start gap-2 text-start mb-0">
+                <?=self::icon('gear', 20)?>
+                <div class="text-break"><?=T_DEV_MODE?> (AUTH_SHOW_RESET_LINK): <a class="alert-link" href="<?=htmlspecialchars($devLink)?>"><?=htmlspecialchars($devLink)?></a>
+                <br/><?=T_CODES?> <?=htmlspecialchars(implode(', ', $devCodes))?></div>
+            </div>
+            <?php
+        }
+        $this->cardEnd();
     }
 
 
     public function link(array $fields, ?array $row):void{
         if($row === null){
-            ?>
-            <div class="k-empty">
-                <div class="k-empty-icon"><?=self::icon('link-45deg', 28)?></div>
-                <h2 class="k-empty-title"><?=T_LINK_INVALID?></h2>
-                <a class="btn btn-primary" href="<?=BASE_URL?>/index.php?component=accesscode&task=code"><?=T_ENTER_CODE?></a>
-            </div>
-            <?php
+            self::emptyState('link-45deg', T_LINK_INVALID, '', array(BASE_URL.'/index.php?component=accesscode&task=code', T_ENTER_CODE));
             return;
         }
         ?>
-        <section class="k-card">
-            <dl class="k-meta-list k-meta-list-columns">
+        <section class="card card-body shadow-sm p-4">
+            <dl class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-0">
                 <?php foreach($fields as $name => $label){ ?>
-                <div><dt><?=$label?></dt><dd><?=($row[$name] ?? '') != '' ? $row[$name] : '&mdash;'?></dd></div>
+                <div class="col">
+                    <dt class="small text-uppercase fw-semibold text-body-secondary"><?=$label?></dt>
+                    <dd class="mb-0 text-break"><?=($row[$name] ?? '') != '' ? $row[$name] : '&mdash;'?></dd>
+                </div>
                 <?php } ?>
-                <div><dt><?=T_EMAIL?></dt><dd><?=htmlspecialchars((string)$row['email'])?></dd></div>
+                <div class="col">
+                    <dt class="small text-uppercase fw-semibold text-body-secondary"><?=T_EMAIL?></dt>
+                    <dd class="mb-0 text-break"><?=htmlspecialchars((string)$row['email'])?></dd>
+                </div>
             </dl>
         </section>
         <?php
