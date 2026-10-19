@@ -51,6 +51,13 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
             // Page of a product: its name in the title of the page and in the path
             $title = T_COMPONENT_PRODUCT;
+            // Catalog of the shop: the chosen category, its name in the title of the page
+            if($task == 'viewlist'){
+                $category = $this->setCategory();
+                if($category !== null){
+                    $title = (string)$category['name'];
+                }
+            }
             if($task == 'view'){
                 $oProduct = new ModelProduct();
                 $oProduct->id_product = filter_var($_GET['id_product'] ?? null, FILTER_VALIDATE_INT);
@@ -259,8 +266,8 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
      * @return void
      */
     function viewList($textSearch = ''){
-        // Display items list
-        $this->filters['deleted_at'] = NULL;
+        // Display items list: not the deleted products (0 = not deleted, see ModelProduct::getList)
+        $this->filters['deleted_at'] = 0;
         // The visitors and the customers only see the products on sale
         if(!\Apgenic\Classes\Auth::canEdit()){
             $this->filters['status'] = 'active';
@@ -276,8 +283,40 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         $orderGet = 'orderBy='.$this->orderBy.'&';
         $orderGet .= 'order='.$this->order;
 
+        // The pages keep the category and the search
+        $catalogGet = '';
+        if($this->HTMLProduct->category !== null){
+            $catalogGet .= 'category='.urlencode(html_entity_decode((string)$this->HTMLProduct->category['slug'], ENT_QUOTES)).'&';
+        }
+        if($textSearch != ''){
+            $catalogGet .= 'text_search='.urlencode(html_entity_decode((string)$textSearch, ENT_QUOTES)).'&';
+        }
+
         $nbPages = ceil($nbItems/$this->itemsByPage);
-        $this->HTMLProduct->pagination($nbPages, $this->page, "?component=product&task=viewlist&".$this->filtersGet."&".$orderGet."&");
+        $this->HTMLProduct->pagination($nbPages, $this->page, "?component=product&task=viewlist&".$this->filtersGet."&".$catalogGet.$orderGet."&");
+    }
+
+
+    /**
+     * Catalog: categories with their numbers of products, and the category chosen by the parameter category (its slug).
+     * The list of the products is then limited to this category and its sub-categories.
+     * @return array|null the chosen category, null for all the products (or an unknown category)
+     */
+    private function setCategory():?array{
+        $categories = $this->dataProduct->getCatalogCategories(!\Apgenic\Classes\Auth::canEdit());
+        $this->HTMLProduct->categories = $categories;
+        $this->HTMLProduct->catalogCount = $this->dataProduct->countCatalog(!\Apgenic\Classes\Auth::canEdit());
+
+        // The slugs are stored html-escaped by the forms: the one of the address is escaped the same way
+        $slug = (string)filter_var($_GET['category'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
+        foreach($categories as $category){
+            if($slug != '' && (string)$category['slug'] === $slug){
+                $this->dataProduct->categoryIds = $category['ids'];
+                $this->HTMLProduct->category = $category;
+                return $category;
+            }
+        }
+        return null;
     }
 
 

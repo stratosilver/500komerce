@@ -18,6 +18,10 @@ public array $filters = array();
 public string $filtersGet = '';
 /** Images of the displayed products: id_product => list of media.filename (ModelProduct::getImages) */
 public array $images = array();
+/** Catalog: the categories with their numbers of products (ModelProduct::getCatalogCategories), the chosen one, the number of all the products */
+public array $categories = array();
+public ?array $category = null;
+public int $catalogCount = 0;
 
 public $fileters = array();
 
@@ -233,12 +237,16 @@ function mainHeader($title){
     echo '<main id="main" class="flex-grow-1 py-4 py-lg-5"><div class="container">';
 
     if($task == 'viewlist'){
+        // Chosen category: the name of its main category above its name
+        $parent = $this->category !== null ? ($this->categories[$this->category['id_parent']] ?? null) : null;
         ?>
         <div class="bg-primary text-white rounded-4 shadow p-4 p-lg-5 mb-4">
-            <div class="small text-uppercase fw-semibold text-warning mb-2"><?=T_SHOP?></div>
+            <div class="small text-uppercase fw-semibold text-warning mb-2"><?=$parent !== null ? $parent['name'] : T_SHOP?></div>
             <?php if($search != ''){ ?>
             <h1 class="display-6 fw-bold mb-2"><?=sprintf(T_RESULTS_FOR, htmlspecialchars($search))?></h1>
-            <a class="icon-link link-light link-opacity-75 link-opacity-100-hover" href="<?=$catalogUrl?>"><?=self::icon('x-lg', 12)?> <?=T_CLEAR_SEARCH?></a>
+            <a class="icon-link link-light link-opacity-75 link-opacity-100-hover" href="<?=htmlspecialchars($this->catalogUrl(array('text_search' => '')))?>"><?=self::icon('x-lg', 12)?> <?=T_CLEAR_SEARCH?></a>
+            <?php } elseif($this->category !== null){ ?>
+            <h1 class="display-6 fw-bold mb-0"><?=$this->category['name']?></h1>
             <?php } else { ?>
             <h1 class="display-6 fw-bold mb-0"><?=T_ALL_PRODUCTS?></h1>
             <?php } ?>
@@ -313,6 +321,95 @@ public static function statusBadge(string $status, bool $deleted = false):string
 
 
 /**
+ * Url of the catalog: the category, the search and the sort of the page are kept, unless they are given in $params
+ * @param array $params category (slug, '' for all the products), text_search, orderBy, order
+ * @return string
+ */
+public function catalogUrl(array $params = array()):string{
+    $orderBy = (string)($_GET['orderBy'] ?? '');
+    $query = array(
+        'component'   => 'product',
+        'task'        => 'viewlist',
+        'category'    => $this->category !== null ? html_entity_decode((string)$this->category['slug'], ENT_QUOTES) : '',
+        'text_search' => trim((string)($_GET['text_search'] ?? '')),
+        'orderBy'     => in_array($orderBy, ControllerProduct::$fieldsNames, true) ? $orderBy : '',
+        'order'       => ($_GET['order'] ?? '') == 'desc' ? 'desc' : (($_GET['order'] ?? '') == 'asc' ? 'asc' : ''),
+    );
+    foreach($params as $name => $value){
+        $query[$name] = (string)$value;
+    }
+    return BASE_URL.'/index.php?'.http_build_query(array_filter($query, function($value){ return $value !== ''; }));
+}
+
+
+/**
+ * Categories of the catalog as buttons: the main categories, then the sub-categories of the chosen one.
+ * Only the categories that have products are displayed, with their number of products (not during a search).
+ * @return void
+ */
+private function categoryNav():void{
+    $categories = $this->categories;
+    $current = $this->category;
+    // Main category of the chosen one
+    $branch = $current;
+    for($depth = 0; $branch !== null && isset($categories[$branch['id_parent']]) && $depth < 10; $depth++){
+        $branch = $categories[$branch['id_parent']];
+    }
+    // A category is displayed when it has products, or when it is the chosen one (or contains it)
+    $visible = function($category) use ($current, $branch){
+        return $category['count'] > 0
+            || ($current !== null && $current['id_category'] == $category['id_category'])
+            || ($branch !== null && $branch['id_category'] == $category['id_category']);
+    };
+
+    $main = array_filter($categories, function($category) use ($categories, $visible){
+        return !isset($categories[$category['id_parent']]) && $visible($category);
+    });
+    if(!count($main)){
+        return;
+    }
+    // Second row: the sub-categories of the chosen category, or its sisters when it has none
+    $subParent = null;
+    if($current !== null){
+        $subParent = count($current['children']) ? $current : ($categories[$current['id_parent']] ?? null);
+    }
+    $subCategories = $subParent === null ? array() : array_filter(array_map(function($id) use ($categories){ return $categories[$id]; }, $subParent['children']), $visible);
+
+    $withCount = trim((string)($_GET['text_search'] ?? '')) == '';
+    $button = function(string $label, string $slug, int $count, bool $active, string $size = '') use ($withCount){
+        ?>
+        <a class="btn <?=$size?> rounded-pill d-inline-flex align-items-center gap-2 <?=$active ? 'btn-primary' : 'btn-light border'?>" href="<?=htmlspecialchars($this->catalogUrl(array('category' => html_entity_decode($slug, ENT_QUOTES))))?>" <?php if($active) echo 'aria-current="true"';?>>
+            <?=$label?>
+            <?php if($withCount){ ?><span class="badge rounded-pill <?=$active ? 'bg-white text-primary' : 'bg-secondary-subtle text-secondary-emphasis'?>"><?=$count?></span><?php } ?>
+        </a>
+        <?php
+    };
+    ?>
+    <nav class="mb-4" aria-label="<?=T_CATEGORIES?>">
+        <div class="d-flex flex-wrap gap-2">
+            <?php
+            $button(T_ALL_CATEGORIES, '', $this->catalogCount, $current === null);
+            foreach($main as $category){
+                $button((string)$category['name'], (string)$category['slug'], (int)$category['count'], $branch !== null && $branch['id_category'] == $category['id_category']);
+            }
+            ?>
+        </div>
+        <?php if(count($subCategories)){ ?>
+        <div class="d-flex flex-wrap align-items-center gap-2 border-start border-3 border-primary-subtle ps-3 mt-3">
+            <?php
+            $button(T_SEE_ALL, (string)$subParent['slug'], (int)$subParent['count'], $current['id_category'] == $subParent['id_category'], 'btn-sm');
+            foreach($subCategories as $category){
+                $button((string)$category['name'], (string)$category['slug'], (int)$category['count'], $current['id_category'] == $category['id_category'], 'btn-sm');
+            }
+            ?>
+        </div>
+        <?php } ?>
+    </nav>
+    <?php
+}
+
+
+/**
  * Catalog of the shop: the products as a grid of cards, with image, price and "Add to cart"
  * @parameter array $data rows of the table product
  * @parameter string $orderBy current sort field
@@ -332,7 +429,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
         T_SORT_NAME => array('name', 'asc'),
     );
     $search = trim((string)($_GET['text_search'] ?? ''));
-    $sortUrl = BASE_URL.'/index.php?component=product&task=viewlist&'.$this->filtersGet.($search != '' ? 'text_search='.urlencode($search).'&' : '');
+    $this->categoryNav();
 	?>
 	<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
 	    <span class="text-body-secondary"><?=sprintf(count($data) > 1 ? T_PRODUCTS_ON_PAGE : T_PRODUCTS_ON_PAGE_ONE, count($data))?></span>
@@ -340,13 +437,14 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	        <span class="small fw-semibold text-body-secondary"><?=T_SORT_BY?></span>
 	        <?php foreach($sorts as $label => $sort){
 	            $active = $orderBy == $sort[0] && $currentOrder == $sort[1]; ?>
-	        <a class="btn btn-sm rounded-pill <?=$active ? 'btn-primary' : 'btn-light border'?>" href="<?=htmlspecialchars($sortUrl.'orderBy='.$sort[0].'&order='.$sort[1])?>" <?php if($active) echo 'aria-current="true"';?>><?=$label?></a>
+	        <a class="btn btn-sm rounded-pill <?=$active ? 'btn-primary' : 'btn-light border'?>" href="<?=htmlspecialchars($this->catalogUrl(array('orderBy' => $sort[0], 'order' => $sort[1])))?>" <?php if($active) echo 'aria-current="true"';?>><?=$label?></a>
 	        <?php } ?>
 	    </nav>
 	</div>
 
 	<?php if(!count($data)){
-	    self::emptyState('search', T_NO_PRODUCT, $search != '' ? T_NO_PRODUCT_HINT : '', $search != '' ? array(BASE_URL.'/index.php?component=product&task=viewlist', T_SEE_ALL_PRODUCTS) : array());
+	    $filtered = $search != '' || $this->category !== null;
+	    self::emptyState('search', T_NO_PRODUCT, $search != '' ? T_NO_PRODUCT_HINT : ($this->category !== null ? T_NO_PRODUCT_CATEGORY : ''), $filtered ? array(BASE_URL.'/index.php?component=product&task=viewlist', T_SEE_ALL_PRODUCTS) : array());
 	} ?>
 
 	<div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-lg-4">

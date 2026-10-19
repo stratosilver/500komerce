@@ -33,6 +33,9 @@ class ModelProduct extends \Apgenic\Classes\Model{
     public $updated_at = '';
     public $deleted_at = null;
 
+    /** Catalog: only the products of these categories (getList), filled by the controller from the chosen category */
+    public array $categoryIds = array();
+
 
     /**
     * Constructor
@@ -250,6 +253,11 @@ class ModelProduct extends \Apgenic\Classes\Model{
         }
 
 
+        // Products of a category and of its sub-categories: ids checked as integers, written in the query
+        if(count($this->categoryIds)){
+            $where .= " AND id_product IN (SELECT pc.`id_product` FROM `product_category` AS pc WHERE pc.`id_category` IN (".implode(',', array_map('intval', $this->categoryIds))."))";
+        }
+
         if(isset($filters['deleted_at']) && $filters['deleted_at'] == 0){
             $where .= " AND (deleted_at = 0 OR deleted_at IS NULL)";
         }
@@ -392,5 +400,78 @@ class ModelProduct extends \Apgenic\Classes\Model{
             }
         }
         return $images;
+    }
+
+
+    /**
+    * Categories of the catalog (table category, linked by product_category), in the order of their position.
+    * Each one with: ids = the category and its sub-categories, count = number of products in them,
+    * children = ids of its direct sub-categories.
+    * @param bool $onlyOnSale count only the products on sale (visitors and customers)
+    * @return array id_category => row
+    */
+    public function getCatalogCategories(bool $onlyOnSale = true):array{
+        $categories = array();
+        $q = self::$db->query("SELECT `id_category`, `id_parent`, `name`, `slug` FROM `category` WHERE `deleted_at` IS NULL ORDER BY `position`, `name`");
+        foreach($q->fetchAll(\PDO::FETCH_ASSOC) as $row){
+            $row['id_category'] = (int)$row['id_category'];
+            $row['id_parent'] = (int)$row['id_parent'];
+            $row['children'] = array();
+            $row['products'] = array();
+            $categories[$row['id_category']] = $row;
+        }
+
+        $q = self::$db->query("SELECT pc.`id_category`, pc.`id_product`
+                               FROM `product_category` pc
+                               INNER JOIN `product` p ON p.`id_product` = pc.`id_product`
+                               WHERE p.`deleted_at` IS NULL".($onlyOnSale ? " AND p.`status` = 'active'" : ''));
+        foreach($q->fetchAll(\PDO::FETCH_ASSOC) as $row){
+            if(isset($categories[(int)$row['id_category']])){
+                $categories[(int)$row['id_category']]['products'][(int)$row['id_product']] = true;
+            }
+        }
+
+        foreach($categories as $id => $category){
+            if(isset($categories[$category['id_parent']]) && $category['id_parent'] != $id){
+                $categories[$category['id_parent']]['children'][] = $id;
+            }
+        }
+        foreach($categories as $id => $category){
+            $ids = self::withSubCategories($categories, $id);
+            $products = array();
+            foreach($ids as $idCategory){
+                $products += $categories[$idCategory]['products'];
+            }
+            $categories[$id]['ids'] = $ids;
+            $categories[$id]['count'] = count($products);
+        }
+        return $categories;
+    }
+
+
+    /**
+    * A category and all its sub-categories, at any depth
+    * @return array ids
+    */
+    private static function withSubCategories(array $categories, int $id, array $seen = array()):array{
+        if(isset($seen[$id])){
+            return array();
+        }
+        $seen[$id] = true;
+        $ids = array($id);
+        foreach($categories[$id]['children'] ?? array() as $child){
+            $ids = array_merge($ids, self::withSubCategories($categories, $child, $seen));
+        }
+        return array_values(array_unique($ids));
+    }
+
+
+    /**
+    * Number of products of the catalog
+    * @param bool $onlyOnSale only the products on sale (visitors and customers)
+    * @return int
+    */
+    public function countCatalog(bool $onlyOnSale = true):int{
+        return (int)self::$db->query("SELECT COUNT(*) FROM `product` WHERE `deleted_at` IS NULL".($onlyOnSale ? " AND `status` = 'active'" : ''))->fetchColumn();
     }
 }
