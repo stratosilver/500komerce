@@ -22,6 +22,7 @@ class Auth
     // Tasks reachable without being logged, by component (the sign in tasks of the component user are added by isPublic)
     const PUBLIC_TASKS = array(
         'product' => array('view', 'viewlist'),
+        'blog'    => array('view', 'viewlist'),
         'shop'    => array('cart', 'add', 'update', 'checkout', 'login'),
         'accesscode' => array('code', 'form', 'email', 'sent', 'link'),
     );

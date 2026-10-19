@@ -76,14 +76,14 @@ class ViewTemplate
 
     /**
      * Layout of the page.
-     *   'shop'  for the visitors and the customers, and the pages of the shop (catalog, product, cart, checkout) for everybody
+     *   'shop'  for the visitors and the customers, and the pages of the shop (catalog, product, cart, checkout, blog) for everybody
      *   'admin' for the back office: the users who can edit (PERMISSION_EDIT)
      * @return string
      */
     static function layout(): string{
         $component = defined('COMPONENT') ? COMPONENT : '';
         $task = (string)($_GET['task'] ?? '');
-        $shopPage = in_array($component, array('shop', 'accesscode'), true)
+        $shopPage = in_array($component, array('shop', 'accesscode', 'blog'), true)
                  || ($component == 'product' && in_array($task, array('viewlist', 'view'), true));
         return (!Auth::canEdit() || $shopPage) ? 'shop' : 'admin';
     }
@@ -319,6 +319,7 @@ class ViewTemplate
         $cartCount = (new \Apgenic\Shop\ModelCart())->count();
         $component = defined('COMPONENT') ? COMPONENT : '';
         $catalogActive = $component == 'product' && in_array((string)($_GET['task'] ?? ''), array('viewlist', 'view'), true);
+        $blogActive = $component == 'blog';
         ?>
         <header class="sticky-top bg-body border-bottom shadow-sm">
             <nav class="navbar navbar-expand-lg" aria-label="<?=T_MAIN_MENU?>">
@@ -339,6 +340,9 @@ class ViewTemplate
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <a class="nav-link fw-semibold <?php if($catalogActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist" <?php if($catalogActive) echo 'aria-current="page"';?>><?=T_SHOP?></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold <?php if($blogActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=blog" <?php if($blogActive) echo 'aria-current="page"';?>><?=T_BLOG?></a>
                             </li>
                         </ul>
 
@@ -426,6 +430,7 @@ class ViewTemplate
 
                 <div class="border-top border-white border-opacity-10 pt-3 mt-4">
                     <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 18)?> <?=T_VIEW_SHOP?></a>
+                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=BASE_URL?>/index.php?component=blog"><?=self::icon('newspaper', 18)?> <?=T_VIEW_BLOG?></a>
                 </div>
             </div>
         </aside>
@@ -623,6 +628,7 @@ class ViewTemplate
                                 <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_ALL_PRODUCTS?></a></li>
                                 <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=T_CART?></a></li>
                                 <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=shop&task=checkout"><?=T_CHECKOUT_TITLE?></a></li>
+                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=blog"><?=T_BLOG?></a></li>
                             </ul>
                         </div>
                         <div class="col-6 col-lg-2">

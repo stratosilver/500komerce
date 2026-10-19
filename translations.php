@@ -274,6 +274,27 @@ $translations = array(
     'T_FEATURE_DELIVERY'          => array('fr' => 'Adresse de livraison choisie à la commande', 'en' => 'Delivery address chosen at the checkout'),
     'T_IMAGE_N'                   => array('fr' => '%s, image %d', 'en' => '%s - image %d'),
 
+    // Blog (components/blog). T_MONTHS: the 12 months separated by commas; T_DATE_LONG: %1$d day, %2$s month, %3$d year
+    'T_BLOG'                      => array('fr' => 'Blog', 'en' => 'Blog'),
+    'T_BLOG_TITLE'                => array('fr' => 'Actualités et conseils', 'en' => 'News and tips'),
+    'T_BLOG_INTRO'                => array('fr' => 'Les nouveautés de la boutique, nos guides et nos conseils pour bien choisir.', 'en' => 'What is new in the shop, our guides and our tips to choose well.'),
+    'T_LATEST_POST'               => array('fr' => 'Dernier article', 'en' => 'Latest article'),
+    'T_READ_POST'                 => array('fr' => 'Lire l’article', 'en' => 'Read the article'),
+    'T_READING_TIME'              => array('fr' => '%d min de lecture', 'en' => '%d min read'),
+    'T_BY_AUTHOR'                 => array('fr' => 'Par %s', 'en' => 'By %s'),
+    'T_MORE_POSTS'                => array('fr' => 'À lire aussi', 'en' => 'You may also like'),
+    'T_ALL_POSTS'                 => array('fr' => 'Tous les articles', 'en' => 'All the articles'),
+    'T_BACK_TO_BLOG'              => array('fr' => 'Retour au blog', 'en' => 'Back to the blog'),
+    'T_VIEW_BLOG'                 => array('fr' => 'Voir le blog', 'en' => 'View the blog'),
+    'T_EDIT_POST'                 => array('fr' => 'Modifier l’article', 'en' => 'Edit the article'),
+    'T_NO_POST'                   => array('fr' => 'Aucun article pour le moment', 'en' => 'No article yet'),
+    'T_NO_POST_HINT'              => array('fr' => 'Revenez bientôt : les prochains articles apparaîtront ici.', 'en' => 'Come back soon: the next articles will appear here.'),
+    'T_POST_NOT_FOUND'            => array('fr' => 'Cet article n’existe pas', 'en' => 'This article does not exist'),
+    'T_POST_NOT_FOUND_HINT'       => array('fr' => 'Il a peut-être été retiré, ou le lien est incomplet.', 'en' => 'It may have been removed, or the link is incomplete.'),
+    'T_POST_PREVIEW'              => array('fr' => 'Aperçu : les visiteurs ne voient pas cet article.', 'en' => 'Preview: the visitors do not see this article.'),
+    'T_MONTHS'                    => array('fr' => 'janvier,février,mars,avril,mai,juin,juillet,août,septembre,octobre,novembre,décembre', 'en' => 'January,February,March,April,May,June,July,August,September,October,November,December'),
+    'T_DATE_LONG'                 => array('fr' => '%1$d %2$s %3$d', 'en' => '%2$s %1$d, %3$d'),
+
     // Cart, checkout, confirmation
     'T_STEPS_LABEL'               => array('fr' => 'Étapes de la commande', 'en' => 'Steps of the order'),
     'T_STEP_CART'                 => array('fr' => 'Panier', 'en' => 'Cart'),

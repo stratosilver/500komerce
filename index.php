@@ -52,6 +52,9 @@ if(!isset($_GET['task'])){
     elseif(COMPONENT == 'accesscode'){
         $task = 'code';
     }
+    elseif(COMPONENT == 'blog'){
+        $task = 'viewlist';
+    }
     elseif(Apgenic\Classes\Auth::can(COMPONENT, 'editlist')){
         $task = 'editlist';
     }
@@ -147,6 +150,10 @@ try{
 
             case 'accesscode':
                 $oCtrl = new Apgenic\Accesscode\ControllerAccesscode();
+                break;
+
+            case 'blog':
+                $oCtrl = new Apgenic\Blog\ControllerBlog();
                 break;
             
     }
