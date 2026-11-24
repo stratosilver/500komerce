@@ -71,7 +71,7 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
 		$this->message($message);
 		?>
 
-		<form class="card card-body shadow-sm p-lg-4 mb-4" method="POST" enctype="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
+		<form class="card card-body shadow-sm p-lg-4 mb-4" method="POST" enctype="multipart/form-data" hx-encoding="multipart/form-data" hx-target="#core_content" hx-swap="innerHTML" hx-post="<?=BASE_URL?>/htmx.php?component=productmedia&task=<?=$task?>&showTabs=0&<?=$this->filtersGet?>">
 		<input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
 		<fieldset>
         <div class="row">
@@ -109,24 +109,21 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
 
 
                         <?php
-                        if(!isset($this->filters['id_media'])){ ?>
+                        // Images of a product: the file is uploaded here, it becomes a new media (component media)
+                        if(!isset($this->filters['id_media'])){
+                            $sizes = array();
+                            foreach(\Apgenic\Media\MediaImage::SIZES as $sizeName => $box){
+                                $sizes[] = $sizeName.' '.$box[0].'x'.$box[1];
+                            }
+                            ?>
 
         <div class="col-lg-4 col-md-6">
         <div class="mb-3">
-            <label class="form-label" for="id_media"><?=T_FIELD_ID_MEDIA?>&nbsp;*</label>
-            <select  class="form-select" name="id_media" id="id_media" onchange="var i=document.getElementById('id_media_thumb'),u=this.options[this.selectedIndex].getAttribute('data-thumb')||'';i.src=u;i.classList.toggle('d-none',!u);">
-                <option value=""></option>
-        <?php
-        foreach ($this->mediaList1 as $key => $val){
-                ?>
-                <option data-thumb="<?=htmlspecialchars(\Apgenic\Media\MediaImage::thumbnailUrl($val['filename']))?>" value="<?=$val['id_media']?>" <?php if($data->id_media == $val['id_media']) echo 'selected="selected"';?>><?=$val['filename']?></option>
-        <?php
-        }
-        ?>
-
-            </select>
-            <?php $thumbUrl = \Apgenic\Media\MediaImage::thumbnailUrl($this->mediaList1[$data->id_media]['filename'] ?? ''); ?>
-            <div><img id="id_media_thumb" class="rounded border bg-body object-fit-cover mt-2 <?php if($thumbUrl == '') echo 'd-none';?>" width="48" height="48" src="<?=htmlspecialchars($thumbUrl)?>" alt=""></div>
+            <label class="form-label" for="file"><?=T_IMAGE?>&nbsp;*</label>
+            <input required class="form-control" type="file" name="file" id="file" accept="<?=implode(',', array_keys(\Apgenic\Media\MediaImage::TYPES))?>" aria-describedby="file_help"
+                   onchange="var i=document.getElementById('file_preview'),f=this.files&&this.files[0];if(i.dataset.url){URL.revokeObjectURL(i.dataset.url);}i.dataset.url=f?URL.createObjectURL(f):'';i.src=i.dataset.url;i.classList.toggle('d-none',!f);"/>
+            <small class="form-text" id="file_help"><?=sprintf(T_IMAGE_HELP, round(\Apgenic\Media\MediaImage::MAX_FILE_SIZE / 1048576), implode(', ', $sizes))?></small>
+            <div><img id="file_preview" class="rounded border bg-body object-fit-cover mt-2 d-none" width="64" height="64" src="data:," alt=""></div>
 		</div>
 		</div>
 
@@ -143,7 +140,8 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="position"><?=T_FIELD_POSITION?></label>
-		<input required="" class="form-control" type="number" name="position" id="position" value="<?=$data->position?>"/>
+		<input class="form-control" type="number" min="1" step="1" name="position" id="position" value="<?=$data->position?>" aria-describedby="position_help"/>
+		<small class="form-text" id="position_help"><?=T_POSITION_AUTO_HELP?></small>
 	    </div>
 	    </div>
 
@@ -186,9 +184,9 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=viewlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'viewlist')?>?orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'viewlist')?>?orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'viewlist')?>?orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -302,9 +300,9 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=editlist&orderBy=position&<?=$this->filtersGet?>&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
+	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'editlist')?>?orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'editlist')?>?orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'editlist')?>?orderBy=position&<?=$this->filtersGet?>&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -369,7 +367,8 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<tr>	<th scope="col" class="tight"><?=T_IMAGE?></th>
+	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_PRODUCT?></a></th>
 	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_ID_MEDIA?></a></th>
 	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=childlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>&<?=$this->filtersGet?>"><?=T_FIELD_POSITION?></a></th>
 
@@ -384,6 +383,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 	foreach ($data as $element){
 		?>
 		<tr id="row-<?php echo $element['id_product']?><?php echo $element['id_media']?>">
+		<td><?php $media = $this->mediaList1[$element['id_media']] ?? array(); echo \Apgenic\Media\MediaImage::preview($media['filename'] ?? '', (string)($media['alt_text'] ?? ''));?></td>
 		<td class="text-nowrap">
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=editList&id_product=<?php echo $element['id_product']?>">
                                             <?php echo $this->productList1[$element['id_product']]['name'];?>
@@ -392,7 +392,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=productmedia&task=editList&id_media=<?php echo $element['id_media']?>">
-                                            <?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList1[$element['id_media']]['filename'] ?? '')?> <?php echo $this->mediaList1[$element['id_media']]['filename'];?>
+                                            <?php echo $this->mediaList1[$element['id_media']]['filename'] ?? '';?>
                                             </a>
                                             </td>
 
@@ -411,7 +411,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		?>
 	<tfoot>
 	<tr>
-	<td colspan="4" class="text-end">
+	<td colspan="5" class="text-end">
 	    <a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?= BASE_URL ?>/htmx.php?component=<?=COMPONENT?>&task=edit&showTabs=0&<?=$parentPK?>=<?=$parentPKValue?>&<?=$this->filtersGet?>" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
         <?=self::icon('plus-lg', 16);?> <?=T_ADD?>
     </a>
@@ -441,9 +441,9 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
-	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productmedia&task=trashedlist&orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'trashedlist')?>?orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'trashedlist')?>?orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_MEDIA?></a></th>
+	<th scope="col" id="position" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productmedia', 'trashedlist')?>?orderBy=position&order=<?php if($orderBy == "position") echo $order; else echo 'asc';?>"><?=T_FIELD_POSITION?></a></th>
 
 		<th class="tight"></th>
 	</tr>

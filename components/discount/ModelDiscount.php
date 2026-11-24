@@ -134,7 +134,7 @@ class ModelDiscount extends \Apgenic\Classes\Model{
     */
     public function logicalDel():int{
 
-                $query = "UPDATE `discount` SET deleted_at = NOW() WHERE  `id_discount` = :id_discount ";
+                $query = "UPDATE `discount` SET deleted_at = datetime('now', 'localtime') WHERE  `id_discount` = :id_discount ";
                     $q = self::$db->prepare($query);
 
         if($q->execute(array(':id_discount' => $this->id_discount))){
@@ -233,10 +233,10 @@ class ModelDiscount extends \Apgenic\Classes\Model{
 
 
         if(isset($filters['deleted_at']) && $filters['deleted_at'] == 0){
-            $where .= " AND (deleted_at = 0 OR deleted_at IS NULL)";
+            $where .= " AND deleted_at IS NULL";
         }
         elseif(isset($filters['deleted_at']) && $filters['deleted_at'] == 1){
-            $where .= " AND deleted_at > 0 ";
+            $where .= " AND deleted_at IS NOT NULL ";
             }
     
         foreach($filters as $field=>$value){
@@ -254,7 +254,7 @@ class ModelDiscount extends \Apgenic\Classes\Model{
 
         // Set limits
         if($limitNumber){
-            $query .= " LIMIT :limitFrom, :limitNumber ";
+            $query .= " LIMIT :limitNumber OFFSET :limitFrom ";
         }
 
 

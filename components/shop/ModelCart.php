@@ -239,6 +239,7 @@ class ModelCart extends \Apgenic\Classes\Model{
                 'id_cart_item' => (int)$row['id_cart_item'],
                 'id_product' => (int)$row['id_product'],
                 'name' => (string)$row['name'],
+                'slug' => (string)($row['slug'] ?? ''),
                 'sku' => ($row['slug'] ?? '') != '' ? (string)$row['slug'] : 'P-'.$row['id_product'],
                 'quantity' => $quantity,
                 'unit_price_amount' => $unit,

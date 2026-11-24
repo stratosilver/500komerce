@@ -123,7 +123,7 @@ class ModelAccesscode extends \Apgenic\Classes\Model{
         if(!preg_match('/^[0-9a-f]{64}$/', $token)){
             return null;
         }
-        $q = self::$db->prepare("SELECT * FROM `access_form` WHERE `token_hash` = :token_hash AND `token_expires_at` > NOW()");
+        $q = self::$db->prepare("SELECT * FROM `access_form` WHERE `token_hash` = :token_hash AND `token_expires_at` > datetime('now', 'localtime')");
         $q->execute(array(':token_hash' => hash('sha256', $token)));
         $row = $q->fetch(\PDO::FETCH_ASSOC);
         return $row === false ? null : $row;

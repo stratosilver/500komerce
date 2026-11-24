@@ -177,8 +177,8 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productcategory&task=viewlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productcategory&task=viewlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productcategory', 'viewlist')?>?orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productcategory', 'viewlist')?>?orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -290,8 +290,8 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productcategory&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productcategory&task=editlist&orderBy=id_category&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productcategory', 'editlist')?>?orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productcategory', 'editlist')?>?orderBy=id_category&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -425,8 +425,8 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productcategory&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
-	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=productcategory&task=trashedlist&orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productcategory', 'trashedlist')?>?orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_PRODUCT?></a></th>
+	<th scope="col" id="id_category" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('productcategory', 'trashedlist')?>?orderBy=id_category&order=<?php if($orderBy == "id_category") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_CATEGORY?></a></th>
 
 		<th class="tight"></th>
 	</tr>

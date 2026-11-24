@@ -48,6 +48,11 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
 
         $textSearch = filter_var($_GET['text_search'] ?? '', FILTER_SANITIZE_SPECIAL_CHARS);
 
+        // Page of a product: /product/{slug}, /product/{id} for a product without slug
+        if($task == 'view' && isset($_GET['slug'])){
+            $this->idFromSlug();
+        }
+
         if($_SERVER['PHP_SELF'] != '/htmx.php'){
             // Page of a product: its name in the title of the page and in the path
             $title = T_COMPONENT_PRODUCT;
@@ -57,12 +62,21 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
                 if($category !== null){
                     $title = (string)$category['name'];
                 }
+                elseif((string)($_GET['category'] ?? '') !== ''){
+                    // /category/{slug} of a category that does not exist
+                    throw new \ErrorException(T_PAGE_NOT_FOUND, 404, E_ERROR);
+                }
             }
             if($task == 'view'){
                 $oProduct = new ModelProduct();
                 $oProduct->id_product = filter_var($_GET['id_product'] ?? null, FILTER_VALIDATE_INT);
                 if($oProduct->id_product && $oProduct->get() && (\Apgenic\Classes\Auth::canEdit() || ($oProduct->status == 'active' && $oProduct->deleted_at === null))){
                     $title = (string)$oProduct->name;
+                    // One address by product: /product/{id} of a product having a slug goes to /product/{slug}
+                    \Apgenic\Classes\Url::canonical(ViewProduct::productUrl($oProduct));
+                }
+                else{
+                    http_response_code(404);
                 }
             }
             $this->HTMLProduct->header($title);
@@ -117,7 +131,8 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
             $this->dataProduct->id_product = filter_var($_POST['id_product'] ?? null, FILTER_VALIDATE_INT);
             if(filter_var($_POST['name'] ?? null, FILTER_UNSAFE_RAW)){
 
-                $this->dataProduct->id_user = $_POST['id_user'] == '' ? null : (int)filter_var($_POST['id_user'] ?? null, FILTER_SANITIZE_NUMBER_INT);
+                // The logged user, never a value of the form
+                $this->dataProduct->id_user = $this->productUser((int)$this->dataProduct->id_product);
                 $this->dataProduct->name = (string)filter_var($_POST['name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataProduct->slug = (string)filter_var($_POST['slug'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataProduct->summary = (string)filter_var($_POST['summary'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
@@ -160,6 +175,25 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
             $this->dataProduct = new ModelProduct();
             $this->HTMLProduct->edit($this->dataProduct,  $this->showTabs, $this->message, 'childlist');
         }
+    }
+
+
+
+    /**
+     * User of a product: the logged user is the one of a new product. A product that already has a user keeps it.
+     * @param int $idProduct 0 for a new product
+     * @return int|null
+     */
+    private function productUser(int $idProduct):?int{
+        if($idProduct > 0){
+            $product = new ModelProduct();
+            $product->id_product = $idProduct;
+            if($product->get() && (int)$product->id_user > 0){
+                return (int)$product->id_user;
+            }
+        }
+        $logged = (int)($_SESSION['user']['id_user'] ?? 0);
+        return $logged > 0 ? $logged : null;
     }
 
 
@@ -294,6 +328,22 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
 
         $nbPages = ceil($nbItems/$this->itemsByPage);
         $this->HTMLProduct->pagination($nbPages, $this->page, "?component=product&task=viewlist&".$this->filtersGet."&".$catalogGet.$orderGet."&");
+    }
+
+
+    /**
+     * Product of the address /product/{slug}: $_GET['id_product'], 0 if there is none.
+     * The slugs are stored html-escaped by the forms: the one of the address is escaped the same way.
+     * A product without slug is reached by its id.
+     * @return void
+     */
+    private function idFromSlug():void{
+        $slug = (string)$_GET['slug'];
+        $id = $this->dataProduct->getIdBySlug((string)filter_var($slug, FILTER_SANITIZE_SPECIAL_CHARS));
+        if($id < 1 && ctype_digit($slug)){
+            $id = (int)$slug;
+        }
+        $_GET['id_product'] = $id;
     }
 
 

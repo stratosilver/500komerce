@@ -209,13 +209,13 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_post" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=id_post&order=<?php if($orderBy == "id_post") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="lang" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=lang&order=<?php if($orderBy == "lang") echo $order; else echo 'asc';?>"><?=T_FIELD_LANG?></a></th>
-	<th scope="col" id="title" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=title&order=<?php if($orderBy == "title") echo $order; else echo 'asc';?>"><?=T_FIELD_TITLE?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_post" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=id_post&order=<?php if($orderBy == "id_post") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="lang" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=lang&order=<?php if($orderBy == "lang") echo $order; else echo 'asc';?>"><?=T_FIELD_LANG?></a></th>
+	<th scope="col" id="title" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=title&order=<?php if($orderBy == "title") echo $order; else echo 'asc';?>"><?=T_FIELD_TITLE?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'viewlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -343,17 +343,16 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_post" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=id_post&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_post") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="lang" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=lang&<?=$this->filtersGet?>&order=<?php if($orderBy == "lang") echo $order; else echo 'asc';?>"><?=T_FIELD_LANG?></a></th>
-	<th scope="col" id="title" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=title&<?=$this->filtersGet?>&order=<?php if($orderBy == "title") echo $order; else echo 'asc';?>"><?=T_FIELD_TITLE?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_post" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=id_post&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_post") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="lang" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=lang&<?=$this->filtersGet?>&order=<?php if($orderBy == "lang") echo $order; else echo 'asc';?>"><?=T_FIELD_LANG?></a></th>
+	<th scope="col" id="title" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=title&<?=$this->filtersGet?>&order=<?php if($orderBy == "title") echo $order; else echo 'asc';?>"><?=T_FIELD_TITLE?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'editlist')?>?orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
-		<th class="tight"></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=post&task=trashedlist" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
+		<th><a href="<?=self::url('post', 'trashedlist')?>" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -377,8 +376,6 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=post&task=view&id_post=<?php echo $element['id_post']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-			<?=self::icon('view', 16);?></a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=post&task=edit&id_post=<?php echo $element['id_post']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil', 16);?>
             </a></td>
@@ -431,7 +428,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<th class="tight"></th>
 		<th class="tight"></th>
-		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -455,9 +451,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 	
-			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=post&task=view&showTabs=0&id_post=<?php echo $element['id_post']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-	        <?=self::icon('view', 16);?>		
-            </a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=post&task=childList&showTabs=0&id_post=<?php echo $element['id_post']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver', 16);?>
             </a></td>    
@@ -504,13 +497,13 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_post" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=id_post&order=<?php if($orderBy == "id_post") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="lang" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=lang&order=<?php if($orderBy == "lang") echo $order; else echo 'asc';?>"><?=T_FIELD_LANG?></a></th>
-	<th scope="col" id="title" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=title&order=<?php if($orderBy == "title") echo $order; else echo 'asc';?>"><?=T_FIELD_TITLE?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=post&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_post" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=id_post&order=<?php if($orderBy == "id_post") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="lang" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=lang&order=<?php if($orderBy == "lang") echo $order; else echo 'asc';?>"><?=T_FIELD_LANG?></a></th>
+	<th scope="col" id="title" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=title&order=<?php if($orderBy == "title") echo $order; else echo 'asc';?>"><?=T_FIELD_TITLE?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('post', 'trashedlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>

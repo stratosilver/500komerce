@@ -1,0 +1,19 @@
+# Clean urls (classes/Url.php): every address that is not a file of this folder is sent to index.php,
+# which reads the path: /product/t-shirt-noir, /cart, /admin/product/editlist...
+# Needs the Apache module mod_rewrite (WampServer: Apache > Apache modules > rewrite_module)
+# and "AllowOverride All" for this folder.
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # The files (css, images, fonts, htmx.php, api.php...) are served as they are
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # All the other addresses: the pages of the site
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>

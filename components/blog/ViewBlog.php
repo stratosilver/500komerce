@@ -41,7 +41,7 @@ class ViewBlog extends \Apgenic\Classes\ViewTemplate
             ?>
             <nav aria-label="<?=T_BREADCRUMB?>">
                 <ol class="breadcrumb small mb-4">
-                    <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/"><?=T_HOME?></a></li>
+                    <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'viewlist')?>"><?=T_HOME?></a></li>
                     <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::listUrl()?>"><?=T_BLOG?></a></li>
                     <li class="breadcrumb-item active text-truncate" aria-current="page"><?=$title?></li>
                 </ol>
@@ -60,7 +60,7 @@ class ViewBlog extends \Apgenic\Classes\ViewTemplate
      * @return string
      */
     public static function listUrl():string{
-        return BASE_URL.'/index.php?component=blog';
+        return self::url('blog', 'viewlist');
     }
 
 
@@ -70,8 +70,7 @@ class ViewBlog extends \Apgenic\Classes\ViewTemplate
      * @return string
      */
     public static function postUrl(array $post):string{
-        $slug = html_entity_decode((string)$post['slug'], ENT_QUOTES);
-        return BASE_URL.'/index.php?component=blog&task=view&'.($slug != '' ? 'slug='.rawurlencode($slug) : 'id_post='.(int)$post['id_post']);
+        return self::url('blog', 'view', array('slug' => html_entity_decode((string)$post['slug'], ENT_QUOTES), 'id_post' => (int)$post['id_post']));
     }
 
 
@@ -229,7 +228,7 @@ class ViewBlog extends \Apgenic\Classes\ViewTemplate
      */
     public function viewList(array $posts, bool $firstPage = true){
         if(!count($posts)){
-            self::emptyState('newspaper', T_NO_POST, T_NO_POST_HINT, array(BASE_URL.'/index.php?component=product&task=viewlist', T_SEE_PRODUCTS));
+            self::emptyState('newspaper', T_NO_POST, T_NO_POST_HINT, array(self::url('product', 'viewlist'), T_SEE_PRODUCTS));
             return;
         }
 
@@ -316,7 +315,7 @@ class ViewBlog extends \Apgenic\Classes\ViewTemplate
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4">
                         <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::listUrl()?>"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_BLOG?></a>
                         <?php if(Auth::canEdit()){ ?>
-                        <a class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=post&task=edit&id_post=<?=(int)$post['id_post']?>"><?=self::icon('pencil', 14)?> <?=T_EDIT_POST?></a>
+                        <a class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2" href="<?=self::url('post', 'edit', array('id_post' => (int)$post['id_post']))?>"><?=self::icon('pencil', 14)?> <?=T_EDIT_POST?></a>
                         <?php } ?>
                     </div>
                 </div>

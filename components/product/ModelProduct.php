@@ -144,7 +144,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
     */
     public function logicalDel():int{
 
-                $query = "UPDATE `product` SET deleted_at = NOW() WHERE  `id_product` = :id_product ";
+                $query = "UPDATE `product` SET deleted_at = datetime('now', 'localtime') WHERE  `id_product` = :id_product ";
                     $q = self::$db->prepare($query);
 
         if($q->execute(array(':id_product' => $this->id_product))){
@@ -223,6 +223,21 @@ class ModelProduct extends \Apgenic\Classes\Model{
 
 
     /**
+    * Id of the product having a slug (address /product/{slug})
+    * @param string $slug as stored, html-escaped
+    * @return int 0 if no product has this slug
+    */
+    public function getIdBySlug(string $slug):int{
+        if($slug === ''){
+            return 0;
+        }
+        $q = self::$db->prepare("SELECT `id_product` FROM `product` WHERE `slug` = :slug");
+        $q->execute(array(':slug' => $slug));
+        return (int)$q->fetchColumn();
+    }
+
+
+    /**
     * Get a list of row from product.
     * @param Int limitFrom
     * @param Int limitNumber
@@ -259,10 +274,10 @@ class ModelProduct extends \Apgenic\Classes\Model{
         }
 
         if(isset($filters['deleted_at']) && $filters['deleted_at'] == 0){
-            $where .= " AND (deleted_at = 0 OR deleted_at IS NULL)";
+            $where .= " AND deleted_at IS NULL";
         }
         elseif(isset($filters['deleted_at']) && $filters['deleted_at'] == 1){
-            $where .= " AND deleted_at > 0 ";
+            $where .= " AND deleted_at IS NOT NULL ";
             }
     
         foreach($filters as $field=>$value){
@@ -280,7 +295,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
 
         // Set limits
         if($limitNumber){
-            $query .= " LIMIT :limitFrom, :limitNumber ";
+            $query .= " LIMIT :limitNumber OFFSET :limitFrom ";
         }
 
 

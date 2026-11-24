@@ -14,16 +14,27 @@ class Model{
 
     function __construct(){
         if(!isset(self::$db)){
-            // DB Connexion
+            // DB Connexion: SQLite database file (DB_FILE in config.php)
             // ------------------------------------------------------------------------------------------------
+            $file = defined('DB_FILE') ? DB_FILE : dirname(__DIR__).DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'500komerce.sqlite';
             try {
-                if (DB_PORT != '') {
-                    self::$db = new PDO('mysql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_DB . ';charset=utf8', DB_USER, DB_PASSWORD);
-                } else {
-                    self::$db = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_DB . ';charset=utf8', DB_USER, DB_PASSWORD);
+                if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+                    throw new \RuntimeException('the PHP extension pdo_sqlite is not enabled');
                 }
-                self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            } catch (Exception $e) {
+                // PDO creates an empty database when the file does not exist: the file must be there
+                if (!is_file($file)) {
+                    throw new \RuntimeException('database file not found: '.$file);
+                }
+                $db = new PDO('sqlite:' . $file, null, null, array(
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    // Seconds to wait when another request is writing in the database
+                    PDO::ATTR_TIMEOUT => 5,
+                ));
+                // SQLite checks the foreign keys (ON DELETE CASCADE / SET NULL) only when asked, MySQL always does
+                $db->exec('PRAGMA foreign_keys = ON');
+                self::$db = $db;
+            } catch (\Throwable $e) {
+                error_log('DB Connexion failed: '.$e->getMessage());
                 echo '<h1>DB Connexion failed</h1>';
             }
         }

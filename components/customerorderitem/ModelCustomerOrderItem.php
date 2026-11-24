@@ -227,7 +227,7 @@ class ModelCustomerOrderItem extends \Apgenic\Classes\Model{
 
         // Set limits
         if($limitNumber){
-            $query .= " LIMIT :limitFrom, :limitNumber ";
+            $query .= " LIMIT :limitNumber OFFSET :limitFrom ";
         }
 
 

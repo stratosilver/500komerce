@@ -149,9 +149,9 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_customer_order" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_customer_order" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'viewlist')?>?orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'viewlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'viewlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -265,11 +265,10 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_customer_order" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_customer_order" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
-		<th class="tight"></th>
 		<th class="tight"></th>
 		<th class="tight"></th>
 	</tr>
@@ -291,8 +290,6 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 
 		<td ><?php echo $element['created_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-			<?=self::icon('view', 16);?></a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=edit&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil', 16);?>
             </a></td>
@@ -341,7 +338,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<th class="tight"></th>
 		<th class="tight"></th>
-		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -361,9 +357,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<td ><?php echo $element['created_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&showTabs=0&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-	        <?=self::icon('view', 16);?>
-            </a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=childList&showTabs=0&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver', 16);?>
             </a></td>
@@ -410,9 +403,9 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_customer_order" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=customerorder&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_customer_order" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'trashedlist')?>?orderBy=id_customer_order&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'trashedlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'trashedlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>

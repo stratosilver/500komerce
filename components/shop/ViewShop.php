@@ -133,7 +133,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
         $this->message($message);
 
         if(!count($cart->items)){
-            self::emptyState('bag', T_CART_EMPTY, T_CART_EMPTY_HINT, array(BASE_URL.'/index.php?component=product&task=viewlist', T_SEE_PRODUCTS));
+            self::emptyState('bag', T_CART_EMPTY, T_CART_EMPTY_HINT, array(self::url('product', 'viewlist'), T_SEE_PRODUCTS));
             return;
         }
         $thumbnails = $this->thumbnails($cart->items);
@@ -142,7 +142,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
         ?>
         <div class="row g-4">
             <div class="col-lg-8">
-                <form class="card shadow-sm overflow-hidden" method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=update">
+                <form class="card shadow-sm overflow-hidden" method="POST" action="<?=self::url('shop', 'update')?>">
                     <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
                     <!-- Default button: the key Enter in a quantity updates the cart (instead of removing the first line) -->
                     <button type="submit" class="visually-hidden" tabindex="-1" aria-hidden="true"><?=T_UPDATE_CART?></button>
@@ -154,7 +154,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                     <ul class="list-group list-group-flush">
                         <?php foreach($cart->items as $item){
                             $idItem = (int)$item['id_cart_item'];
-                            $url = BASE_URL.'/index.php?component=product&task=view&id_product='.(int)$item['id_product'];
+                            $url = self::url('product', 'view', array('slug' => html_entity_decode((string)($item['slug'] ?? ''), ENT_QUOTES), 'id_product' => (int)$item['id_product']));
                             $thumb = $thumbnails[(int)$item['id_product']] ?? ''; ?>
                         <li class="list-group-item py-3 px-4">
                             <div class="row g-3 align-items-center">
@@ -180,7 +180,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                     </ul>
 
                     <div class="card-footer bg-body d-flex flex-wrap align-items-center justify-content-between gap-2 py-3 px-4">
-                        <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('arrow-left', 16)?> <?=T_CONTINUE_SHOPPING?></a>
+                        <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'viewlist')?>"><?=self::icon('arrow-left', 16)?> <?=T_CONTINUE_SHOPPING?></a>
                         <button type="submit" class="btn btn-outline-primary d-inline-flex align-items-center gap-2"><?=self::icon('arrow-repeat', 16)?> <?=T_UPDATE_CART?></button>
                     </div>
                 </form>
@@ -191,7 +191,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                     <div class="card-body p-4">
                         <h2 class="h5 fw-bold mb-3"><?=T_SUMMARY?></h2>
                         <?php $this->totals((int)$cart->subtotal, (int)$cart->tax, (int)$cart->total); ?>
-                        <a class="btn btn-warning btn-lg fw-semibold w-100 d-flex align-items-center justify-content-center gap-2 mt-4" href="<?=BASE_URL?>/index.php?component=shop&task=checkout"><?=T_CHECKOUT?> <?=self::icon('arrow-right', 18)?></a>
+                        <a class="btn btn-warning btn-lg fw-semibold w-100 d-flex align-items-center justify-content-center gap-2 mt-4" href="<?=self::url('shop', 'checkout')?>"><?=T_CHECKOUT?> <?=self::icon('arrow-right', 18)?></a>
                         <p class="small text-body-secondary d-flex align-items-center gap-2 mt-3 mb-0"><?=self::icon('bag-check', 16)?> <?=T_NO_ACCOUNT_NEEDED?></p>
                     </div>
                 </aside>
@@ -295,7 +295,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                             <p class="small text-body-secondary mb-0"><?=T_SIGN_IN_ADDRESSES?></p>
                         </div>
                     </div>
-                    <form method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=login">
+                    <form method="POST" action="<?=self::url('shop', 'login')?>">
                         <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
                         <div class="row g-3 align-items-end">
                             <div class="col-md-5">
@@ -310,13 +310,13 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                                 <button type="submit" class="btn btn-outline-primary w-100"><?=T_SIGN_IN?></button>
                             </div>
                         </div>
-                        <a class="d-inline-block small mt-3" href="<?=BASE_URL?>/index.php?component=user&task=forgot"><?=T_FORGOT_PASSWORD_Q?></a>
+                        <a class="d-inline-block small mt-3" href="<?=self::url('user', 'forgot')?>"><?=T_FORGOT_PASSWORD_Q?></a>
                     </form>
                 </div>
             </section>
             <?php } ?>
 
-            <form method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=checkout" novalidate>
+            <form method="POST" action="<?=self::url('shop', 'checkout')?>" novalidate>
                 <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
 
                 <fieldset class="card card-body shadow-sm p-4 mb-4">
@@ -352,7 +352,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                 </fieldset>
 
                 <div class="d-flex flex-wrap-reverse align-items-center justify-content-between gap-3">
-                    <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_CART?></a>
+                    <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('shop', 'cart')?>"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_CART?></a>
                     <button type="submit" class="btn btn-warning btn-lg fw-semibold d-inline-flex align-items-center gap-2"><?=self::icon('lock', 18)?> <?=T_CONFIRM_ORDER?></button>
                 </div>
             </form>
@@ -363,7 +363,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                         <h2 class="h5 fw-bold mb-0"><?=T_YOUR_ORDER?></h2>
-                        <a class="small" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=T_EDIT?></a>
+                        <a class="small" href="<?=self::url('shop', 'cart')?>"><?=T_EDIT?></a>
                     </div>
                     <?php $this->lines($cart->items); ?>
                     <?php $this->totals((int)$cart->subtotal, (int)$cart->tax, (int)$cart->total); ?>
@@ -395,7 +395,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
      */
     public function confirmation(?ModelOrder $order, array $addresses = array()){
         if($order === null){
-            self::emptyState('receipt', T_ORDER_NOT_FOUND, '', array(BASE_URL.'/index.php?component=product&task=viewlist', T_BACK_TO_PRODUCTS));
+            self::emptyState('receipt', T_ORDER_NOT_FOUND, '', array(self::url('product', 'viewlist'), T_BACK_TO_PRODUCTS));
             return;
         }
 
@@ -433,7 +433,7 @@ class ViewShop extends \Apgenic\Classes\ViewTemplate
                     </div>
                 </section>
                 <?php } ?>
-                <a class="btn btn-primary w-100" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_BACK_TO_PRODUCTS?></a>
+                <a class="btn btn-primary w-100" href="<?=self::url('product', 'viewlist')?>"><?=T_BACK_TO_PRODUCTS?></a>
             </div>
         </div>
         <?php

@@ -4,7 +4,8 @@
  * See api.php for the way to call it.
  *
  * In addition to the common tasks: login, logout, me, register, forgot, reset.
- * The sign in with Google, Facebook, X needs a browser and stays in ControllerUser.
+ * The sign in with Google, Facebook, X needs a browser and stays in ControllerUser. An account is recognized by
+ * its email: the one created there signs in here too, once it has a password (forgot + reset, or the profile).
  */
 
 declare(strict_types=1);
@@ -146,7 +147,8 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
         $hash = $found && $this->data->password_hash ? $this->data->password_hash : ControllerUser::DUMMY_HASH;
         $passwordOk = password_verify($password, $hash);
 
-        if($found && $passwordOk && $this->data->provider == 'local' && $this->data->status == 'active'){
+        // Any account having a password, also the ones created with Google, Facebook, X
+        if($found && $this->data->password_hash && $passwordOk && $this->data->status == 'active'){
             if(password_needs_rehash($this->data->password_hash, PASSWORD_DEFAULT)){
                 $this->data->updatePassword(password_hash($password, PASSWORD_DEFAULT));
             }
@@ -250,13 +252,12 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
 
         if(filter_var($email, FILTER_VALIDATE_EMAIL)
             && $this->data->getByEmail($email)
-            && $this->data->provider == 'local'
             && $this->data->status == 'active'){
 
             $token = $this->data->createPasswordResetToken(ControllerUser::RESET_TOKEN_VALIDITY);
 
             // The link opens the "new password" page of the web interface
-            $url = BASE_URL.'/index.php?component=user&task=reset&token='.$token;
+            $url = \Apgenic\Classes\Url::to('user', 'reset', array('token' => $token));
             if(defined('APP_URL') && APP_URL != ''){
                 $link = rtrim(APP_URL, '/').$url;
             }

@@ -9,11 +9,16 @@
 declare(strict_types=1);
 namespace Apgenic\ProductMedia;
 
+use Apgenic\Media\MediaImage;
+use Apgenic\Media\ModelMedia;
+
 
 class ControllerProductMedia  extends \Apgenic\Classes\Controller {
 
     private ViewProductMedia $HTMLProductMedia;
     private ModelProductMedia $dataProductMedia;
+    /** The products: id_product => row, the name of a product names the file of its images */
+    private array $productList = array();
 
     // Accepted sort fields
     public static array $fieldsNames = array('id_product','id_media','position');
@@ -36,6 +41,7 @@ class ControllerProductMedia  extends \Apgenic\Classes\Controller {
 
         $oModelProduct = new \Apgenic\Product\ModelProduct();
         $oModelProduct->getList();
+        $this->productList = $oModelProduct->list;
 
         $this->HTMLProductMedia = new ViewProductMedia($oModelMedia->list, $oModelProduct->list);
         $this->dataProductMedia = new ModelProductMedia();
@@ -100,24 +106,7 @@ class ControllerProductMedia  extends \Apgenic\Classes\Controller {
         $this->dataProductMedia->id_product = (int)($_GET['id_product'] ?? 0);
 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
-
-            $this->dataProductMedia->id_product = filter_var($_POST['id_product'] ?? null, FILTER_VALIDATE_INT);            $this->dataProductMedia->id_media = filter_var($_POST['id_media'] ?? null, FILTER_VALIDATE_INT);
-            if(filter_var($_POST['id_product'] ?? null, FILTER_UNSAFE_RAW) &&
-                filter_var($_POST['id_media'] ?? null, FILTER_UNSAFE_RAW)){
-
-                $this->dataProductMedia->id_product = (int)filter_var($_POST['id_product'] ?? null, FILTER_SANITIZE_NUMBER_INT);
-                $this->dataProductMedia->id_media = (int)filter_var($_POST['id_media'] ?? null, FILTER_SANITIZE_NUMBER_INT);
-                $this->dataProductMedia->position = (int)filter_var($_POST['position'] ?? null, FILTER_SANITIZE_NUMBER_INT);
-
-                $this->dataProductMedia->add();
-                $this->message['type'] = 'success';
-                $this->message['text'] = T_MSG_ADDED;
-            }
-
-            else{
-                $this->message['type'] = 'danger';
-                $this->message['text'] = T_MSG_FILL_MANDATORY;
-            }
+            $this->addImage();
         }
 
         else{
@@ -142,6 +131,101 @@ class ControllerProductMedia  extends \Apgenic\Classes\Controller {
         else{
             $this->dataProductMedia = new ModelProductMedia();
             $this->HTMLProductMedia->edit($this->dataProductMedia,  $this->showTabs, $this->message, 'childlist');
+        }
+    }
+
+
+
+    /**
+     * Add an image to a product (POST).
+     * Tab of a product: the file sent (field file) is stored as a new media (component media), then added to the
+     * images of the product. Tab of a media: the media (id_media) is added to the images of the chosen product.
+     * position: place of the image, empty = after the other images of the product.
+     * @return void
+     */
+    private function addImage():void{
+        $idProduct = (int)filter_var($_POST['id_product'] ?? null, FILTER_VALIDATE_INT, array('options' => array('default' => 0)));
+        $idMedia = (int)filter_var($_POST['id_media'] ?? null, FILTER_VALIDATE_INT, array('options' => array('default' => 0)));
+        $position = (int)filter_var($_POST['position'] ?? null, FILTER_VALIDATE_INT, array('options' => array('default' => 0)));
+        $hasFile = MediaImage::isUploaded($_FILES['file'] ?? null);
+
+        $this->dataProductMedia->id_product = $idProduct;
+        $this->dataProductMedia->id_media = $idMedia;
+
+        if($idProduct < 1){
+            $this->message = array('type' => 'danger', 'text' => T_MSG_FILL_MANDATORY);
+            return;
+        }
+        if(!$hasFile && $idMedia < 1){
+            $this->message = array('type' => 'danger', 'text' => T_ERROR_CHOOSE_IMAGE);
+            return;
+        }
+        if(!$hasFile){
+            $existing = new ModelProductMedia();
+            $existing->id_product = $idProduct;
+            $existing->id_media = $idMedia;
+            if($existing->get()){
+                $this->message = array('type' => 'danger', 'text' => T_ERROR_ALREADY_LINKED);
+                return;
+            }
+        }
+
+        $stored = null;
+        $newMedia = null;
+        try{
+            if($hasFile){
+                // The file is named after the product, else after the name of the uploaded file
+                $name = (string)($this->productList[$idProduct]['name'] ?? pathinfo((string)($_FILES['file']['name'] ?? ''), PATHINFO_FILENAME));
+                $stored = MediaImage::store($_FILES['file'], $name);
+
+                $newMedia = new ModelMedia();
+                $newMedia->filename = $stored['filename'];
+                $newMedia->mime_type = $stored['mime_type'];
+                $newMedia->size_bytes = $stored['size_bytes'];
+                $newMedia->width = $stored['width'];
+                $newMedia->height = $stored['height'];
+                // The name of the product describes the image (stored html-escaped like the forms do)
+                $newMedia->alt_text = isset($this->productList[$idProduct]) ? (string)$this->productList[$idProduct]['name'] : null;
+                if(!$newMedia->save()){
+                    throw new \RuntimeException(T_ERROR_NOT_SAVED);
+                }
+                $idMedia = (int)$newMedia->id_media;
+            }
+
+            // After the other images of the product
+            if($position < 1){
+                $position = (new ModelProductMedia())->getList(0, 0, array('id_product' => $idProduct)) + 1;
+            }
+
+            $this->dataProductMedia->id_product = $idProduct;
+            $this->dataProductMedia->id_media = $idMedia;
+            $this->dataProductMedia->position = $position;
+            if(!$this->dataProductMedia->add()){
+                throw new \RuntimeException(T_ERROR_NOT_SAVED);
+            }
+
+            $this->message = array('type' => 'success', 'text' => T_MSG_ADDED);
+
+            // The list under the form displays the new media
+            if($newMedia !== null){
+                $oModelMedia = new ModelMedia();
+                $oModelMedia->getList();
+                $this->HTMLProductMedia->mediaList1 = $oModelMedia->list;
+            }
+        }
+        catch(\Throwable $e){
+            // Nothing is left behind: the new media and its files
+            if($newMedia !== null && (int)$newMedia->id_media > 0){
+                try{ $newMedia->del(); } catch(\Throwable $ignored){}
+            }
+            if($stored !== null){
+                MediaImage::delete($stored['filename']);
+            }
+            if(!($e instanceof \RuntimeException) || $e instanceof \PDOException){
+                error_log('Product image: '.$e->getMessage());
+            }
+            $this->message = array('type' => 'danger', 'text' => $e instanceof \RuntimeException && !($e instanceof \PDOException) ? $e->getMessage() : T_ERROR_NOT_SAVED);
+            $this->dataProductMedia->id_media = $hasFile ? 0 : $idMedia;
         }
     }
 

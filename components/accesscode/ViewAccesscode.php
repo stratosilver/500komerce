@@ -48,7 +48,7 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
         $this->cardStart('key', T_ACCESS_CODE_TITLE, T_ACCESS_CODE_INTRO);
         $this->message($message);
         ?>
-        <form class="text-start" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=code">
+        <form class="text-start" method="POST" action="<?=self::url('accesscode', 'code')?>">
             <?php $this->csrf(); ?>
             <div class="mb-4">
                 <label class="form-label" for="code"><?=T_CODE?>&nbsp;*</label>
@@ -64,7 +64,7 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
     public function form(array $fields, array $values, array $errors, int $maxLength, array $message = null):void{
         $this->message($message);
         ?>
-        <form class="card card-body shadow-sm p-4" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=form">
+        <form class="card card-body shadow-sm p-4" method="POST" action="<?=self::url('accesscode', 'form')?>">
             <?php $this->csrf(); ?>
             <div class="row g-3">
                 <?php foreach($fields as $name => $label){ ?>
@@ -87,7 +87,7 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
         $this->cardStart('envelope', T_YOUR_EMAIL, T_ACCESS_EMAIL_INTRO);
         $this->message($message);
         ?>
-        <form class="text-start" method="POST" action="<?=BASE_URL?>/index.php?component=accesscode&task=email">
+        <form class="text-start" method="POST" action="<?=self::url('accesscode', 'email')?>">
             <?php $this->csrf(); ?>
             <div class="mb-4">
                 <label class="form-label" for="email"><?=T_EMAIL?>&nbsp;*</label>
@@ -95,7 +95,7 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2"><?=self::icon('envelope', 18)?> <?=T_SEND_LINK?></button>
             <div class="text-center mt-4">
-                <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=accesscode&task=form"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_FORM?></a>
+                <a class="icon-link link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('accesscode', 'form')?>"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_FORM?></a>
             </div>
         </form>
         <?php
@@ -125,7 +125,7 @@ class ViewAccesscode extends \Apgenic\Classes\ViewTemplate
 
     public function link(array $fields, ?array $row):void{
         if($row === null){
-            self::emptyState('link-45deg', T_LINK_INVALID, '', array(BASE_URL.'/index.php?component=accesscode&task=code', T_ENTER_CODE));
+            self::emptyState('link-45deg', T_LINK_INVALID, '', array(self::url('accesscode', 'code'), T_ENTER_CODE));
             return;
         }
         ?>

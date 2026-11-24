@@ -184,12 +184,12 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_media" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="filename" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
-	<th scope="col" id="mime_type" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
-	<th scope="col" id="size_bytes" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_media" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'viewlist')?>?orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'viewlist')?>?orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'viewlist')?>?orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'viewlist')?>?orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'viewlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'viewlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -314,16 +314,15 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_media" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="filename" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=filename&<?=$this->filtersGet?>&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
-	<th scope="col" id="mime_type" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=mime_type&<?=$this->filtersGet?>&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
-	<th scope="col" id="size_bytes" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=size_bytes&<?=$this->filtersGet?>&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_media" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'editlist')?>?orderBy=id_media&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'editlist')?>?orderBy=filename&<?=$this->filtersGet?>&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'editlist')?>?orderBy=mime_type&<?=$this->filtersGet?>&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'editlist')?>?orderBy=size_bytes&<?=$this->filtersGet?>&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'editlist')?>?orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
-		<th class="tight"></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=media&task=trashedlist" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
+		<th><a href="<?=self::url('media', 'trashedlist')?>" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -341,8 +340,6 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-			<?=self::icon('view', 16);?></a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=edit&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil', 16);?>
             </a></td>
@@ -394,7 +391,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<th class="tight"></th>
 		<th class="tight"></th>
-		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -412,9 +408,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=view&showTabs=0&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-	        <?=self::icon('view', 16);?>
-            </a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=media&task=childList&showTabs=0&id_media=<?php echo $element['id_media']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver', 16);?>
             </a></td>
@@ -461,12 +454,12 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="filename" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
-	<th scope="col" id="mime_type" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
-	<th scope="col" id="size_bytes" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=media&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_media" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'trashedlist')?>?orderBy=id_media&order=<?php if($orderBy == "id_media") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="filename" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'trashedlist')?>?orderBy=filename&order=<?php if($orderBy == "filename") echo $order; else echo 'asc';?>"><?=T_FIELD_FILENAME?></a></th>
+	<th scope="col" id="mime_type" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'trashedlist')?>?orderBy=mime_type&order=<?php if($orderBy == "mime_type") echo $order; else echo 'asc';?>"><?=T_FIELD_MIME_TYPE?></a></th>
+	<th scope="col" id="size_bytes" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'trashedlist')?>?orderBy=size_bytes&order=<?php if($orderBy == "size_bytes") echo $order; else echo 'asc';?>"><?=T_FIELD_SIZE_BYTES?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'trashedlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('media', 'trashedlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>

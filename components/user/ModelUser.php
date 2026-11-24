@@ -150,7 +150,7 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function logicalDel():int{
 
-                $query = "UPDATE `user` SET deleted_at = NOW() WHERE  `id_user` = :id_user ";
+                $query = "UPDATE `user` SET deleted_at = datetime('now', 'localtime') WHERE  `id_user` = :id_user ";
                     $q = self::$db->prepare($query);
 
         if($q->execute(array(':id_user' => $this->id_user))){
@@ -265,10 +265,10 @@ class ModelUser extends \Apgenic\Classes\Model{
 
 
         if(isset($filters['deleted_at']) && $filters['deleted_at'] == 0){
-            $where .= " AND (deleted_at = 0 OR deleted_at IS NULL)";
+            $where .= " AND deleted_at IS NULL";
         }
         elseif(isset($filters['deleted_at']) && $filters['deleted_at'] == 1){
-            $where .= " AND deleted_at > 0 ";
+            $where .= " AND deleted_at IS NOT NULL ";
             }
     
         foreach($filters as $field=>$value){
@@ -286,7 +286,7 @@ class ModelUser extends \Apgenic\Classes\Model{
 
         // Set limits
         if($limitNumber){
-            $query .= " LIMIT :limitFrom, :limitNumber ";
+            $query .= " LIMIT :limitNumber OFFSET :limitFrom ";
         }
 
 
@@ -443,7 +443,7 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function updateProfile(string $email, string $firstName, string $lastName):int{
 
-        $q = self::$db->prepare("UPDATE `user` SET `email_verified` = IF(`email` = :email_old, `email_verified`, 0), `email` = :email, `first_name` = :first_name, `last_name` = :last_name WHERE `id_user` = :id_user");
+        $q = self::$db->prepare("UPDATE `user` SET `email_verified` = CASE WHEN `email` = :email_old THEN `email_verified` ELSE 0 END, `email` = :email, `first_name` = :first_name, `last_name` = :last_name WHERE `id_user` = :id_user");
         return($q->execute(array(':email_old' => $email, ':email' => $email, ':first_name' => $firstName, ':last_name' => $lastName, ':id_user' => $this->id_user)) ? 1 : 0);
     }
 
@@ -454,7 +454,7 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function touchLastLogin():int{
 
-        $q = self::$db->prepare("UPDATE `user` SET `last_login_at` = NOW() WHERE `id_user` = :id_user");
+        $q = self::$db->prepare("UPDATE `user` SET `last_login_at` = datetime('now', 'localtime') WHERE `id_user` = :id_user");
         return($q->execute(array(':id_user' => $this->id_user)) ? 1 : 0);
     }
 
@@ -472,7 +472,7 @@ class ModelUser extends \Apgenic\Classes\Model{
         $token = bin2hex(random_bytes(32));
 
         $q = self::$db->prepare("INSERT INTO `user_password_reset` (id_user, token_hash, expires_at)
-                                 VALUES (:id_user, :token_hash, DATE_ADD(NOW(), INTERVAL :validity MINUTE))");
+                                 VALUES (:id_user, :token_hash, datetime('now', 'localtime', '+' || :validity || ' minutes'))");
         $q->bindValue(':id_user', $this->id_user);
         $q->bindValue(':token_hash', hash('sha256', $token));
         $q->bindValue(':validity', $validity, \PDO::PARAM_INT);
@@ -496,7 +496,7 @@ class ModelUser extends \Apgenic\Classes\Model{
                                  FROM `user_password_reset` r
                                  INNER JOIN `user` u ON u.id_user = r.id_user
                                  WHERE r.`token_hash` = :token_hash
-                                 AND r.`expires_at` > NOW()
+                                 AND r.`expires_at` > datetime('now', 'localtime')
                                  AND u.`deleted_at` IS NULL
                                  AND u.`status` = 'active'");
 
@@ -514,13 +514,38 @@ class ModelUser extends \Apgenic\Classes\Model{
     */
     public function deletePasswordResetTokens():int{
 
-        $q = self::$db->prepare("DELETE FROM `user_password_reset` WHERE `id_user` = :id_user OR `expires_at` < NOW()");
+        $q = self::$db->prepare("DELETE FROM `user_password_reset` WHERE `id_user` = :id_user OR `expires_at` < datetime('now', 'localtime')");
         return($q->execute(array(':id_user' => $this->id_user)) ? 1 : 0);
     }
 
 
     /**
-    * Load a user from his identity at an external provider (google, facebook, x).
+    * The email address of the account has just been proven by an external provider.
+    * @param bool $dropAccess true when the one who proves the address is not known to be the one who created
+    *        the account: the password and the external identity set before the proof are removed, with the
+    *        password reset links, so that only the owner of the address keeps an access to the account
+    * @return int 0 or 1
+    */
+    public function confirmEmail(bool $dropAccess = false):int{
+
+        $query = "UPDATE `user` SET `email_verified` = 1";
+        if($dropAccess){
+            $query .= ", `password_hash` = NULL, `provider` = 'local', `provider_user_id` = NULL";
+        }
+        $q = self::$db->prepare($query." WHERE `id_user` = :id_user");
+        if(!$q->execute(array(':id_user' => $this->id_user))){
+            return(0);
+        }
+        if($dropAccess){
+            $this->deletePasswordResetTokens();
+        }
+        return($this->get());
+    }
+
+
+    /**
+    * Load a user from the identity, at an external provider (google, facebook, x), that created his account.
+    * The users are recognized by their email (getByEmail), this is used when the email matches no account.
     * @return int 0 or 1
     */
     public function getByProvider(string $provider, string $providerUserId):int{

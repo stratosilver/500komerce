@@ -125,7 +125,7 @@ class ModelTranslation extends \Apgenic\Classes\Model{
     */
     public function logicalDel():int{
 
-                $query = "UPDATE `translation` SET deleted_at = NOW() WHERE  `id_translation` = :id_translation ";
+                $query = "UPDATE `translation` SET deleted_at = datetime('now', 'localtime') WHERE  `id_translation` = :id_translation ";
                     $q = self::$db->prepare($query);
 
         if($q->execute(array(':id_translation' => $this->id_translation))){
@@ -227,10 +227,10 @@ class ModelTranslation extends \Apgenic\Classes\Model{
 
 
         if(isset($filters['deleted_at']) && $filters['deleted_at'] == 0){
-            $where .= " AND (deleted_at = 0 OR deleted_at IS NULL)";
+            $where .= " AND deleted_at IS NULL";
         }
         elseif(isset($filters['deleted_at']) && $filters['deleted_at'] == 1){
-            $where .= " AND deleted_at > 0 ";
+            $where .= " AND deleted_at IS NOT NULL ";
             }
     
         foreach($filters as $field=>$value){
@@ -248,7 +248,7 @@ class ModelTranslation extends \Apgenic\Classes\Model{
 
         // Set limits
         if($limitNumber){
-            $query .= " LIMIT :limitFrom, :limitNumber ";
+            $query .= " LIMIT :limitNumber OFFSET :limitFrom ";
         }
 
 

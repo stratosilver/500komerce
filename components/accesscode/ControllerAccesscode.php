@@ -74,8 +74,9 @@ class ControllerAccesscode {
     }
 
 
-    private static function url(string $task, string $params = ''):string{
-        return BASE_URL.'/index.php?component=accesscode&task='.$task.$params;
+    /** Address of a page of the access by code (classes/Url.php) */
+    private static function url(string $task, array $params = array()):string{
+        return \Apgenic\Classes\Url::to('accesscode', $task, $params);
     }
 
     private static function redirect(string $url):void{
@@ -192,7 +193,7 @@ class ControllerAccesscode {
                     $this->message = array('type' => 'danger', 'text' => T_ERROR_FORM_NOT_SAVED);
                 }
                 else{
-                    $link = $this->absoluteUrl(self::url('link', '&token='.$saved['token']));
+                    $link = $this->absoluteUrl(self::url('link', array('token' => $saved['token'])));
                     $mailSent = $this->sendLinkMail($email, $link, $saved['codes']);
 
                     // The form is done: a new code is needed for another one

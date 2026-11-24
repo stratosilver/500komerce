@@ -2,12 +2,9 @@
 ini_set('display_errors', 'On');
 error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
-// DB parameters
-define("DB_HOST" , '127.0.0.1');
-define('DB_USER' , 'root');
-define('DB_PASSWORD' , '');
-define('DB_DB' , '500komerce');
-define('DB_PORT', '');
+// DB parameters: SQLite database file (schema: _dev/500komerce_sqlite.sql)
+// The web server must be able to write in the file AND in its folder (SQLite writes its journal next to the file)
+define('DB_FILE', __DIR__.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'500komerce.sqlite');
 
 //define('BASE_URL', str_replace('/index.php', '', strtok($_SERVER["REQUEST_URI"], '?')));
 define('BASE_URL', '');
@@ -21,7 +18,7 @@ define('MAIL_FROM', '');
 define('AUTH_SHOW_RESET_LINK', true);
 
 // Sign in with Google, Facebook, X. A provider is displayed on the login page when its client_id and client_secret are filled.
-// Redirect / callback url to declare at each provider: {APP_URL}/index.php?component=user&task=oauthcallback
+// Redirect / callback url to declare at each provider: {APP_URL}/login/callback
 define('OAUTH_PROVIDERS', array(
     // https://console.cloud.google.com/apis/credentials  (OAuth client ID, type "Web application")
     'google'   => array('client_id' => '1234', 'client_secret' => '1234'),

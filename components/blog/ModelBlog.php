@@ -23,7 +23,7 @@ class ModelBlog extends \Apgenic\Classes\Model{
                     LEFT JOIN `user` u ON u.`id_user` = p.`id_user`";
 
     /** Condition of a published article */
-    const PUBLISHED = "p.`status` = 'published' AND p.`deleted_at` IS NULL AND (p.`published_at` IS NULL OR p.`published_at` <= NOW())";
+    const PUBLISHED = "p.`status` = 'published' AND p.`deleted_at` IS NULL AND (p.`published_at` IS NULL OR p.`published_at` <= datetime('now', 'localtime'))";
 
 
     /**

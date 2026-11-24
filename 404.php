@@ -5,12 +5,16 @@
  * When the page has already started (header of the layout sent), only the content is added, then the end of the page.
  */
 $errorMessage = isset($errorMessage) ? (string)$errorMessage : '';
+// A request of HTMX only receives the content, without the layout
+$htmx = ($_SERVER['PHP_SELF'] ?? '') == '/htmx.php';
 $pageStarted = headers_sent() || ob_get_length();
 $oView404 = new Apgenic\Classes\ViewTemplate();
 
 if(!$pageStarted){
     http_response_code(404);
-    $oView404->header(T_PAGE_NOT_FOUND);
+    if(!$htmx){
+        $oView404->header(T_PAGE_NOT_FOUND);
+    }
 }
 ?>
 <div class="row justify-content-center">
@@ -23,9 +27,11 @@ if(!$pageStarted){
             <?php } else { ?>
             <p class="text-body-secondary"><?=T_404_TEXT?></p>
             <?php } ?>
-            <div><a class="btn btn-primary d-inline-flex align-items-center gap-2" href="<?=BASE_URL?>/"><?=Apgenic\Classes\ViewTemplate::icon('house', 16)?> <?=T_BACK_HOME?></a></div>
+            <div><a class="btn btn-primary d-inline-flex align-items-center gap-2" href="<?=Apgenic\Classes\Url::home()?>"><?=Apgenic\Classes\ViewTemplate::icon('house', 16)?> <?=T_BACK_HOME?></a></div>
         </div>
     </div>
 </div>
 <?php
-$oView404->footer();
+if(!$htmx){
+    $oView404->footer();
+}

@@ -18,6 +18,9 @@ public string $filtersGet = '';
 
 public $fileters = array();
 
+/** Page of the back office to open after the sign in (parameter return of the login page), '' = the home page */
+public string $loginReturn = '';
+
 function __construct($mediaList) {
 $this->mediaList = $mediaList;
 }
@@ -262,15 +265,15 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_user" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="email" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=email&order=<?php if($orderBy == "email") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL?></a></th>
-	<th scope="col" id="email_verified" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=email_verified&order=<?php if($orderBy == "email_verified") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL_VERIFIED?></a></th>
-	<th scope="col" id="first_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=first_name&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>"><?=T_FIELD_FIRST_NAME?></a></th>
-	<th scope="col" id="last_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=last_name&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>"><?=T_FIELD_LAST_NAME?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="permissions" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=permissions&order=<?php if($orderBy == "permissions") echo $order; else echo 'asc';?>"><?=T_FIELD_PERMISSIONS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=viewlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_user" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="email" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=email&order=<?php if($orderBy == "email") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL?></a></th>
+	<th scope="col" id="email_verified" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=email_verified&order=<?php if($orderBy == "email_verified") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL_VERIFIED?></a></th>
+	<th scope="col" id="first_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=first_name&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>"><?=T_FIELD_FIRST_NAME?></a></th>
+	<th scope="col" id="last_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=last_name&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>"><?=T_FIELD_LAST_NAME?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="permissions" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=permissions&order=<?php if($orderBy == "permissions") echo $order; else echo 'asc';?>"><?=T_FIELD_PERMISSIONS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'viewlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -402,19 +405,18 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_user" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="email" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=email&<?=$this->filtersGet?>&order=<?php if($orderBy == "email") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL?></a></th>
-	<th scope="col" id="email_verified" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=email_verified&<?=$this->filtersGet?>&order=<?php if($orderBy == "email_verified") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL_VERIFIED?></a></th>
-	<th scope="col" id="first_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=first_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>"><?=T_FIELD_FIRST_NAME?></a></th>
-	<th scope="col" id="last_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=last_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>"><?=T_FIELD_LAST_NAME?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="permissions" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=permissions&<?=$this->filtersGet?>&order=<?php if($orderBy == "permissions") echo $order; else echo 'asc';?>"><?=T_FIELD_PERMISSIONS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_user" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="email" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=email&<?=$this->filtersGet?>&order=<?php if($orderBy == "email") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL?></a></th>
+	<th scope="col" id="email_verified" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=email_verified&<?=$this->filtersGet?>&order=<?php if($orderBy == "email_verified") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL_VERIFIED?></a></th>
+	<th scope="col" id="first_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=first_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>"><?=T_FIELD_FIRST_NAME?></a></th>
+	<th scope="col" id="last_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=last_name&<?=$this->filtersGet?>&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>"><?=T_FIELD_LAST_NAME?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="permissions" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=permissions&<?=$this->filtersGet?>&order=<?php if($orderBy == "permissions") echo $order; else echo 'asc';?>"><?=T_FIELD_PERMISSIONS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'editlist')?>?orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
-		<th class="tight"></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=user&task=trashedlist" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
+		<th><a href="<?=self::url('user', 'trashedlist')?>" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -435,8 +437,6 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=user&task=view&id_user=<?php echo $element['id_user']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-			<?=self::icon('view', 16);?></a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=user&task=edit&id_user=<?php echo $element['id_user']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil', 16);?>
             </a></td>
@@ -490,7 +490,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<th class="tight"></th>
 		<th class="tight"></th>
-		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -510,9 +509,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=user&task=view&showTabs=0&id_user=<?php echo $element['id_user']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-	        <?=self::icon('view', 16);?>
-            </a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=user&task=childList&showTabs=0&id_user=<?php echo $element['id_user']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver', 16);?>
             </a></td>
@@ -559,14 +555,14 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="email" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=email&order=<?php if($orderBy == "email") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL?></a></th>
-	<th scope="col" id="email_verified" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=email_verified&order=<?php if($orderBy == "email_verified") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL_VERIFIED?></a></th>
-	<th scope="col" id="first_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=first_name&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>"><?=T_FIELD_FIRST_NAME?></a></th>
-	<th scope="col" id="last_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=last_name&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>"><?=T_FIELD_LAST_NAME?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=user&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="email" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=email&order=<?php if($orderBy == "email") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL?></a></th>
+	<th scope="col" id="email_verified" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=email_verified&order=<?php if($orderBy == "email_verified") echo $order; else echo 'asc';?>"><?=T_FIELD_EMAIL_VERIFIED?></a></th>
+	<th scope="col" id="first_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=first_name&order=<?php if($orderBy == "first_name") echo $order; else echo 'asc';?>"><?=T_FIELD_FIRST_NAME?></a></th>
+	<th scope="col" id="last_name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=last_name&order=<?php if($orderBy == "last_name") echo $order; else echo 'asc';?>"><?=T_FIELD_LAST_NAME?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('user', 'trashedlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>
@@ -622,10 +618,17 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 
     /**
     * Profile of the logged user: his name, email and password
+    * @param array $providers key => label of the configured providers (Google, Facebook, X)
     * @return void
     */
-    public function profile(ModelUser $data, array $message = null, int $passwordMinLength = 8){
-        $isLocal = $data->provider == 'local';
+    public function profile(ModelUser $data, array $message = null, int $passwordMinLength = 8, array $providers = array()){
+        // An account created with a provider has no password until the user chooses one
+        $hasPassword = (string)$data->password_hash != '';
+        // The user is recognized by his email: his password, if he has one, and all the providers open the same account
+        $signInWith = array_values($providers);
+        if($hasPassword){
+            array_unshift($signInWith, T_EMAIL_AND_PASSWORD);
+        }
         $legend = 'fs-5 fw-bold d-flex align-items-center gap-2 mb-3';
         ?>
         <div class="row g-4">
@@ -636,18 +639,18 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
                         <div class="h5 fw-bold mb-1"><?=$data->first_name?> <?=$data->last_name?></div>
                         <div class="text-body-secondary text-break mb-4"><?=$data->email?></div>
                         <dl class="small text-start mb-4">
-                            <div class="d-flex justify-content-between gap-3 border-top py-2"><dt class="fw-normal text-body-secondary"><?=T_SIGN_IN_WITH?></dt><dd class="mb-0 fw-semibold text-end"><?=$isLocal ? T_EMAIL_AND_PASSWORD : ucfirst((string)$data->provider)?></dd></div>
+                            <div class="d-flex justify-content-between gap-3 border-top py-2"><dt class="fw-normal text-body-secondary"><?=T_SIGN_IN_WITH?></dt><dd class="mb-0 fw-semibold text-end"><?=count($signInWith) ? implode('<br>', $signInWith) : '&mdash;'?></dd></div>
                             <?php if((string)$data->created_at != ''){ ?><div class="d-flex justify-content-between gap-3 border-top py-2"><dt class="fw-normal text-body-secondary"><?=T_MEMBER_SINCE?></dt><dd class="mb-0 fw-semibold text-end"><?=$this->getDate((string)$data->created_at)?></dd></div><?php } ?>
                             <?php if((string)$data->last_login_at != ''){ ?><div class="d-flex justify-content-between gap-3 border-top py-2"><dt class="fw-normal text-body-secondary"><?=T_LAST_SIGN_IN?></dt><dd class="mb-0 fw-semibold text-end"><?=$this->getDate((string)$data->last_login_at)?></dd></div><?php } ?>
                         </dl>
-                        <a class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-2" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=self::icon('bag', 16)?> <?=T_MY_CART?></a>
+                        <a class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-2" href="<?=self::url('shop', 'cart')?>"><?=self::icon('bag', 16)?> <?=T_MY_CART?></a>
                     </div>
                 </aside>
             </div>
 
             <div class="col-lg-8">
                 <?php $this->message($message); ?>
-                <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=profile">
+                <form method="POST" action="<?=self::url('user', 'profile')?>">
                     <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
 
                     <fieldset class="card card-body shadow-sm p-4 mb-4">
@@ -663,35 +666,35 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="email"><?=T_EMAIL?>&nbsp;*</label>
-                                <input <?=$isLocal ? 'required' : 'disabled'?> maxlength="255" class="form-control" type="email" name="email" id="email" value="<?=$data->email?>" autocomplete="email"/>
-                                <?php if(!$isLocal){ ?>
-                                <div class="form-text"><?=sprintf(T_EMAIL_GIVEN_BY, ucfirst((string)$data->provider))?></div>
+                                <input required maxlength="255" class="form-control" type="email" name="email" id="email" value="<?=$data->email?>" autocomplete="email"<?=count($providers) ? ' aria-describedby="email_help"' : ''?>/>
+                                <?php if(count($providers)){ ?>
+                                <div class="form-text" id="email_help"><?=sprintf(T_EMAIL_IDENTITY_HINT, implode(', ', $providers))?></div>
                                 <?php } ?>
                             </div>
                         </div>
                     </fieldset>
 
-                    <?php if($isLocal){ ?>
                     <fieldset class="card card-body shadow-sm p-4 mb-4">
-                        <legend class="<?=$legend?>"><span class="d-inline-flex text-primary"><?=self::icon('lock', 18)?></span> <?=T_CHANGE_PASSWORD?></legend>
-                        <p class="small text-body-secondary"><?=T_PASSWORD_KEEP_HINT?></p>
+                        <legend class="<?=$legend?>"><span class="d-inline-flex text-primary"><?=self::icon('lock', 18)?></span> <?=$hasPassword ? T_CHANGE_PASSWORD : T_CHOOSE_PASSWORD?></legend>
+                        <p class="small text-body-secondary"><?=$hasPassword ? T_PASSWORD_KEEP_HINT : T_PASSWORD_NONE_HINT?></p>
                         <div class="row g-3">
+                            <?php if($hasPassword){ ?>
                             <div class="col-md-4">
                                 <label class="form-label" for="current_password"><?=T_CURRENT_PASSWORD?></label>
                                 <input class="form-control" type="password" name="current_password" id="current_password" autocomplete="current-password"/>
                             </div>
-                            <div class="col-md-4">
+                            <?php } ?>
+                            <div class="<?=$hasPassword ? 'col-md-4' : 'col-md-6'?>">
                                 <label class="form-label" for="password"><?=T_NEW_PASSWORD?></label>
                                 <input class="form-control" type="password" name="password" id="password" minlength="<?=$passwordMinLength?>" maxlength="72" autocomplete="new-password" aria-describedby="password_help"/>
                                 <div class="form-text" id="password_help"><?=sprintf(T_PASSWORD_MIN_HINT, $passwordMinLength)?></div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="<?=$hasPassword ? 'col-md-4' : 'col-md-6'?>">
                                 <label class="form-label" for="password_confirmation"><?=T_CONFIRMATION?></label>
                                 <input class="form-control" type="password" name="password_confirmation" id="password_confirmation" maxlength="72" autocomplete="new-password"/>
                             </div>
                         </div>
                     </fieldset>
-                    <?php } ?>
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary btn-lg d-inline-flex align-items-center gap-2"><?=self::icon('check2', 18)?> <?=T_SAVE?></button>
@@ -733,7 +736,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
                     <?php self::brand(false, 'd-lg-none'); ?>
                     <div class="d-flex align-items-center gap-3 ms-auto">
                       <?php self::languageSwitch(); ?>
-                      <a class="icon-link small link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_SHOP?></a>
+                      <a class="icon-link small link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'viewlist')?>"><?=self::icon('arrow-left', 16)?> <?=T_BACK_TO_SHOP?></a>
                     </div>
                   </div>
                   <div class="row justify-content-center align-items-center flex-grow-1">
@@ -772,7 +775,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
         $this->authHeader(T_SIGN_IN, T_SIGN_IN_INTRO);
         $this->message($message);
         ?>
-        <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=login">
+        <form method="POST" action="<?=htmlspecialchars(self::url('user', 'login', array('return' => $this->loginReturn)))?>">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
             <div class="mb-3">
                 <label class="form-label" for="email"><?=T_EMAIL?></label>
@@ -781,14 +784,14 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-baseline gap-2">
                     <label class="form-label" for="password"><?=T_PASSWORD?></label>
-                    <a class="small" href="<?=BASE_URL?>/index.php?component=user&task=forgot"><?=T_FORGOT_PASSWORD_Q?></a>
+                    <a class="small" href="<?=self::url('user', 'forgot')?>"><?=T_FORGOT_PASSWORD_Q?></a>
                 </div>
                 <input type="password" class="form-control form-control-lg" id="password" name="password" autocomplete="current-password" required>
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100"><?=T_SIGN_IN?></button>
         </form>
         <?php $this->socialButtons($providers); ?>
-        <p class="text-center text-body-secondary mt-4 mb-0"><?=T_NEW_HERE?> <a class="fw-semibold" href="<?=BASE_URL?>/index.php?component=user&task=register"><?=T_CREATE_ACCOUNT?></a></p>
+        <p class="text-center text-body-secondary mt-4 mb-0"><?=T_NEW_HERE?> <a class="fw-semibold" href="<?=self::url('user', 'register')?>"><?=T_CREATE_ACCOUNT?></a></p>
         <?php
         $this->authFooter();
     }
@@ -802,7 +805,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
         $this->authHeader(T_CREATE_ACCOUNT, T_REGISTER_INTRO);
         $this->message($message);
         ?>
-        <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=register">
+        <form method="POST" action="<?=self::url('user', 'register')?>">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
             <div class="row g-3 mb-3">
                 <div class="col-sm-6">
@@ -830,7 +833,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
             <button type="submit" class="btn btn-primary btn-lg w-100"><?=T_CREATE_MY_ACCOUNT?></button>
         </form>
         <?php $this->socialButtons($providers); ?>
-        <p class="text-center text-body-secondary mt-4 mb-0"><?=T_ALREADY_CUSTOMER?> <a class="fw-semibold" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=T_SIGN_IN?></a></p>
+        <p class="text-center text-body-secondary mt-4 mb-0"><?=T_ALREADY_CUSTOMER?> <a class="fw-semibold" href="<?=self::url('user', 'login')?>"><?=T_SIGN_IN?></a></p>
         <?php
         $this->authFooter();
     }
@@ -847,7 +850,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
             $this->message(array('type' => 'warning', 'text' => '<strong>'.T_DEV_MODE.'</strong> (AUTH_SHOW_RESET_LINK): <a class="alert-link" href="'.htmlspecialchars($devResetLink).'">'.T_RESET_LINK.'</a>'));
         }
         ?>
-        <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=forgot">
+        <form method="POST" action="<?=self::url('user', 'forgot')?>">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
             <div class="mb-4">
                 <label class="form-label" for="email"><?=T_EMAIL?></label>
@@ -855,7 +858,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2"><?=self::icon('envelope', 18)?> <?=T_SEND_LINK?></button>
         </form>
-        <p class="text-center mt-4 mb-0"><a class="icon-link" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=self::icon('arrow-left', 14)?> <?=T_BACK_TO_SIGN_IN?></a></p>
+        <p class="text-center mt-4 mb-0"><a class="icon-link" href="<?=self::url('user', 'login')?>"><?=self::icon('arrow-left', 14)?> <?=T_BACK_TO_SIGN_IN?></a></p>
         <?php
         $this->authFooter();
     }
@@ -870,7 +873,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
         $this->message($message);
         if($tokenValid){
             ?>
-            <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=reset">
+            <form method="POST" action="<?=self::url('user', 'reset')?>">
                 <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
                 <input type="hidden" name="token" value="<?=htmlspecialchars($token)?>" />
                 <div class="mb-3">
@@ -888,11 +891,11 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
         }
         else{
             ?>
-            <a class="btn btn-primary btn-lg w-100" href="<?=BASE_URL?>/index.php?component=user&task=forgot"><?=T_ASK_NEW_LINK?></a>
+            <a class="btn btn-primary btn-lg w-100" href="<?=self::url('user', 'forgot')?>"><?=T_ASK_NEW_LINK?></a>
             <?php
         }
         ?>
-        <p class="text-center mt-4 mb-0"><a class="icon-link" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=self::icon('arrow-left', 14)?> <?=T_BACK_TO_SIGN_IN?></a></p>
+        <p class="text-center mt-4 mb-0"><a class="icon-link" href="<?=self::url('user', 'login')?>"><?=self::icon('arrow-left', 14)?> <?=T_BACK_TO_SIGN_IN?></a></p>
         <?php
         $this->authFooter();
     }
@@ -912,7 +915,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
         <?php
         foreach($providers as $key => $label){
             ?>
-            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=oauth&provider=<?=$key?>"><?=isset($icons[$key]) ? self::icon($icons[$key], 18) : ''?> <?=sprintf(T_CONTINUE_WITH, $label)?></a>
+            <a class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" href="<?=htmlspecialchars(self::url('user', 'oauth', array('provider' => $key, 'return' => $this->loginReturn)))?>"><?=isset($icons[$key]) ? self::icon($icons[$key], 18) : ''?> <?=sprintf(T_CONTINUE_WITH, $label)?></a>
             <?php
         }
         ?>

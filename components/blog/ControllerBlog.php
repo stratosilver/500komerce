@@ -44,7 +44,7 @@ class ControllerBlog {
 
         $this->HTMLBlog->header(T_BLOG);
         $this->HTMLBlog->viewList($this->dataBlog->getList(LANG, $page), $page == 1);
-        $this->HTMLBlog->pagination($pages, $page, BASE_URL.'/index.php?component=blog&');
+        $this->HTMLBlog->pagination($pages, $page, ViewBlog::listUrl());
         $this->HTMLBlog->footer();
     }
 
@@ -62,6 +62,10 @@ class ControllerBlog {
         $post = null;
         if($slug != ''){
             $post = $this->dataBlog->getBySlug($slug, LANG, $preview);
+            // /blog/{id}: an article without slug
+            if($post === null && ctype_digit($slug)){
+                $post = $this->dataBlog->getById((int)$slug, $preview);
+            }
         }
         elseif($idPost > 0){
             $post = $this->dataBlog->getById($idPost, $preview);
@@ -74,6 +78,9 @@ class ControllerBlog {
             $this->HTMLBlog->footer();
             return;
         }
+
+        // One address by article: /blog/{id} of an article having a slug goes to /blog/{slug}
+        \Apgenic\Classes\Url::canonical(ViewBlog::postUrl($post));
 
         // The title is stored html-escaped: displayed as it is
         $this->HTMLBlog->header((string)$post['title']);

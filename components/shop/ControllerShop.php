@@ -52,8 +52,9 @@ class ControllerShop {
     }
 
 
-    private static function url(string $task, string $params = ''):string{
-        return BASE_URL.'/index.php?component=shop&task='.$task.$params;
+    /** Address of a page of the shop (classes/Url.php) */
+    private static function url(string $task, array $params = array()):string{
+        return \Apgenic\Classes\Url::to('shop', $task, $params);
     }
 
     private static function redirect(string $url):void{
@@ -190,7 +191,7 @@ class ControllerShop {
             $this->message = array();
             $idOrder = $this->placeOrder($user, $addresses, $logged, $values, $errors);
             if($idOrder > 0){
-                self::redirect(self::url('confirmation', '&id_customer_order='.$idOrder));
+                self::redirect(self::url('confirmation', array('id_customer_order' => $idOrder)));
                 return;
             }
             if(!count($this->message)){

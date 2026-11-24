@@ -99,37 +99,7 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
 		<fieldset>
         <div class="row">
 
-
-                        <?php
-                        if(!isset($this->filters['id_user'])){ ?>
-
-        <div class="col-lg-4 col-md-6">
-        <div class="mb-3">
-            <label class="form-label" for="id_user"><?=T_FIELD_ID_USER?></label>
-            <select  class="form-select" name="id_user" id="id_user">
-                <option value=""></option>
-        <?php
-        foreach ($this->userList2 as $key => $val){
-                ?>
-                <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=$val['email']?></option>
-        <?php
-        }
-        ?>
-
-            </select>
-		</div>
-		</div>
-
-                        <?php
-                        }
-                        else{
-                            ?>
-
-                            <input type="hidden" name="id_user" id="id_user" value="<?php if(!isset($data->id_user) || $data->id_user < 1) echo $_GET['filters']['id_user']; else echo $data->id_user?>"/>
-                            <?php
-                        }
-                        ?>
-
+        <?php // The user of the product is not chosen here: it is the logged user (ControllerProduct::edit) ?>
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="name"><?=T_FIELD_NAME?>&nbsp;*</label>
@@ -232,7 +202,7 @@ function mainHeader($title){
         return;
     }
 
-    $catalogUrl = BASE_URL.'/index.php?component=product&task=viewlist';
+    $catalogUrl = self::url('product', 'viewlist');
     $search = trim((string)($_GET['text_search'] ?? ''));
     echo '<main id="main" class="flex-grow-1 py-4 py-lg-5"><div class="container">';
 
@@ -258,7 +228,7 @@ function mainHeader($title){
         ?>
         <nav aria-label="<?=T_BREADCRUMB?>">
             <ol class="breadcrumb small mb-4">
-                <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/"><?=T_HOME?></a></li>
+                <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'viewlist')?>"><?=T_HOME?></a></li>
                 <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=$catalogUrl?>"><?=T_SHOP?></a></li>
                 <li class="breadcrumb-item active" aria-current="page"><?=$title?></li>
             </ol>
@@ -299,6 +269,20 @@ public function imageUrl(int $idProduct, int $index = 0, string $size = 'medium'
 
 
 /**
+ * Address of the page of a product: /product/{slug}, /product/{id} when it has no slug
+ * @param array|ModelProduct $product row of the list, or the product
+ * @return string
+ */
+public static function productUrl($product):string{
+    $product = (array)$product;
+    return self::url('product', 'view', array(
+        'slug' => html_entity_decode((string)($product['slug'] ?? ''), ENT_QUOTES),
+        'id_product' => (int)($product['id_product'] ?? 0),
+    ));
+}
+
+
+/**
  * Price with the tax, the one paid by the customer (the prices are stored without tax)
  * @return int cents
  */
@@ -323,13 +307,11 @@ public static function statusBadge(string $status, bool $deleted = false):string
 /**
  * Url of the catalog: the category, the search and the sort of the page are kept, unless they are given in $params
  * @param array $params category (slug, '' for all the products), text_search, orderBy, order
- * @return string
+ * @return string / or /category/{slug}, with the search and the sort in the query string
  */
 public function catalogUrl(array $params = array()):string{
     $orderBy = (string)($_GET['orderBy'] ?? '');
     $query = array(
-        'component'   => 'product',
-        'task'        => 'viewlist',
         'category'    => $this->category !== null ? html_entity_decode((string)$this->category['slug'], ENT_QUOTES) : '',
         'text_search' => trim((string)($_GET['text_search'] ?? '')),
         'orderBy'     => in_array($orderBy, ControllerProduct::$fieldsNames, true) ? $orderBy : '',
@@ -338,7 +320,7 @@ public function catalogUrl(array $params = array()):string{
     foreach($params as $name => $value){
         $query[$name] = (string)$value;
     }
-    return BASE_URL.'/index.php?'.http_build_query(array_filter($query, function($value){ return $value !== ''; }));
+    return self::url('product', 'viewlist', $query);
 }
 
 
@@ -442,16 +424,19 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 	    </nav>
 	</div>
 
+
+
+
 	<?php if(!count($data)){
 	    $filtered = $search != '' || $this->category !== null;
-	    self::emptyState('search', T_NO_PRODUCT, $search != '' ? T_NO_PRODUCT_HINT : ($this->category !== null ? T_NO_PRODUCT_CATEGORY : ''), $filtered ? array(BASE_URL.'/index.php?component=product&task=viewlist', T_SEE_ALL_PRODUCTS) : array());
+	    self::emptyState('search', T_NO_PRODUCT, $search != '' ? T_NO_PRODUCT_HINT : ($this->category !== null ? T_NO_PRODUCT_CATEGORY : ''), $filtered ? array(self::url('product', 'viewlist'), T_SEE_ALL_PRODUCTS) : array());
 	} ?>
 
 	<div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3 g-lg-4">
 	<?php
 	foreach ($data as $element){
 	    $id = (int)$element['id_product'];
-	    $url = BASE_URL.'/index.php?component=product&task=view&id_product='.$id;
+	    $url = self::productUrl($element);
 	    $image = $this->imageUrl($id, 0, 'medium');
 	    $price = (int)$element['price_amount'];
 	    $onSale = $element['status'] == 'active';
@@ -548,6 +533,7 @@ public function view(ModelProduct $data , array $message=null){
             <?php } ?>
         </div>
 
+
         <div class="col-lg-5">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
@@ -590,7 +576,7 @@ public function view(ModelProduct $data , array $message=null){
     <section class="card shadow-sm border-primary-subtle mb-4">
         <div class="card-header bg-primary-subtle d-flex flex-wrap align-items-center justify-content-between gap-2 py-3">
             <h2 class="h6 fw-bold mb-0 d-flex align-items-center gap-2"><?=self::icon('speedometer2', 18)?> <?=T_BACK_OFFICE?></h2>
-            <a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=product&task=edit&id_product=<?=$id?>"><?=self::icon('pencil', 14)?> <?=T_EDIT?></a>
+            <a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2" href="<?=self::url('product', 'edit', array('id_product' => $id))?>"><?=self::icon('pencil', 14)?> <?=T_EDIT?></a>
         </div>
         <div class="card-body">
             <dl class="row row-cols-2 row-cols-md-4 g-3 mb-0">
@@ -618,7 +604,7 @@ public function view(ModelProduct $data , array $message=null){
 	<?php
     }
     else{
-        self::emptyState('emoji-frown', T_PRODUCT_UNAVAILABLE, '', array(BASE_URL.'/index.php?component=product&task=viewlist', T_SEE_ALL_PRODUCTS));
+        self::emptyState('emoji-frown', T_PRODUCT_UNAVAILABLE, '', array(self::url('product', 'viewlist'), T_SEE_ALL_PRODUCTS));
     }
 
 
@@ -661,17 +647,16 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=name&<?=$this->filtersGet?>&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
-	<th scope="col" id="price_amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_PRICE_AMOUNT?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=editlist&orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=name&<?=$this->filtersGet?>&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
+	<th scope="col" id="price_amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
-		<th class="tight"></th>
-		<th><a href="<?=BASE_URL?>/index.php?component=product&task=trashedlist" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
+		<th><a href="<?=self::url('product', 'trashedlist')?>" class="btn btn-sm btn-outline-secondary" title="<?=T_TRASH?>" aria-label="<?=T_TRASH?>"><?=self::icon('trash3', 16)?></a></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -695,8 +680,6 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=view&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-			<?=self::icon('view', 16);?></a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=edit&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('pencil', 16);?>
             </a></td>
@@ -748,7 +731,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 
 		<th class="tight"></th>
 		<th class="tight"></th>
-		<th class="tight"></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -771,9 +753,6 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
 
-			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=view&showTabs=0&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
-	        <?=self::icon('view', 16);?>
-            </a></td>
 			<td class="text-nowrap"><a href="#" hx-target="#core_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=childList&showTabs=0&id_product=<?php echo $element['id_product']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
             <?=self::icon('screwdriver', 16);?>
             </a></td>
@@ -820,12 +799,12 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 	?>
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-sm table-hover align-middle mb-0">
 	<thead class="table-light">
-	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
-	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
-	<th scope="col" id="name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=name&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
-	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
-	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
-	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/index.php?component=product&task=trashedlist&orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
+	<tr>	<th scope="col" id="id_product" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'trashedlist')?>?orderBy=id_product&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'trashedlist')?>?orderBy=id_user&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'trashedlist')?>?orderBy=name&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'trashedlist')?>?orderBy=status&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
+	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'trashedlist')?>?orderBy=created_at&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
+	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'trashedlist')?>?orderBy=updated_at&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
 
 		<th class="tight"></th>
 	</tr>

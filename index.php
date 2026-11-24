@@ -30,21 +30,34 @@ if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'])) {
 }
 
 
+// Routing: clean urls of the front-end, back office under /admin/ (classes/Url.php)
+// ------------------------------------------------------------------------------------------------
+$route = Apgenic\Classes\Url::route();
+
+if($route == 'notfound'){
+    $errorMessage = '';
+    include '404.php';
+    exit;
+}
+
 // Dispatch component
 // ------------------------------------------------------------------------------------------------
-if(isset($_GET['component']) && $_GET['component'] != ''){
+if(isset($_GET['component']) && is_string($_GET['component']) && $_GET['component'] != ''){
     define('COMPONENT', $_GET['component']);
 }
 else{
-    // Home page: the products for the visitors and the customers
-    define('COMPONENT', Apgenic\Classes\Auth::canEdit() ? 'discount' : 'product');
+    // Home page: the products, for everybody. Home of the back office: /admin/
+    define('COMPONENT', $route == 'admin' ? Apgenic\Classes\Url::ADMIN_HOME : 'product');
+    if($route != 'admin'){
+        $_GET['task'] = 'viewlist';
+    }
 }
 
 // Access control (classes/Auth.php)
 // ------------------------------------------------------------------------------------------------
 $task = isset($_GET['task']) && is_string($_GET['task']) ? $_GET['task'] : '';
 
-// Default page of a component: the edit list, or the consultation list for the users who cannot edit
+// Default page of a component: in the back office the edit list, otherwise the page of the front-end
 if(!isset($_GET['task'])){
     if(COMPONENT == 'shop'){
         $task = 'cart';
@@ -55,7 +68,7 @@ if(!isset($_GET['task'])){
     elseif(COMPONENT == 'blog'){
         $task = 'viewlist';
     }
-    elseif(Apgenic\Classes\Auth::can(COMPONENT, 'editlist')){
+    elseif($route == 'admin' || Apgenic\Classes\Auth::can(COMPONENT, 'editlist')){
         $task = 'editlist';
     }
     else{
@@ -64,12 +77,28 @@ if(!isset($_GET['task'])){
     $_GET['task'] = $task;
 }
 
+// Each page has one address: the old addresses (index.php?component=...) and the views asked under /admin/
+// (the views are only in the front-end) are sent to the address of the page
+if($_SERVER['REQUEST_METHOD'] == 'GET' && !isset($_SERVER['HTTP_HX_REQUEST'])
+    && ($route == 'legacy' || ($route == 'admin' && Apgenic\Classes\Url::isFront(COMPONENT, $task)))){
+    $params = $_GET;
+    unset($params['component'], $params['task']);
+    $target = Apgenic\Classes\Url::to(COMPONENT, $task, $params);
+    // A page without clean url keeps its address
+    if(strpos($target, BASE_URL.'/index.php') !== 0){
+        header('Location: '.$target, true, 301);
+        exit;
+    }
+}
+
 // The public tasks (sign in, products, cart, checkout) are allowed to everybody, see Auth::PUBLIC_TASKS
 if(!Apgenic\Classes\Auth::can(COMPONENT, $task)){
 
-    // 1. Authentication: all the other pages need a logged user
+    // 1. Authentication: all the other pages need a logged user.
+    //    A page of the back office is opened again after the sign in, the front-end goes to the home page.
     if(!Apgenic\Classes\Auth::isLogged()){
-        $loginUrl = BASE_URL.'/index.php?component=user&task=login';
+        $return = Apgenic\Classes\Url::adminReturn();
+        $loginUrl = Apgenic\Classes\Url::to('user', 'login', array('return' => $return));
         header((isset($_SERVER['HTTP_HX_REQUEST']) ? 'HX-Redirect: ' : 'Location: ').$loginUrl);
         exit;
     }
@@ -155,7 +184,9 @@ try{
             case 'blog':
                 $oCtrl = new Apgenic\Blog\ControllerBlog();
                 break;
-            
+
+            default:
+                throw new ErrorException(T_PAGE_NOT_FOUND, 404);
     }
     $oCtrl->render();
 }

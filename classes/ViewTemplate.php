@@ -9,8 +9,9 @@
  * Layout of all the pages: Bootstrap 5.3.8 and its classes only, public/css/theme.css changes the colors,
  * the rounded corners, the shadows and the fonts.
  * Two layouts, chosen by layout():
- *   shop   the visitors and the customers, and the pages of the shop for everybody: header with the cart, footer
- *   admin  the back office (users who can edit): side menu (offcanvas on the small screens), top bar
+ *   shop   the front-end, for everybody: header with the cart, footer
+ *   admin  the back office, the addresses /admin/... (users who can edit): side menu (offcanvas on the small screens), top bar
+ * The links are made by self::url() (classes/Url.php): clean urls in the front-end, /admin/... in the back office.
  */
 namespace Apgenic\Classes;
 
@@ -76,16 +77,22 @@ class ViewTemplate
 
     /**
      * Layout of the page.
-     *   'shop'  for the visitors and the customers, and the pages of the shop (catalog, product, cart, checkout, blog) for everybody
-     *   'admin' for the back office: the users who can edit (PERMISSION_EDIT)
+     *   'shop'  the front-end (catalog, product, cart, checkout, blog, account...), for everybody
+     *   'admin' the back office, the addresses /admin/...: the users who can edit (PERMISSION_EDIT)
      * @return string
      */
     static function layout(): string{
-        $component = defined('COMPONENT') ? COMPONENT : '';
-        $task = (string)($_GET['task'] ?? '');
-        $shopPage = in_array($component, array('shop', 'accesscode', 'blog'), true)
-                 || ($component == 'product' && in_array($task, array('viewlist', 'view'), true));
-        return (!Auth::canEdit() || $shopPage) ? 'shop' : 'admin';
+        return (Url::isAdmin() && Auth::canEdit()) ? 'admin' : 'shop';
+    }
+
+
+    /**
+     * Address of a page: clean url of the front-end, /admin/... for the back office, see classes/Url.php
+     * @param array $params parameters of the page, the empty ones are left out
+     * @return string
+     */
+    static function url(string $component, string $task = '', array $params = array()): string{
+        return Url::to($component, $task, $params);
     }
 
 
@@ -168,7 +175,7 @@ class ViewTemplate
     static function addToCart(int $idProduct, bool $withQuantity = false, bool $block = false): void{
         $formClass = $withQuantity ? 'row g-2' : ($block ? 'd-grid' : 'd-inline-block');
         ?>
-        <form class="<?=$formClass?>" method="POST" action="<?=BASE_URL?>/index.php?component=shop&task=add">
+        <form class="<?=$formClass?>" method="POST" action="<?=self::url('shop', 'add')?>">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
             <input type="hidden" name="id_product" value="<?=$idProduct?>" />
             <?php if($withQuantity){ ?>
@@ -212,7 +219,7 @@ class ViewTemplate
      */
     static function brand(bool $inverse = false, string $class = ''): void{
         ?>
-        <a class="d-inline-flex align-items-center gap-2 text-decoration-none <?=$inverse ? 'link-light' : 'link-body-emphasis'?> <?=$class?>" href="<?=BASE_URL?>/">
+        <a class="d-inline-flex align-items-center gap-2 text-decoration-none <?=$inverse ? 'link-light' : 'link-body-emphasis'?> <?=$class?>" href="<?=Url::home()?>">
             <span class="d-inline-flex p-2 rounded-2 <?=$inverse ? 'text-bg-warning' : 'bg-primary text-warning'?>" aria-hidden="true"><?=self::icon('bag', 18)?></span>
             <span class="h5 fw-bold mb-0"><?=self::appName()?></span>
         </a>
@@ -227,17 +234,17 @@ class ViewTemplate
      */
     static function accountMenu(bool $admin = false): void{
         ?>
-        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=self::icon('person', 16)?> <?=T_MY_PROFILE?></a></li>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=self::url('user', 'profile')?>"><?=self::icon('person', 16)?> <?=T_MY_PROFILE?></a></li>
         <?php if($admin){ ?>
-        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 16)?> <?=T_VIEW_SHOP?></a></li>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=Url::home()?>"><?=self::icon('shop', 16)?> <?=T_VIEW_SHOP?></a></li>
         <?php } elseif(Auth::canEdit()){ ?>
-        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php"><?=self::icon('speedometer2', 16)?> <?=T_BACK_OFFICE?></a></li>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="<?=Url::admin()?>"><?=self::icon('speedometer2', 16)?> <?=T_BACK_OFFICE?></a></li>
         <?php } else {
-            // Consultation pages allowed by the permissions of the user
+            // Consultation pages allowed by the permissions of the user (front-end: /browse/...)
             $links = '';
             foreach(self::MENU as $menuComponent => $item){
-                if($menuComponent == 'product' || !Auth::can($menuComponent, $menuComponent == 'user' ? 'editlist' : 'viewlist')) continue;
-                $links .= '<li><a class="dropdown-item d-flex align-items-center gap-2" href="'.BASE_URL.'/index.php?component='.$menuComponent.'">'.self::icon($item[1], 16).' '.$item[0].'</a></li>';
+                if($menuComponent == 'product' || $menuComponent == 'user' || !Auth::can($menuComponent, 'viewlist')) continue;
+                $links .= '<li><a class="dropdown-item d-flex align-items-center gap-2" href="'.self::url($menuComponent, 'viewlist').'">'.self::icon($item[1], 16).' '.$item[0].'</a></li>';
             }
             if($links != ''){
                 echo '<li><hr class="dropdown-divider"></li><li><h6 class="dropdown-header">'.T_BROWSE.'</h6></li>'.$links;
@@ -245,7 +252,7 @@ class ViewTemplate
         } ?>
         <li><hr class="dropdown-divider"></li>
         <li>
-            <form method="POST" action="<?=BASE_URL?>/index.php?component=user&task=logout">
+            <form method="POST" action="<?=self::url('user', 'logout')?>">
                 <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>" />
                 <button type="submit" class="dropdown-item d-flex align-items-center gap-2"><?=self::icon('box-arrow-right', 16)?> <?=T_SIGN_OUT?></button>
             </form>
@@ -327,7 +334,7 @@ class ViewTemplate
                     <?php self::brand(false, 'me-lg-4'); ?>
 
                     <div class="d-flex align-items-center gap-2 ms-auto order-lg-last ms-lg-3">
-                        <a class="btn btn-light rounded-circle position-relative d-inline-flex p-2 my-1 <?php if($component == 'shop') echo 'active';?>" href="<?=BASE_URL?>/index.php?component=shop&task=cart" aria-label="<?=sprintf($cartCount > 1 ? T_CART_COUNT : T_CART_COUNT_ONE, $cartCount)?>">
+                        <a class="btn btn-light rounded-circle position-relative d-inline-flex p-2 my-1 <?php if($component == 'shop') echo 'active';?>" href="<?=self::url('shop', 'cart')?>" aria-label="<?=sprintf($cartCount > 1 ? T_CART_COUNT : T_CART_COUNT_ONE, $cartCount)?>">
                             <?=self::icon('bag', 22)?>
                             <?php if($cartCount > 0){ ?><span class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-warning"><?=$cartCount?></span><?php } ?>
                         </a>
@@ -339,16 +346,14 @@ class ViewTemplate
                     <div class="collapse navbar-collapse" id="shop_nav">
                         <ul class="navbar-nav">
                             <li class="nav-item">
-                                <a class="nav-link fw-semibold <?php if($catalogActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist" <?php if($catalogActive) echo 'aria-current="page"';?>><?=T_SHOP?></a>
+                                <a class="nav-link fw-semibold <?php if($catalogActive) echo 'active';?>" href="<?=Url::home()?>" <?php if($catalogActive) echo 'aria-current="page"';?>><?=T_SHOP?></a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fw-semibold <?php if($blogActive) echo 'active';?>" href="<?=BASE_URL?>/index.php?component=blog" <?php if($blogActive) echo 'aria-current="page"';?>><?=T_BLOG?></a>
+                                <a class="nav-link fw-semibold <?php if($blogActive) echo 'active';?>" href="<?=self::url('blog', 'viewlist')?>" <?php if($blogActive) echo 'aria-current="page"';?>><?=T_BLOG?></a>
                             </li>
                         </ul>
 
-                        <form class="col-lg-5 mx-lg-auto my-2 my-lg-0" method="get" action="<?=BASE_URL?>/index.php" role="search">
-                            <input type="hidden" name="component" value="product">
-                            <input type="hidden" name="task" value="viewlist">
+                        <form class="col-lg-5 mx-lg-auto my-2 my-lg-0" method="get" action="<?=Url::home()?>" role="search">
                             <label class="visually-hidden" for="header_search"><?=T_SEARCH_PRODUCT?></label>
                             <div class="input-group">
                                 <input class="form-control rounded-start-pill ps-3" type="search" name="text_search" id="header_search" value="<?=$component == 'product' ? htmlspecialchars((string)($_GET['text_search'] ?? '')) : ''?>" placeholder="<?=T_SEARCH_PRODUCT?>">
@@ -361,7 +366,7 @@ class ViewTemplate
                             <ul class="navbar-nav">
                             <?php if(isset($_SESSION['user'])){ ?>
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=profile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="<?=self::url('user', 'profile')?>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <?=self::icon('person-circle', 22)?>
                                         <span><?=trim($_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name'])?></span>
                                     </a>
@@ -371,7 +376,7 @@ class ViewTemplate
                                 </li>
                             <?php } else { ?>
                                 <li class="nav-item">
-                                    <a class="nav-link d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=self::icon('person', 20)?> <?=T_SIGN_IN?></a>
+                                    <a class="nav-link d-flex align-items-center gap-2" href="<?=self::url('user', 'login')?>"><?=self::icon('person', 20)?> <?=T_SIGN_IN?></a>
                                 </li>
                             <?php } ?>
                             </ul>
@@ -408,8 +413,8 @@ class ViewTemplate
                     <?php
                     $section = '';
                     foreach(self::MENU as $component => $item){
-                        // The users are managed by the administrators only
-                        if(!Auth::can($component, $component == 'user' ? 'editlist' : 'viewlist')) continue;
+                        // The edit lists allowed to the user (the users are managed by the administrators only)
+                        if(!Auth::can($component, 'editlist')) continue;
                         if($item[2] != $section){
                             if($section != '') echo '</ul>';
                             $section = $item[2];
@@ -418,7 +423,7 @@ class ViewTemplate
                         $isActive = $active == $component;
                         ?>
                         <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2 link-light <?=$isActive ? 'active bg-white bg-opacity-10 fw-semibold' : 'link-opacity-75 link-opacity-100-hover'?>" href="<?=BASE_URL?>/index.php?component=<?=$component?>" <?php if($isActive) echo 'aria-current="page"';?>>
+                            <a class="nav-link d-flex align-items-center gap-2 link-light <?=$isActive ? 'active bg-white bg-opacity-10 fw-semibold' : 'link-opacity-75 link-opacity-100-hover'?>" href="<?=Url::admin($component)?>" <?php if($isActive) echo 'aria-current="page"';?>>
                                 <span class="d-inline-flex <?php if($isActive) echo 'text-warning';?>"><?=self::icon($item[1], 18)?></span><?=$item[0]?>
                             </a>
                         </li>
@@ -429,8 +434,8 @@ class ViewTemplate
                 </nav>
 
                 <div class="border-top border-white border-opacity-10 pt-3 mt-4">
-                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=self::icon('shop', 18)?> <?=T_VIEW_SHOP?></a>
-                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=BASE_URL?>/index.php?component=blog"><?=self::icon('newspaper', 18)?> <?=T_VIEW_BLOG?></a>
+                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=Url::home()?>"><?=self::icon('shop', 18)?> <?=T_VIEW_SHOP?></a>
+                    <a class="nav-link d-flex align-items-center gap-2 px-3 py-2 link-light link-opacity-75 link-opacity-100-hover" href="<?=self::url('blog', 'viewlist')?>"><?=self::icon('newspaper', 18)?> <?=T_VIEW_BLOG?></a>
                 </div>
             </div>
         </aside>
@@ -442,10 +447,10 @@ class ViewTemplate
                     <div class="d-lg-none"><?php self::brand(); ?></div>
                     <div class="d-flex align-items-center gap-2 ms-auto">
                         <?php self::languageSwitch(); ?>
-                        <a class="btn btn-light btn-sm d-none d-sm-inline-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=self::icon('bag', 16)?> <?=T_CART?></a>
+                        <a class="btn btn-light btn-sm d-none d-sm-inline-flex align-items-center gap-2" href="<?=self::url('shop', 'cart')?>"><?=self::icon('bag', 16)?> <?=T_CART?></a>
                         <?php if(isset($_SESSION['user'])){ ?>
                         <div class="dropdown">
-                            <a class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" href="<?=BASE_URL?>/index.php?component=user&task=profile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" href="<?=self::url('user', 'profile')?>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <?=self::icon('person-circle', 18)?>
                                 <span class="d-none d-md-inline"><?=trim($_SESSION['user']['first_name'].' '.$_SESSION['user']['last_name'])?></span>
                             </a>
@@ -462,23 +467,24 @@ class ViewTemplate
 
 
     /**
-     * Header of the content: title of the page and, in the back office, the links Edit list / View list / Trash / New
+     * Header of the content: title of the page and, in the back office, the links Edit list / Trash / New.
+     * The views (view, viewlist) are only in the front-end: no link to them in the back office.
      * Opens #main_content, the zone replaced by HTMX
      */
     function mainHeader($title){
         if(strtolower($_SERVER['PHP_SELF']) == '/ajax.php') return '';
         $component = defined('COMPONENT') ? COMPONENT : '';
         $task = (string)($_GET['task'] ?? '');
+        $admin = self::layout() == 'admin';
 
         // Only the links allowed by the permissions of the user are displayed (the access is checked again by index.php)
-        $canEditList = $this->listLinks && Auth::can($component, 'editlist');
-        $canViewList = $this->listLinks && Auth::can($component, 'viewlist');
-        $canTrash = $this->listLinks && $this->trash && Auth::can($component, 'trashedlist');
-        $canAdd = $this->listLinks && Auth::can($component, 'edit');
-        $listUrl = $canEditList ? 'editlist' : ($canViewList ? 'viewlist' : '');
-        $base = BASE_URL.'/index.php?component='.$component.'&task=';
+        $canEditList = $admin && $this->listLinks && Auth::can($component, 'editlist');
+        $canTrash = $admin && $this->listLinks && $this->trash && Auth::can($component, 'trashedlist');
+        $canAdd = $admin && $this->listLinks && Auth::can($component, 'edit');
+        // The title is a link to the list: the edit list in the back office, the consultation list in the front-end
+        $listTask = $component == '' ? '' : ($admin ? ($canEditList ? 'editlist' : '') : ($this->listLinks && Auth::can($component, 'viewlist') ? 'viewlist' : ''));
 
-        if(self::layout() == 'admin'){
+        if($admin){
             echo '<main id="main" class="flex-grow-1 p-3 p-lg-4">';
         }
         else{
@@ -487,42 +493,35 @@ class ViewTemplate
         ?>
         <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
             <div>
-                <?php if(self::layout() == 'admin'){ ?>
+                <?php if($admin){ ?>
                 <div class="small text-uppercase fw-semibold text-body-secondary mb-1"><?=$this->eyebrow != '' ? $this->eyebrow : (self::MENU[self::MENU_PARENT[$component] ?? $component][2] ?? T_BACK_OFFICE)?></div>
                 <?php } else { ?>
                 <nav aria-label="<?=T_BREADCRUMB?>">
                     <ol class="breadcrumb small mb-2">
-                        <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=BASE_URL?>/"><?=T_HOME?></a></li>
+                        <li class="breadcrumb-item"><a class="link-secondary link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=Url::home()?>"><?=T_HOME?></a></li>
                         <li class="breadcrumb-item active" aria-current="page"><?=ucfirst($title)?></li>
                     </ol>
                 </nav>
                 <?php } ?>
                 <h1 class="h2 fw-bold mb-0">
-                    <?php if($listUrl != '' && $task != $listUrl){ ?>
-                    <a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-50-hover" href="<?=$base.$listUrl?>"><?=ucfirst($title)?></a>
+                    <?php if($listTask != '' && strtolower($task) != $listTask){ ?>
+                    <a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-50-hover" href="<?=self::url($component, $listTask)?>"><?=ucfirst($title)?></a>
                     <?php } else { ?>
                     <?=ucfirst($title)?>
                     <?php } ?>
                 </h1>
             </div>
 
-            <?php if($canEditList || $canViewList || $canAdd){ ?>
+            <?php if($canEditList || $canAdd){ ?>
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <?php if(($canEditList ? 1 : 0) + ($canViewList ? 1 : 0) + ($canTrash ? 1 : 0) > 1){ ?>
+                <?php if($canEditList && $canTrash){ ?>
                 <nav class="btn-group" aria-label="<?=T_LISTS?>">
-                    <?php if($canEditList){ ?>
-                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'editlist') echo 'active';?>" href="<?=$base?>editlist" title="<?=T_EDIT_LIST?>" <?php if($task == 'editlist') echo 'aria-current="page"';?>><?=self::icon('pencil', 14)?> <span class="d-none d-sm-inline"><?=T_EDIT_LIST?></span></a>
-                    <?php } ?>
-                    <?php if($canViewList){ ?>
-                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'viewlist') echo 'active';?>" href="<?=$base?>viewlist" title="<?=T_VIEW_LIST?>" <?php if($task == 'viewlist') echo 'aria-current="page"';?>><?=self::icon('eye', 14)?> <span class="d-none d-sm-inline"><?=T_VIEW_LIST?></span></a>
-                    <?php } ?>
-                    <?php if($canTrash){ ?>
-                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'trashedlist') echo 'active';?>" href="<?=$base?>trashedlist" title="<?=T_TRASH?>" <?php if($task == 'trashedlist') echo 'aria-current="page"';?>><?=self::icon('trash3', 14)?> <span class="d-none d-sm-inline"><?=T_TRASH?></span></a>
-                    <?php } ?>
+                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'editlist') echo 'active';?>" href="<?=self::url($component, 'editlist')?>" title="<?=T_EDIT_LIST?>" <?php if($task == 'editlist') echo 'aria-current="page"';?>><?=self::icon('pencil', 14)?> <span class="d-none d-sm-inline"><?=T_EDIT_LIST?></span></a>
+                    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 <?php if($task == 'trashedlist') echo 'active';?>" href="<?=self::url($component, 'trashedlist')?>" title="<?=T_TRASH?>" <?php if($task == 'trashedlist') echo 'aria-current="page"';?>><?=self::icon('trash3', 14)?> <span class="d-none d-sm-inline"><?=T_TRASH?></span></a>
                 </nav>
                 <?php } ?>
                 <?php if($canAdd){ ?>
-                <a href="<?=$base?>edit" class="btn btn-primary d-inline-flex align-items-center gap-2"><?=self::icon('plus-lg', 16)?> <?=T_NEW_ENTRY?></a>
+                <a href="<?=self::url($component, 'edit')?>" class="btn btn-primary d-inline-flex align-items-center gap-2"><?=self::icon('plus-lg', 16)?> <?=T_NEW_ENTRY?></a>
                 <?php } ?>
             </div>
             <?php } ?>
@@ -543,9 +542,7 @@ class ViewTemplate
         $component = defined('COMPONENT') ? COMPONENT : '';
         $active = $fieldSearch != '' || $fieldSearchValue != '' || $textSearch != '';
         ?>
-        <form class="card card-body shadow-sm p-2 mb-3" method="get" action="<?=BASE_URL?>/index.php" role="search" aria-label="<?=T_SEARCH?>">
-            <input type="hidden" name="component" value="<?=$component?>">
-            <input type="hidden" name="task" value="<?=$task?>">
+        <form class="card card-body shadow-sm p-2 mb-3" method="get" action="<?=self::url($component, $task)?>" role="search" aria-label="<?=T_SEARCH?>">
             <div class="row g-2 align-items-center">
                 <div class="col-12 col-md">
                     <label class="visually-hidden" for="search_text"><?=T_TEXT_SEARCH?></label>
@@ -570,7 +567,7 @@ class ViewTemplate
                 <div class="col-12 col-md-auto d-flex gap-2">
                     <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit"><?=self::icon('funnel', 16)?> <?=T_SEARCH?></button>
                     <?php if($active){ ?>
-                    <a class="btn btn-link" href="<?=BASE_URL?>/index.php?component=<?=$component?>&task=<?=$task?>"><?=T_RESET?></a>
+                    <a class="btn btn-link" href="<?=self::url($component, $task)?>"><?=T_RESET?></a>
                     <?php } ?>
                 </div>
             </div>
@@ -625,22 +622,22 @@ class ViewTemplate
                         <div class="col-6 col-lg-2 offset-lg-1">
                             <h2 class="h6 text-uppercase fw-semibold text-white-50 mb-3"><?=T_SHOP?></h2>
                             <ul class="list-unstyled d-grid gap-2 mb-0">
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=product&task=viewlist"><?=T_ALL_PRODUCTS?></a></li>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=shop&task=cart"><?=T_CART?></a></li>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=shop&task=checkout"><?=T_CHECKOUT_TITLE?></a></li>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=blog"><?=T_BLOG?></a></li>
+                                <li><a class="<?=$link?>" href="<?=Url::home()?>"><?=T_ALL_PRODUCTS?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('shop', 'cart')?>"><?=T_CART?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('shop', 'checkout')?>"><?=T_CHECKOUT_TITLE?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('blog', 'viewlist')?>"><?=T_BLOG?></a></li>
                             </ul>
                         </div>
                         <div class="col-6 col-lg-2">
                             <h2 class="h6 text-uppercase fw-semibold text-white-50 mb-3"><?=T_ACCOUNT?></h2>
                             <ul class="list-unstyled d-grid gap-2 mb-0">
                                 <?php if(isset($_SESSION['user'])){ ?>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=profile"><?=T_MY_PROFILE?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('user', 'profile')?>"><?=T_MY_PROFILE?></a></li>
                                 <?php } else { ?>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=login"><?=T_SIGN_IN?></a></li>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=register"><?=T_CREATE_ACCOUNT?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('user', 'login')?>"><?=T_SIGN_IN?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('user', 'register')?>"><?=T_CREATE_ACCOUNT?></a></li>
                                 <?php } ?>
-                                <li><a class="<?=$link?>" href="<?=BASE_URL?>/index.php?component=user&task=forgot"><?=T_FORGOT_PASSWORD?></a></li>
+                                <li><a class="<?=$link?>" href="<?=self::url('user', 'forgot')?>"><?=T_FORGOT_PASSWORD?></a></li>
                             </ul>
                         </div>
                     </div>
@@ -674,12 +671,16 @@ class ViewTemplate
 
     /**
      * Links to the pages of a list: first, last, the pages around the current one, previous and next
-     * @param string $link url ending with & or ?, the number of the page is added
+     * @param string $link url ending with & or ?, the number of the page is added.
+     *                     An address written ?component=...&task=... is changed into the url of the page (Url::fromQuery)
      */
     function pagination($numberOfPages, $curentPage, $link){
         $numberOfPages = (int)$numberOfPages;
         $curentPage = max(1, min((int)$curentPage, max(1, $numberOfPages)));
         if($numberOfPages <= 1) return;
+
+        $link = Url::fromQuery((string)$link);
+        $link .= strpos($link, '?') === false ? '?' : (in_array(substr($link, -1), array('?', '&'), true) ? '' : '&');
 
         // Pages displayed: 1, the current one and its neighbours, the last one
         $pages = array();

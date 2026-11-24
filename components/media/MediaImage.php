@@ -236,6 +236,43 @@ class MediaImage {
 
 
     /**
+     * Url of the best file of an image for a size: the copy of this size, else the original file
+     * @param mixed $filename value of media.filename
+     * @param string $sizeName one of the keys of SIZES
+     * @return string '' when the image has no file (ex: a media created before the uploads)
+     */
+    public static function bestUrl($filename, string $sizeName):string{
+        $filename = (string)$filename;
+        if(!self::isStoredName($filename)){
+            return '';
+        }
+        $dir = self::dir().DIRECTORY_SEPARATOR;
+        if(isset(self::SIZES[$sizeName]) && is_file($dir.self::variant($filename, $sizeName))){
+            return self::url($filename, $sizeName);
+        }
+        return is_file($dir.$filename) ? self::url($filename) : '';
+    }
+
+
+    /**
+     * Html of a preview of an image in the lists of the back office: a square thumbnail that opens the large
+     * image in a new tab, or a grey square with an icon when the image has no file
+     * @param mixed $filename value of media.filename
+     * @param int $pixels side of the square
+     * @return string
+     */
+    public static function preview($filename, string $alt = '', int $pixels = 64):string{
+        $thumb = self::bestUrl($filename, self::THUMBNAIL);
+        if($thumb == ''){
+            return '<span class="d-inline-flex align-items-center justify-content-center rounded border bg-body-secondary text-body-tertiary" style="width:'.$pixels.'px;height:'.$pixels.'px" title="'.htmlspecialchars(T_NO_IMAGE_FILE).'">'
+                .\Apgenic\Classes\ViewTemplate::icon('image', (int)round($pixels / 3)).'<span class="visually-hidden">'.T_NO_IMAGE_FILE.'</span></span>';
+        }
+        return '<a class="d-inline-block" href="'.htmlspecialchars(self::bestUrl($filename, 'large')).'" target="_blank" rel="noopener">'
+            .'<img class="rounded border bg-body object-fit-cover" width="'.$pixels.'" height="'.$pixels.'" src="'.htmlspecialchars($thumb).'" alt="'.htmlspecialchars($alt, ENT_QUOTES, 'UTF-8', false).'" loading="lazy"></a>';
+    }
+
+
+    /**
      * Simplify a name to use it as a file name: "T-shirt Bleu été" => t-shirt-bleu-ete
      * @return string only a-z, 0-9 and -
      */

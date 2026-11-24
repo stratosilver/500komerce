@@ -9,6 +9,8 @@
 declare(strict_types=1);
 namespace Apgenic\User;
 
+use Apgenic\Classes\Url;
+
 
 class ControllerUser  extends \Apgenic\Classes\Controller {
 
@@ -441,6 +443,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
     /**
      * Save the profile form: the user changes his own name, email and password, nothing else.
+     * It is the same for all the accounts, whatever the way they have been created.
      * The account is always the one of the session, never an id sent by the browser.
      * @return void
      */
@@ -449,12 +452,12 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if(!$this->dataUser->get() || $_SERVER['REQUEST_METHOD'] !== 'POST'){
             return;
         }
-        $isLocal = $this->dataUser->provider == 'local';
+        // An account created with Google, Facebook, X has no password until the user chooses one
+        $hasPassword = (string)$this->dataUser->password_hash != '';
 
         $firstName = trim((string)filter_var($_POST['first_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
         $lastName = trim((string)filter_var($_POST['last_name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS));
-        // The email of an account created with Google, Facebook, X comes from the provider
-        $email = $isLocal ? trim((string)($_POST['email'] ?? '')) : (string)$this->dataUser->email;
+        $email = trim((string)($_POST['email'] ?? ''));
         $password = (string)($_POST['password'] ?? '');
 
         $error = '';
@@ -464,11 +467,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         elseif(strlen($firstName) > 100 || strlen($lastName) > 100){
             $error = T_ERROR_NAME_TOO_LONG;
         }
-        elseif($isLocal && (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255)){
+        elseif(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
             $error = T_ERROR_EMAIL_INVALID;
         }
-        elseif($isLocal && $password != ''){
-            if(!password_verify((string)($_POST['current_password'] ?? ''), (string)$this->dataUser->password_hash)){
+        elseif($password != ''){
+            if($hasPassword && !password_verify((string)($_POST['current_password'] ?? ''), (string)$this->dataUser->password_hash)){
                 $error = T_ERROR_CURRENT_PASSWORD;
             }
             else{
@@ -494,7 +497,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         }
 
         $this->dataUser->updateProfile($email, $firstName, $lastName);
-        if($isLocal && $password != ''){
+        if($password != ''){
             $this->dataUser->updatePassword(password_hash($password, PASSWORD_DEFAULT));
         }
         $this->dataUser->get();
@@ -512,7 +515,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return void
      */
     function profile(){
-        $this->HTMLUser->profile($this->dataUser, $this->message, self::PASSWORD_MIN_LENGTH);
+        if(!count($this->message)){
+            // Message left by the sign in with a provider
+            $this->flashMessage();
+        }
+        $this->HTMLUser->profile($this->dataUser, $this->message, self::PASSWORD_MIN_LENGTH, self::oauthProviders());
     }
 
 
@@ -529,11 +536,23 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
 
     /**
-     * Url of a task of this component
+     * Url of a task of this component (classes/Url.php)
      * @return string
      */
-    private static function url(string $task, string $params = ''):string{
-        return BASE_URL.'/index.php?component=user&task='.$task.$params;
+    private static function url(string $task, array $params = array()):string{
+        return Url::to('user', $task, $params);
+    }
+
+
+    /**
+     * Page opened after the sign in: the page of the back office that asked the sign in
+     * (parameter return of the login page), otherwise the home page
+     * @param string $return address of the back office, checked by Url::safeReturn
+     * @return string
+     */
+    private static function afterLoginUrl(string $return = ''):string{
+        $return = Url::safeReturn($return);
+        return $return != '' ? $return : Url::home();
     }
 
 
@@ -612,6 +631,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
     /**
      * Check an email and a password and, if they are right, open the session.
+     * Any account having a password is accepted, also the ones created with Google, Facebook, X.
      * Used by the login page and by the checkout of the shop.
      * @return string error message, empty if the user is now logged
      */
@@ -627,7 +647,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         $hash = $found && $user->password_hash ? $user->password_hash : self::DUMMY_HASH;
         $passwordOk = password_verify($password, $hash);
 
-        if($found && $passwordOk && $user->provider == 'local' && $user->status == 'active'){
+        if($found && $user->password_hash && $passwordOk && $user->status == 'active'){
             if(password_needs_rehash($user->password_hash, PASSWORD_DEFAULT)){
                 $user->updatePassword(password_hash($password, PASSWORD_DEFAULT));
             }
@@ -652,8 +672,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return void
      */
     function login(){
+        // Page of the back office that asked the sign in (index.php), kept by the form and the providers
+        $return = Url::safeReturn((string)($_GET['return'] ?? ''));
+
         if(self::isLogged()){
-            self::redirect(BASE_URL.'/index.php');
+            self::redirect(self::afterLoginUrl($return));
             return;
         }
 
@@ -665,13 +688,15 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
             $error = self::attemptLogin($email, (string)($_POST['password'] ?? ''));
             if($error == ''){
-                self::redirect(BASE_URL.'/index.php');
+                // The home page, or the page of the back office that asked the sign in
+                self::redirect(self::afterLoginUrl($return));
                 return;
             }
             $this->message['type'] = 'danger';
             $this->message['text'] = $error;
         }
 
+        $this->HTMLUser->loginReturn = $return;
         $this->HTMLUser->login($email, $this->message, self::oauthProviders());
     }
 
@@ -699,7 +724,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      */
     function register(){
         if(self::isLogged()){
-            self::redirect(BASE_URL.'/index.php');
+            self::redirect(Url::home());
             return;
         }
 
@@ -739,7 +764,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
                 if($this->dataUser->register()){
                     $this->openSession();
-                    self::redirect(BASE_URL.'/index.php');
+                    self::redirect(Url::home());
                     return;
                 }
                 $error = T_ERROR_ACCOUNT_NOT_CREATED;
@@ -754,7 +779,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
 
     /**
-     * Form asking a password reset link, send the link by email
+     * Form asking a password reset link, send the link by email.
+     * An account created with Google, Facebook, X gets his first password this way.
      * @return void
      */
     function forgot(){
@@ -765,11 +791,10 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
             if(filter_var($email, FILTER_VALIDATE_EMAIL)
                 && $this->dataUser->getByEmail($email)
-                && $this->dataUser->provider == 'local'
                 && $this->dataUser->status == 'active'){
 
                 $token = $this->dataUser->createPasswordResetToken(self::RESET_TOKEN_VALIDITY);
-                $link = $this->absoluteUrl(self::url('reset', '&token='.$token));
+                $link = $this->absoluteUrl(self::url('reset', array('token' => $token)));
                 $this->sendResetMail($this->dataUser->email, $link);
 
                 if(defined('AUTH_SHOW_RESET_LINK') && AUTH_SHOW_RESET_LINK){
@@ -921,8 +946,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         $provider = (string)($_GET['provider'] ?? '');
         $credentials = self::oauthCredentials($provider);
 
+        // Page of the back office that asked the sign in, opened after the return from the provider
+        $return = Url::safeReturn((string)($_GET['return'] ?? ''));
+
         if(self::isLogged() || !count($credentials)){
-            self::redirect(self::isLogged() ? BASE_URL.'/index.php' : self::url('login'));
+            self::redirect(self::isLogged() ? self::afterLoginUrl($return) : self::url('login'));
             return;
         }
         $conf = self::OAUTH[$provider];
@@ -933,6 +961,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             'state'    => bin2hex(random_bytes(16)),
             'verifier' => bin2hex(random_bytes(32)),
             'time'     => time(),
+            'return'   => $return,
         );
 
         $params = array(
@@ -952,7 +981,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
 
     /**
-     * Return from the provider: get the identity of the user, then login or create the account
+     * Return from the provider: get the identity of the user, then login or create the account.
+     * The account is the one having the email given by the provider, whatever the way it has been created.
      * @return void
      */
     function oauthcallback(){
@@ -1018,20 +1048,26 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             return;
         }
 
-        // 1. This identity already has an account
-        $found = $this->dataUser->getByProvider($provider, $profile['id']);
+        // The email says who the user is: the same person signs in with his password and with any of the
+        // providers, as long as they all give the same address. It is verified by the provider (oauthProfile).
+        // 1. An account has this email
+        $found = $profile['email'] != '' ? $this->dataUser->getByEmail($profile['email'], false) : 0;
+        $byEmail = (bool)$found;
 
-        // 2. An account exists with the same email, verified by the provider: same person
+        // 2. No account has this email (changed at the provider or in the profile, or not given by the provider):
+        //    the account created with this identity
+        if(!$found){
+            $found = $this->dataUser->getByProvider($provider, $profile['id']);
+        }
+
+        $passwordRemoved = false;
+
+        // 3. New user
         if(!$found){
             if($profile['email'] == ''){
                 $this->oauthFail(sprintf(T_OAUTH_NO_EMAIL, $conf['label']));
                 return;
             }
-            $found = $this->dataUser->getByEmail($profile['email'], false);
-        }
-
-        // 3. New user
-        if(!$found){
             $this->dataUser = new ModelUser();
             $this->dataUser->email = $profile['email'];
             $this->dataUser->first_name = $profile['first_name'];
@@ -1048,17 +1084,33 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             $this->oauthFail(T_OAUTH_DISABLED);
             return;
         }
+        elseif($byEmail && !(int)$this->dataUser->email_verified){
+            // Nobody had proven that this address belongs to the one who typed it (registration form, profile):
+            // it could be somebody else, waiting for the owner of the address to sign in. The provider now
+            // proves it, so what was set before is removed, unless this identity created the account.
+            $own = $this->dataUser->provider == $provider && (string)$this->dataUser->provider_user_id === $profile['id'];
+            $passwordRemoved = !$own && (string)$this->dataUser->password_hash != '';
+            $this->dataUser->confirmEmail(!$own);
+        }
 
         $this->dataUser->touchLastLogin();
         $this->openSession();
-        self::redirect(BASE_URL.'/index.php');
+
+        if($passwordRemoved){
+            // The user is sent to his profile, where he can choose a new password
+            $_SESSION['auth_message'] = array('type' => 'warning', 'text' => sprintf(T_MSG_PASSWORD_REMOVED, $conf['label']));
+            self::redirect(self::url('profile'));
+            return;
+        }
+        // The home page, or the page of the back office that asked the sign in
+        self::redirect(self::afterLoginUrl((string)($oauth['return'] ?? '')));
     }
 
 
     /**
      * Normalize the answer of the provider.
      * The email is kept only when the provider says that it has been verified, because it is
-     * used to recognize an existing account.
+     * what recognizes an existing account.
      * @return array id, email, first_name, last_name
      */
     private function oauthProfile(string $provider, array $info):array{
