@@ -172,7 +172,10 @@ class ModelProductMedia extends \Apgenic\Classes\Model{
                     FROM `product_media` AS p                    ";
 
         // Add all filters
-        $where = 'WHERE 1 ';
+        // Not the links to a product or an image of the trash
+        $where = 'WHERE 1 
+                  AND `id_product` NOT IN (SELECT tp.`id_product` FROM `product` tp WHERE tp.`deleted_at` IS NOT NULL)
+                  AND `id_media` NOT IN (SELECT tm.`id_media` FROM `media` tm WHERE tm.`deleted_at` IS NOT NULL) ';
 
         if($textSearch != ''){
         }

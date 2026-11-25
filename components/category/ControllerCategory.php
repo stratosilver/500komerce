@@ -199,7 +199,7 @@ class ControllerCategory  extends \Apgenic\Classes\Controller {
      */
     function editlist($textSearch = ''){
         // Display items list for edition
-        $this->filters['deleted_at'] = NULL;
+        $this->filters['deleted_at'] = 0; // not the rows of the trash (only trashedlist shows them)
         $nbItems = $this->dataCategory->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
 
         $this->HTMLCategory->editList($this->dataCategory->list ,  $this->orderBy, $this->revertOrder, $this->message);
@@ -218,7 +218,8 @@ class ControllerCategory  extends \Apgenic\Classes\Controller {
      */
     function childlist(){
         $this->edit('childlist');
-        $this->dataCategory->getList(0 , 0, $this->filters, $this->orderBy, strtoupper($this->order));
+        // Not the rows of the trash (0 = not deleted); the filters of the tab stay as they are for the view
+        $this->dataCategory->getList(0 , 0, array_merge($this->filters, array('deleted_at' => 0)), $this->orderBy, strtoupper($this->order));
         $this->HTMLCategory->childList($this->dataCategory->list ,  $this->filters, $this->orderBy, $this->revertOrder);
     }
 
@@ -242,7 +243,7 @@ class ControllerCategory  extends \Apgenic\Classes\Controller {
      */
     function viewList($textSearch = ''){
         // Display items list
-        $this->filters['deleted_at'] = NULL;
+        $this->filters['deleted_at'] = 0; // not the rows of the trash (only trashedlist shows them)
 
 
         $nbItems = $this->dataCategory->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);

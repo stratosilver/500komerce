@@ -139,7 +139,7 @@ public function edit(ModelUser $data , int $showTabs = 1, array $message=null, s
             <select  class="form-select" name="id_media" id="id_media" onchange="var i=document.getElementById('id_media_thumb'),u=this.options[this.selectedIndex].getAttribute('data-thumb')||'';i.src=u;i.classList.toggle('d-none',!u);">
                 <option value=""></option>
         <?php
-        foreach ($this->mediaList as $key => $val){
+        foreach (self::notTrashed($this->mediaList, $data->id_media) as $key => $val){
                 ?>
                 <option data-thumb="<?=htmlspecialchars(\Apgenic\Media\MediaImage::thumbnailUrl($val['filename']))?>" value="<?=$val['id_media']?>" <?php if($data->id_media == $val['id_media']) echo 'selected="selected"';?>><?=$val['filename']?></option>
         <?php

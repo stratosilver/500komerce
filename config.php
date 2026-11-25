@@ -42,7 +42,9 @@ define('CURRENCY', '&euro;');
 
 // Illustration displayed for a product that has no image (component productmedia): %1$d = id of the product,
 // %2$d = width, %3$d = height. The same product always gets the same picture. Empty = a grey tile.
-define('PRODUCT_ILLUSTRATION_URL', 'https://picsum.photos/seed/product-%1$d/%2$d/%3$d');
+// Empty: no more random pictures from picsum.photos, a product without image shows the grey tile with an icon.
+// Former value: 'https://picsum.photos/seed/product-%1$d/%2$d/%3$d'
+define('PRODUCT_ILLUSTRATION_URL', '');
 
 // API (api.php)
 // Secret token of the programs calling the API: header "Authorization: Bearer <token>".

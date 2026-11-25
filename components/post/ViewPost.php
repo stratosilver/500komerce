@@ -86,7 +86,7 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
             <select  class="form-select" name="id_user" id="id_user">
                 <option value=""></option>
         <?php
-        foreach ($this->userList1 as $key => $val){
+        foreach (self::notTrashed($this->userList1, $data->id_user) as $key => $val){
                 ?>
                 <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=$val['email']?></option>
         <?php 

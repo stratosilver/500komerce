@@ -94,7 +94,7 @@ public function edit(ModelCategory $data , int $showTabs = 1, array $message=nul
             <select  class="form-select" name="id_parent" id="id_parent">
                 <option value=""></option>
         <?php
-        foreach ($this->categoryList1 as $key => $val){
+        foreach (self::notTrashed($this->categoryList1, $data->id_parent) as $key => $val){
                 ?>
                 <option value="<?=$val['id_category']?>" <?php if($data->id_parent == $val['id_category']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php

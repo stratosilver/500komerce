@@ -744,6 +744,21 @@ class ViewTemplate
 
 
     /**
+     * Choices of a drop-down list: the rows that are not in the trash (column deleted_at empty).
+     * The current value of the field stays in the choices even when it is in the trash: the form
+     * shows it and saving the form does not lose it.
+     * @param array $list rows of a model, by id (ModelXxx::getList)
+     * @param mixed $current value of the field in the edited row, null when there is none
+     * @return array
+     */
+    static function notTrashed(array $list, $current = null): array{
+        return array_filter($list, function($row, $id) use ($current){
+            return empty($row['deleted_at']) || ($current !== null && $current !== '' && (string)$id === (string)$current);
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+
+    /**
      * Nothing to display: icon, title, text and a link
      * @param array $link array(url, label) or array()
      * @return void

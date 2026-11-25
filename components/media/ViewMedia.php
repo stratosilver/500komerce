@@ -107,7 +107,7 @@ public function edit(ModelMedia $data , int $showTabs = 1, array $message=null, 
             <select  class="form-select" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
-        foreach ($this->productList as $key => $val){
+        foreach (self::notTrashed($this->productList) as $key => $val){
                 ?>
                 <option value="<?=$val['id_product']?>"><?=$val['name']?></option>
         <?php

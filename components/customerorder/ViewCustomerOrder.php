@@ -88,7 +88,7 @@ public function edit(ModelCustomerOrder $data , int $showTabs = 1, array $messag
             <select  class="form-select" name="id_user" id="id_user">
                 <option value=""></option>
         <?php
-        foreach ($this->productList4 as $key => $val){
+        foreach (self::notTrashed($this->productList4) as $key => $val){
                 ?>
                 <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php

@@ -95,7 +95,7 @@ public function edit(ModelCartItem $data , int $showTabs = 1, array $message=nul
             <select  class="form-select" name="id_user" id="id_user">
                 <option value=""></option>
         <?php
-        foreach ($this->userList3 as $key => $val){
+        foreach (self::notTrashed($this->userList3, $data->id_user) as $key => $val){
                 ?>
                 <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=$val['email']?></option>
         <?php 
@@ -132,7 +132,7 @@ public function edit(ModelCartItem $data , int $showTabs = 1, array $message=nul
             <select required="required" class="form-select" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
-        foreach ($this->productList3 as $key => $val){
+        foreach (self::notTrashed($this->productList3, $data->id_product) as $key => $val){
                 ?>
                 <option value="<?=$val['id_product']?>" <?php if($data->id_product == $val['id_product']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php 
@@ -159,7 +159,7 @@ public function edit(ModelCartItem $data , int $showTabs = 1, array $message=nul
             <select  class="form-select" name="id_product_variant" id="id_product_variant">
                 <option value=""></option>
         <?php
-        foreach ($this->productVariantList as $key => $val){
+        foreach (self::notTrashed($this->productVariantList, $data->id_product_variant) as $key => $val){
                 ?>
                 <option value="<?=$val['id_product_variant']?>" <?php if($data->id_product_variant == $val['id_product_variant']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php 

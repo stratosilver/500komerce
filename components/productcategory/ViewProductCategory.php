@@ -86,7 +86,7 @@ public function edit(ModelProductCategory $data , int $showTabs = 1, array $mess
             <select  class="form-select" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
-        foreach ($this->productList2 as $key => $val){
+        foreach (self::notTrashed($this->productList2, $data->id_product) as $key => $val){
                 ?>
                 <option value="<?=$val['id_product']?>" <?php if($data->id_product == $val['id_product']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php
@@ -117,7 +117,7 @@ public function edit(ModelProductCategory $data , int $showTabs = 1, array $mess
             <select  class="form-select" name="id_category" id="id_category">
                 <option value=""></option>
         <?php
-        foreach ($this->categoryList2 as $key => $val){
+        foreach (self::notTrashed($this->categoryList2, $data->id_category) as $key => $val){
                 ?>
                 <option value="<?=$val['id_category']?>" <?php if($data->id_category == $val['id_category']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php

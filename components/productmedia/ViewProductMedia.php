@@ -86,7 +86,7 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
             <select  class="form-select" name="id_product" id="id_product">
                 <option value=""></option>
         <?php
-        foreach ($this->productList1 as $key => $val){
+        foreach (self::notTrashed($this->productList1, $data->id_product) as $key => $val){
                 ?>
                 <option value="<?=$val['id_product']?>" <?php if($data->id_product == $val['id_product']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php

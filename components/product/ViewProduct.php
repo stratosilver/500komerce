@@ -242,22 +242,28 @@ function mainHeader($title){
  * Url of an image of a product.
  * The image linked to the product (component productmedia) when there is one, otherwise an illustration
  * (PRODUCT_ILLUSTRATION_URL in config.php).
+ * Only the images whose file is in public/images/ are counted: a row of the table media without its file
+ * is skipped, so it never hides a real image of the product behind the illustration.
  * @param int $index which image of the product, 0 = the first one
  * @param string $size one of the sizes of \Apgenic\Media\MediaImage::SIZES
  * @return string '' when there is nothing to display
  */
 public function imageUrl(int $idProduct, int $index = 0, string $size = 'medium'):string{
-    $filename = $this->images[$idProduct][$index] ?? '';
+    $dir = \Apgenic\Media\MediaImage::dir().DIRECTORY_SEPARATOR;
+    $files = array();
+    foreach($this->images[$idProduct] ?? array() as $name){
+        if($name != '' && preg_match('/^[A-Za-z0-9._-]+$/', $name) && is_file($dir.$name)){
+            $files[] = $name;
+        }
+    }
+    $filename = $files[$index] ?? '';
 
-    if($filename != '' && preg_match('/^[A-Za-z0-9._-]+$/', $filename)){
-        $dir = \Apgenic\Media\MediaImage::dir().DIRECTORY_SEPARATOR;
+    if($filename != ''){
         // The resized copy when it exists, otherwise the original file
         if(is_file($dir.\Apgenic\Media\MediaImage::variant($filename, $size))){
             return \Apgenic\Media\MediaImage::url($filename, $size);
         }
-        if(is_file($dir.$filename)){
-            return \Apgenic\Media\MediaImage::url($filename);
-        }
+        return \Apgenic\Media\MediaImage::url($filename);
     }
 
     if($index == 0 && defined('PRODUCT_ILLUSTRATION_URL') && PRODUCT_ILLUSTRATION_URL != ''){

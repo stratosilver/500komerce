@@ -253,7 +253,7 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
      */
     function editlist($textSearch = ''){
         // Display items list for edition
-        $this->filters['deleted_at'] = NULL;
+        $this->filters['deleted_at'] = 0; // not the rows of the trash (only trashedlist shows them)
         $nbItems = $this->dataProduct->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
 
         $this->HTMLProduct->editList($this->dataProduct->list ,  $this->orderBy, $this->revertOrder, $this->message);
@@ -272,7 +272,8 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
      */
     function childlist(){
         $this->edit('childlist');
-        $this->dataProduct->getList(0 , 0, $this->filters, $this->orderBy, strtoupper($this->order));
+        // Not the rows of the trash (0 = not deleted); the filters of the tab stay as they are for the view
+        $this->dataProduct->getList(0 , 0, array_merge($this->filters, array('deleted_at' => 0)), $this->orderBy, strtoupper($this->order));
         $this->HTMLProduct->childList($this->dataProduct->list ,  $this->filters, $this->orderBy, $this->revertOrder);
     }
 

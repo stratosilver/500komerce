@@ -86,7 +86,7 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
             <select  class="form-select" name="id_customer_order" id="id_customer_order">
                 <option value=""></option>
         <?php
-        foreach ($this->customerOrderList1 as $key => $val){
+        foreach (self::notTrashed($this->customerOrderList1, $data->id_customer_order) as $key => $val){
                 ?>
                 <option value="<?=$val['id_customer_order']?>" <?php if($data->id_customer_order == $val['id_customer_order']) echo 'selected="selected"';?>><?=$val['id_user']?></option>
         <?php
@@ -117,7 +117,7 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
             <select  class="form-select" name="id_product_variant" id="id_product_variant">
                 <option value=""></option>
         <?php
-        foreach ($this->productVariantList1 as $key => $val){
+        foreach (self::notTrashed($this->productVariantList1, $data->id_product_variant) as $key => $val){
                 ?>
                 <option value="<?=$val['id_product_variant']?>" <?php if($data->id_product_variant == $val['id_product_variant']) echo 'selected="selected"';?>><?=$val['name']?></option>
         <?php

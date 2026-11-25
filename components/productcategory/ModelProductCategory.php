@@ -168,7 +168,10 @@ class ModelProductCategory extends \Apgenic\Classes\Model{
                     FROM `product_category` AS p                    ";
 
         // Add all filters
-        $where = 'WHERE 1 ';
+        // Not the links to a product or a category of the trash
+        $where = 'WHERE 1 
+                  AND `id_product` NOT IN (SELECT tp.`id_product` FROM `product` tp WHERE tp.`deleted_at` IS NOT NULL)
+                  AND `id_category` NOT IN (SELECT tc.`id_category` FROM `category` tc WHERE tc.`deleted_at` IS NOT NULL) ';
 
         if($textSearch != ''){
         }
