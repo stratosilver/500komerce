@@ -255,7 +255,6 @@ class ModelUser extends \Apgenic\Classes\Model{
             $where .= "
                 AND(
                     email LIKE :text_search 
-                    OR password_hash LIKE :text_search 
                     OR first_name LIKE :text_search 
                     OR last_name LIKE :text_search 
                     OR provider LIKE :text_search 

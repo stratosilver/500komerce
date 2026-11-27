@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace Apgenic\User;
 
 use Apgenic\Classes\Url;
+use Apgenic\Classes\Security;
+use Apgenic\Classes\Throttle;
 
 
 class ControllerUser  extends \Apgenic\Classes\Controller {
@@ -26,6 +28,18 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
     // After MAX_LOGIN_ATTEMPTS failures, the session must wait LOGIN_LOCK_TIME seconds
     const MAX_LOGIN_ATTEMPTS = 5;
     const LOGIN_LOCK_TIME = 300;
+    // The same limits, kept in the database (classes/Throttle.php): a program that drops the session cookie
+    // is stopped too. By IP address, and by account (attacks from many addresses on one account)
+    const LOGIN_MAX_BY_IP = 20;
+    const LOGIN_MAX_BY_ACCOUNT = 10;
+    const LOGIN_WINDOW = 900;
+    // Password recovery emails: by IP address and by account, in one hour
+    const FORGOT_MAX_BY_IP = 10;
+    const FORGOT_MAX_BY_ACCOUNT = 3;
+    // New accounts by IP address, in one hour
+    const REGISTER_MAX_BY_IP = 10;
+    // Statuses of an account
+    const STATUSES = array('active', 'suspended', 'disabled');
     // Hash of a random password, verified when the email is unknown
     const DUMMY_HASH = '$2y$10$.TFZJHB6cdQ8NHbxJYcxpOp2aU6r5B.ua6EBckC3vn8akeazPUFmi';
 
@@ -169,7 +183,28 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
             $this->dataUser->id_user = filter_var($_POST['id_user'] ?? null, FILTER_VALIDATE_INT);
-            if(filter_var($_POST['email'] ?? null, FILTER_UNSAFE_RAW) &&
+            $email = trim((string)($_POST['email'] ?? ''));
+            $status = (string)($_POST['status'] ?? 'active');
+            // The email must be a real address, without characters that mean something in HTML, and not used by another account
+            $emailError = '';
+            if($email != '' && !Security::isValidEmail($email)){
+                $emailError = T_ERROR_EMAIL_INVALID;
+            }
+            elseif($email != ''){
+                $other = new ModelUser();
+                if($other->getByEmail($email, false) && (int)$other->id_user !== (int)$this->dataUser->id_user){
+                    $emailError = T_ERROR_ACCOUNT_EXISTS;
+                }
+            }
+            if($emailError != ''){
+                $this->message['type'] = 'danger';
+                $this->message['text'] = $emailError;
+            }
+            elseif(!in_array($status, self::STATUSES, true)){
+                $this->message['type'] = 'danger';
+                $this->message['text'] = T_MSG_FIELDS_INVALID;
+            }
+            elseif($email != '' &&
                 filter_var($_POST['first_name'] ?? null, FILTER_UNSAFE_RAW) &&
                 filter_var($_POST['last_name'] ?? null, FILTER_UNSAFE_RAW)){
 
@@ -178,7 +213,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
                     $this->dataUser->get();
                 }
 
-                $this->dataUser->email = (string)filter_var($_POST['email'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                // Stored as typed, like the registration form does: Security::isValidEmail refuses the characters of HTML
+                $this->dataUser->email = $email;
                 $this->dataUser->email_verified = isset($_POST['email_verified']) ? 1 : 0;
                 // The password is changed only when a new one is typed, with the same confirmation
                 $newPassword = (string)($_POST['password_hash'] ?? '');
@@ -191,7 +227,10 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
                 $this->dataUser->provider = (string)filter_var($_POST['provider'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataUser->provider_user_id = (string)filter_var($_POST['provider_user_id'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 if($this->dataUser->provider_user_id == ''){ $this->dataUser->provider_user_id = null; }
-                $this->dataUser->status = (string)filter_var($_POST['status'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                // An administrator cannot suspend his own account
+                if((int)$this->dataUser->id_user !== (int)$_SESSION['user']['id_user']){
+                    $this->dataUser->status = $status;
+                }
                 $this->dataUser->last_login_at = (string)filter_var($_POST['last_login_at'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 if($this->dataUser->last_login_at == ''){ $this->dataUser->last_login_at = null; }
 
@@ -468,7 +507,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         elseif(strlen($firstName) > 100 || strlen($lastName) > 100){
             $error = T_ERROR_NAME_TOO_LONG;
         }
-        elseif(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
+        elseif(!Security::isValidEmail($email)){
             $error = T_ERROR_EMAIL_INVALID;
         }
         elseif($password != ''){
@@ -493,7 +532,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             // Display what has been typed
             $this->dataUser->first_name = $firstName;
             $this->dataUser->last_name = $lastName;
-            $this->dataUser->email = htmlspecialchars($email);
+            // Escaped by the view
+            $this->dataUser->email = $email;
             return;
         }
 
@@ -637,7 +677,9 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return string error message, empty if the user is now logged
      */
     public static function attemptLogin(string $email, string $password):string{
-        if(($_SESSION['login_locked_until'] ?? 0) > time()){
+        if(($_SESSION['login_locked_until'] ?? 0) > time()
+            || Throttle::lockedFor('login-ip', Throttle::ip()) > 0
+            || Throttle::lockedFor('login-account', $email) > 0){
             return T_ERROR_TOO_MANY_ATTEMPTS;
         }
 
@@ -654,9 +696,14 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             }
             $user->touchLastLogin();
             self::openSessionFor($user);
+            Throttle::clear('login-account', $email);
             return '';
         }
 
+        Throttle::hit('login-ip', Throttle::ip(), self::LOGIN_MAX_BY_IP, self::LOGIN_WINDOW, self::LOGIN_WINDOW);
+        if($email != ''){
+            Throttle::hit('login-account', $email, self::LOGIN_MAX_BY_ACCOUNT, self::LOGIN_WINDOW, self::LOGIN_WINDOW);
+        }
         $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
         if($_SESSION['login_attempts'] >= self::MAX_LOGIN_ATTEMPTS){
             $_SESSION['login_locked_until'] = time() + self::LOGIN_LOCK_TIME;
@@ -741,7 +788,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             if($values['first_name'] == '' || $values['last_name'] == '' || $values['email'] == ''){
                 $error = T_MSG_FILL_MANDATORY;
             }
-            elseif(!filter_var($values['email'], FILTER_VALIDATE_EMAIL) || strlen($values['email']) > 255){
+            elseif(!Security::isValidEmail($values['email'])){
                 $error = T_ERROR_EMAIL_INVALID;
             }
             elseif(strlen($values['first_name']) > 100 || strlen($values['last_name']) > 100){
@@ -754,6 +801,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
             // The email is unique in the table, logically deleted users included
             if($error == '' && $this->dataUser->getByEmail($values['email'], false)){
                 $error = T_ERROR_ACCOUNT_EXISTS;
+            }
+
+            // Creation of accounts by a program
+            if($error == '' && Throttle::hit('register-ip', Throttle::ip(), self::REGISTER_MAX_BY_IP, 3600, 3600) > 0){
+                $error = T_ERROR_TOO_MANY_ATTEMPTS;
             }
 
             if($error == ''){
@@ -790,15 +842,28 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $email = trim((string)($_POST['email'] ?? ''));
 
-            if(filter_var($email, FILTER_VALIDATE_EMAIL)
+            // Limits: emails sent to an address again and again, or asked by a program
+            if(Throttle::hit('forgot-ip', Throttle::ip(), self::FORGOT_MAX_BY_IP, 3600, 3600) > 0){
+                $this->message['type'] = 'danger';
+                $this->message['text'] = T_ERROR_TOO_MANY_ATTEMPTS;
+                $this->HTMLUser->forgot($this->message, '');
+                return;
+            }
+
+            if(Security::isValidEmail($email)
                 && $this->dataUser->getByEmail($email)
-                && $this->dataUser->status == 'active'){
+                && $this->dataUser->status == 'active'
+                && Throttle::hit('forgot-account', $email, self::FORGOT_MAX_BY_ACCOUNT + 1, 3600, 3600) == 0){
 
                 $token = $this->dataUser->createPasswordResetToken(self::RESET_TOKEN_VALIDITY);
                 $link = $this->absoluteUrl(self::url('reset', array('token' => $token)));
-                $this->sendResetMail($this->dataUser->email, $link);
+                // No safe address for the link (APP_URL missing in config.php): nothing is sent, see the log
+                if($link != ''){
+                    $this->sendResetMail($this->dataUser->email, $link);
+                }
 
-                if(defined('AUTH_SHOW_RESET_LINK') && AUTH_SHOW_RESET_LINK){
+                // DEVELOPMENT ONLY: AUTH_SHOW_RESET_LINK, and only for a request made from the server itself
+                if(Security::showDevLinks()){
                     $devResetLink = $link;
                 }
             }
@@ -817,7 +882,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return void
      */
     function reset(){
-        $token = (string)($_POST['token'] ?? $_GET['token'] ?? '');
+        $token = $_POST['token'] ?? $_GET['token'] ?? '';
+        $token = is_string($token) ? $token : '';
         $tokenValid = (bool)$this->dataUser->getByPasswordResetToken($token);
 
         if(!$tokenValid){
@@ -851,15 +917,11 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
 
     /**
      * Absolute url used in emails. Define APP_URL in config.php in production,
-     * the Host header sent by the browser cannot be trusted.
-     * @return string
+     * the Host header sent by the browser cannot be trusted (see Security::absoluteUrl)
+     * @return string '' when APP_URL is missing outside of a development host
      */
     private function absoluteUrl(string $url):string{
-        if(defined('APP_URL') && APP_URL != ''){
-            return rtrim(APP_URL, '/').$url;
-        }
-        $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off';
-        return ($https ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$url;
+        return Security::absoluteUrl($url);
     }
 
 
@@ -924,7 +986,8 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
      * @return string
      */
     private function oauthRedirectUri():string{
-        return $this->absoluteUrl(self::url('oauthcallback'));
+        // Checked by the provider: it only accepts the addresses declared in its console
+        return Security::absoluteUrl(self::url('oauthcallback'), false);
     }
 
 
@@ -1148,7 +1211,7 @@ class ControllerUser  extends \Apgenic\Classes\Controller {
                 break;
         }
 
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
+        if(!Security::isValidEmail($email)){
             $email = '';
         }
         if(strlen($id) > 255){

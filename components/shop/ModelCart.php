@@ -22,6 +22,8 @@ class ModelCart extends \Apgenic\Classes\Model{
 
     /** Lines of the cart, filled by load() */
     public array $items = array();
+    /** Changes made to respect the stock (quantity limited, line removed): texts to display, filled by add(), setQuantity() and load() */
+    public array $notices = array();
     /** Amounts in cents, filled by load() */
     public int $subtotal = 0;
     public int $tax = 0;
@@ -35,11 +37,24 @@ class ModelCart extends \Apgenic\Classes\Model{
 
 
     /**
-     * Rate of the tax added to the prices, in percent (TAX_RATE in config.php)
+     * Rate of the VAT, in percent: setting of the page Paramètres (table config), TAX_RATE in config.php by default
      * @return float
      */
     public static function taxRate():float{
-        return defined('TAX_RATE') ? (float)TAX_RATE : 21.0;
+        return \Apgenic\Config\ModelConfig::taxRate();
+    }
+
+
+    /**
+     * Price without tax of a price with tax (the prices of the products are stored with tax)
+     * @param int $priceWithTax cents
+     * @return int cents
+     */
+    public static function priceWithoutTax(int $priceWithTax):int{
+        // Integers only (rate in hundredths of percent: 2100, 550): the result is the same as the one computed
+        // by the browser in the form of the products (ViewProduct::edit), even for the half cents
+        $rate = (int)round(self::taxRate() * 100);
+        return (int)round($priceWithTax * 10000 / (10000 + $rate));
     }
 
 
@@ -111,16 +126,22 @@ class ModelCart extends \Apgenic\Classes\Model{
 
 
     /**
-     * Add a product to the cart. Only an active product can be bought.
+     * Add a product to the cart. Only an active product in stock can be bought, never more than its stock.
      * For a visitor, the cookie is created here: call it before any output.
-     * @return bool
+     * @return bool false: the product cannot be bought (see $notices when it is out of stock)
      */
     public function add(int $idProduct, int $quantity = 1):bool{
         $quantity = max(1, min(self::MAX_QUANTITY, $quantity));
 
-        $q = self::$db->prepare("SELECT `id_product` FROM `product` WHERE `id_product` = :id_product AND `status` = 'active' AND `deleted_at` IS NULL");
+        $q = self::$db->prepare("SELECT `id_product`, `name`, `stock` FROM `product` WHERE `id_product` = :id_product AND `status` = 'active' AND `deleted_at` IS NULL");
         $q->execute(array(':id_product' => $idProduct));
-        if(!$q->fetch(\PDO::FETCH_ASSOC)){
+        $product = $q->fetch(\PDO::FETCH_ASSOC);
+        if(!$product){
+            return false;
+        }
+        $stock = (int)$product['stock'];
+        if($stock < 1){
+            $this->notices[] = T_MSG_OUT_OF_STOCK;
             return false;
         }
 
@@ -140,9 +161,14 @@ class ModelCart extends \Apgenic\Classes\Model{
         // The product is already in the cart: one line, a bigger quantity
         $q = self::$db->prepare("SELECT `id_cart_item`, `quantity` FROM `cart_item` WHERE $where AND `id_product` = :id_product");
         $q->execute($params + array(':id_product' => $idProduct));
-        if($row = $q->fetch(\PDO::FETCH_ASSOC)){
+        $wanted = $quantity + (int)(($row = $q->fetch(\PDO::FETCH_ASSOC)) ? $row['quantity'] : 0);
+        $allowed = min(self::MAX_QUANTITY, $wanted, $stock);
+        if($allowed < $wanted && $allowed == $stock){
+            $this->notices[] = sprintf(T_CART_QUANTITY_LIMITED, $product['name'], $stock);
+        }
+        if($row){
             $q = self::$db->prepare("UPDATE `cart_item` SET `quantity` = :quantity WHERE `id_cart_item` = :id");
-            return $q->execute(array(':quantity' => min(self::MAX_QUANTITY, (int)$row['quantity'] + $quantity), ':id' => $row['id_cart_item']));
+            return $q->execute(array(':quantity' => $allowed, ':id' => $row['id_cart_item']));
         }
 
         $q = self::$db->prepare("INSERT INTO `cart_item` (id_user, cookie_id, id_product, quantity) VALUES (:id_user, :cookie_id, :id_product, :quantity)");
@@ -150,13 +176,13 @@ class ModelCart extends \Apgenic\Classes\Model{
             ':id_user' => $this->idUser > 0 ? $this->idUser : null,
             ':cookie_id' => $this->idUser > 0 ? null : $this->cookieId,
             ':id_product' => $idProduct,
-            ':quantity' => $quantity,
+            ':quantity' => $allowed,
         ));
     }
 
 
     /**
-     * Change the quantity of a line of the current cart, 0 removes the line
+     * Change the quantity of a line of the current cart, 0 removes the line. Never more than the stock of the product.
      * @return bool
      */
     public function setQuantity(int $idCartItem, int $quantity):bool{
@@ -167,6 +193,18 @@ class ModelCart extends \Apgenic\Classes\Model{
         if($quantity < 1){
             $q = self::$db->prepare("DELETE FROM `cart_item` WHERE $where AND `id_cart_item` = :id");
             return $q->execute($params + array(':id' => $idCartItem));
+        }
+        $q = self::$db->prepare("SELECT p.`name`, p.`stock` FROM `cart_item` c JOIN `product` p ON p.`id_product` = c.`id_product`
+                                 WHERE ".str_replace('`id_user`', 'c.`id_user`', str_replace('`cookie_id`', 'c.`cookie_id`', $where))." AND c.`id_cart_item` = :id");
+        $q->execute($params + array(':id' => $idCartItem));
+        $product = $q->fetch(\PDO::FETCH_ASSOC);
+        if($product && $quantity > (int)$product['stock']){
+            if((int)$product['stock'] < 1){
+                // Out of stock: load() removes the line and says it
+                return true;
+            }
+            $quantity = (int)$product['stock'];
+            $this->notices[] = sprintf(T_CART_QUANTITY_LIMITED, $product['name'], $quantity);
         }
         $q = self::$db->prepare("UPDATE `cart_item` SET `quantity` = :quantity WHERE $where AND `id_cart_item` = :id");
         return $q->execute($params + array(':quantity' => min(self::MAX_QUANTITY, $quantity), ':id' => $idCartItem));
@@ -205,8 +243,10 @@ class ModelCart extends \Apgenic\Classes\Model{
 
     /**
      * Load the lines of the current cart with the name and the price of the products, and compute the amounts.
-     * A product that is not sold anymore (not active, deleted) is removed from the cart.
-     * The prices are without tax; the tax is computed line by line, like in customer_order_item.
+     * A product that is not sold anymore (not active, deleted) is removed from the cart. A product out of stock is
+     * removed too, a quantity above the stock is lowered to the stock: $notices says it.
+     * The prices of the products are with tax: the total of a line is the price paid by the customer, exactly.
+     * The unit price without tax is rounded to the cent, the tax of the line is the rest (like in customer_order_item).
      * @return int number of lines
      */
     public function load():int{
@@ -218,7 +258,7 @@ class ModelCart extends \Apgenic\Classes\Model{
             return 0;
         }
 
-        $q = self::$db->prepare("SELECT c.`id_cart_item`, c.`id_product`, c.`quantity`, p.`name`, p.`slug`, p.`price_amount`, p.`status`, p.`deleted_at`
+        $q = self::$db->prepare("SELECT c.`id_cart_item`, c.`id_product`, c.`quantity`, p.`name`, p.`slug`, p.`price_amount`, p.`stock`, p.`status`, p.`deleted_at`
                                  FROM `cart_item` c
                                  LEFT JOIN `product` p ON p.id_product = c.id_product
                                  WHERE ".str_replace('`id_user`', 'c.`id_user`', $where)."
@@ -230,10 +270,22 @@ class ModelCart extends \Apgenic\Classes\Model{
                 $this->setQuantity((int)$row['id_cart_item'], 0);
                 continue;
             }
+            // The stock may have changed since the product was added
+            if((int)$row['stock'] < 1){
+                $this->setQuantity((int)$row['id_cart_item'], 0);
+                $this->notices[] = sprintf(T_CART_ITEM_OUT_OF_STOCK, $row['name']);
+                continue;
+            }
+            if((int)$row['quantity'] > (int)$row['stock']){
+                $row['quantity'] = (int)$row['stock'];
+                self::$db->prepare("UPDATE `cart_item` SET `quantity` = :quantity WHERE `id_cart_item` = :id")->execute(array(':quantity' => $row['quantity'], ':id' => $row['id_cart_item']));
+                $this->notices[] = sprintf(T_CART_QUANTITY_LIMITED, $row['name'], $row['quantity']);
+            }
             $quantity = (int)$row['quantity'];
-            $unit = (int)$row['price_amount'];
+            // Unit price without tax, displayed on the lines; the line total is the price with tax x the quantity
+            $unit = self::priceWithoutTax((int)$row['price_amount']);
             $lineSubtotal = $quantity * $unit;
-            $lineTax = (int)round($lineSubtotal * self::taxRate() / 100);
+            $lineTax = $quantity * (int)$row['price_amount'] - $lineSubtotal;
 
             $this->items[(int)$row['id_cart_item']] = array(
                 'id_cart_item' => (int)$row['id_cart_item'],

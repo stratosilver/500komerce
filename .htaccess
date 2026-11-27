@@ -1,0 +1,13 @@
+# The site is served from the folder public/ (DocumentRoot of the virtual host). Nothing else in this folder
+# (config.php, _dev/ with the SQL dumps and the test scripts, .git/, data/ with the database, classes/,
+# components/) may be reached by the web server, whatever the configuration of the virtual host.
+#
+# public/.htaccess has its own rewrite rules: they replace these ones for the addresses of public/, so the site
+# is not concerned. The access rules (Require) of the virtual host stay as they are.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^ - [F]
+</IfModule>
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>

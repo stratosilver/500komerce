@@ -17,10 +17,16 @@ class ModelCustomerOrder extends \Apgenic\Classes\Model{
     public array $list;
 
     // Columns of the table: the only names accepted as filter and as sort field
-    const COLUMNS = array('id_customer_order', 'id_user', 'created_at');
+    const COLUMNS = array('id_customer_order', 'id_user', 'total_amount', 'status', 'created_at');
 
     public $id_customer_order = '';
     public $id_user = '';
+    // Total of the order, cents, tax included
+    public $total_amount = 0;
+    // pending, paid, shipped, cancelled: changed by \Apgenic\Shop\ModelOrder::setStatus(), which manages the stock
+    public $status = 'pending';
+    // 1: the quantities of the order are taken out of the stock of the products
+    public $stock_reduced = 0;
     public $created_at = '';
 
 
@@ -118,12 +124,8 @@ class ModelCustomerOrder extends \Apgenic\Classes\Model{
     */
     public function get():int{
 
-        $query = "  SELECT c.`id_customer_order`, c.`id_user`, c.`created_at`
-                    , p.name AS p_name, p.id_user AS p_id_user
-                                        FROM `customer_order` AS c 
-                    LEFT JOIN `product` p ON c.id_user = p.id_user
-                     
-
+        $query = "  SELECT c.`id_customer_order`, c.`id_user`, c.`total_amount`, c.`status`, c.`stock_reduced`, c.`created_at`
+                    FROM `customer_order` AS c
                     WHERE  `c`.`id_customer_order` = :id_customer_order  ";
 
 
@@ -132,6 +134,9 @@ class ModelCustomerOrder extends \Apgenic\Classes\Model{
             if($row = $q->fetch(\PDO::FETCH_ASSOC)){
                 $this->id_customer_order = $row['id_customer_order'];
                 $this->id_user = $row['id_user'];
+                $this->total_amount = (int)$row['total_amount'];
+                $this->status = $row['status'];
+                $this->stock_reduced = (int)$row['stock_reduced'];
                 $this->created_at = $row['created_at'];
 
                 return(1);
@@ -162,7 +167,7 @@ class ModelCustomerOrder extends \Apgenic\Classes\Model{
         $filters = $this->safeFilters($filters);
         $orderBy = $this->safeOrderBy($orderBy);
 
-        $query = "  SELECT c.`id_customer_order`, c.`id_user`, c.`created_at`
+        $query = "  SELECT c.`id_customer_order`, c.`id_user`, c.`total_amount`, c.`status`, c.`created_at`
                     FROM `customer_order` AS c                    ";
 
         // Add all filters
@@ -222,6 +227,8 @@ class ModelCustomerOrder extends \Apgenic\Classes\Model{
                         while($row = $q->fetch(\PDO::FETCH_ASSOC)){
                $this->list[$row['id_customer_order']]['id_customer_order'] = $row['id_customer_order'];
                $this->list[$row['id_customer_order']]['id_user'] = $row['id_user'];
+               $this->list[$row['id_customer_order']]['total_amount'] = (int)$row['total_amount'];
+               $this->list[$row['id_customer_order']]['status'] = $row['status'];
                $this->list[$row['id_customer_order']]['created_at'] = $row['created_at'];
                                 }
             return($this->count($where, $filters, $textSearch));

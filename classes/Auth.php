@@ -4,7 +4,9 @@
  *
  * Each user has a level of permissions from 0 to 100 (field `permissions` of the table `user`, 0 by default):
  *   nobody logged (visitor)           the products (view, viewlist), the cart and the checkout of the shop
- *   0 and more                        the consultation pages (view, viewlist), the shop and his own profile
+ *   0 and more                        the consultation pages (view, viewlist) of the catalog and the content,
+ *                                     the shop (his own cart and orders) and his own profile.
+ *                                     Not the data of the other customers: see STAFF_COMPONENTS
  *   PERMISSION_EDIT (50) and more     all the tasks of all the components, except the users
  *   PERMISSION_ADMIN (100)            the users: list, edit, delete, change the permissions
  * The two levels can be changed in config.php.
@@ -28,6 +30,11 @@ class Auth
     );
     // Tasks of the component user that a logged user does on his own account
     const SELF_TASKS = array('profile', 'me');
+    // Components whose consultation pages (view, viewlist) need PERMISSION_EDIT: they hold the orders, the carts
+    // and the emails of all the customers. A customer sees his own cart and orders through the shop.
+    const STAFF_COMPONENTS = array('customerorder', 'customerorderitem', 'cartitem', 'discount');
+    // Tasks that change data with the id in the address (lower case): refused with GET by index.php
+    const WRITE_TASKS = array('del', 'delhtmx', 'undelhtmx', 'logicaldeletehtmx');
 
     private static bool $loaded = false;
     private static ?int $level = null;
@@ -134,12 +141,17 @@ class Auth
             return in_array($task, self::SELF_TASKS, true) || $level >= self::levelAdmin();
         }
 
+        // The settings of the site (name, rate of the VAT) are managed by the administrators only
+        if($component === 'config'){
+            return $level >= self::levelAdmin();
+        }
+
         // The shop is for all the logged users: each one only reaches his own cart and orders
         if($component === 'shop'){
             return true;
         }
 
-        if(in_array($task, self::READ_TASKS, true)){
+        if(in_array($task, self::READ_TASKS, true) && !in_array($component, self::STAFF_COMPONENTS, true)){
             return true;
         }
         return $level >= self::levelEdit();

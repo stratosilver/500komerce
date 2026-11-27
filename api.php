@@ -29,7 +29,8 @@
  *   - header "Authorization: Bearer <API_TOKEN>" (or "X-Api-Key: <API_TOKEN>"), API_TOKEN is set in config.php
  *   - the session cookie received from component=user&task=login; the requests that change something
  *     must then send the csrf_token of the login answer in the header "X-CSRF-Token".
- *     The session has the permissions of the user (classes/Auth.php): with 0, only list, view and user/me.
+ *     The session has the permissions of the user (classes/Auth.php). The API is for the back office:
+ *     below PERMISSION_EDIT, only user/me is allowed (the API does not hide the drafts, the orders of the others...).
  *     The API token has all the rights.
  *
  * ANSWER
@@ -39,12 +40,16 @@
  *   The HTTP status is the error code: 400, 401, 403, 404, 405, 409, 422, 429, 500.
  */
 
-session_start();
-
 require_once('config.php');
+require_once('autoload.php');
+
+// Session cookie (HttpOnly, SameSite, Secure) and security headers (classes/Security.php)
+Apgenic\Classes\Security::errors();
+Apgenic\Classes\Security::startSession();
+Apgenic\Classes\Security::headers();
+
 // Messages shared with the web interface (passwords, images...): constants T_...
 require_once('translations.php');
-require_once('autoload.php');
 
 // The errors must not break the JSON: they go to the error log of PHP
 ini_set('display_errors', 'Off');

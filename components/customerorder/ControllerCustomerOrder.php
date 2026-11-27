@@ -16,7 +16,7 @@ class ControllerCustomerOrder  extends \Apgenic\Classes\Controller {
     private ModelCustomerOrder $dataCustomerOrder;
 
     // Accepted sort fields
-    public static array $fieldsNames = array('id_customer_order','id_user','created_at');
+    public static array $fieldsNames = array('id_customer_order','id_user','total_amount','status','created_at');
 
     function __construct(){
         if(filter_var($_GET['showTabs'] ?? null, FILTER_VALIDATE_INT) === 0){
@@ -30,10 +30,11 @@ class ControllerCustomerOrder  extends \Apgenic\Classes\Controller {
      */
     function render(){
 
-        $oModelProduct = new \Apgenic\Product\ModelProduct();
-        $oModelProduct->getList();
+        // The customers: id_user of an order is a user (the list of the products was given here before)
+        $oModelUser = new \Apgenic\User\ModelUser();
+        $oModelUser->getList();
 
-        $this->HTMLCustomerOrder = new ViewCustomerOrder($oModelProduct->list);
+        $this->HTMLCustomerOrder = new ViewCustomerOrder($oModelUser->list);
         $this->dataCustomerOrder = new ModelCustomerOrder();
 
 
@@ -102,6 +103,19 @@ class ControllerCustomerOrder  extends \Apgenic\Classes\Controller {
                 $this->dataCustomerOrder->save();
                 $this->message['type'] = 'success';
                 $this->message['text'] = T_MSG_SAVED;
+
+                // Status: through the shop, which puts the stock back when the order is cancelled
+                $status = (string)($_POST['status'] ?? '');
+                if($status != '' && (int)$this->dataCustomerOrder->id_customer_order > 0){
+                    $order = new \Apgenic\Shop\ModelOrder();
+                    $error = $order->setStatus((int)$this->dataCustomerOrder->id_customer_order, $status);
+                    if($error != ''){
+                        $this->message = array('type' => 'danger', 'text' => $error);
+                    }
+                    elseif($order->restocked){
+                        $this->message['text'] = T_ORDER_CANCELLED_RESTOCKED;
+                    }
+                }
             }
 
             else{

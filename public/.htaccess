@@ -3,9 +3,17 @@
 # Needs the Apache module mod_rewrite (WampServer: Apache > Apache modules > rewrite_module)
 # and "AllowOverride All" for this folder.
 
+# No list of the files of a folder (public/images/ would show all the images)
+Options -Indexes
+
 <IfModule mod_negotiation.c>
     Options -MultiViews
 </IfModule>
+
+# The hidden files (.htaccess, .git...) are never served
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
 
 <IfModule mod_rewrite.c>
     RewriteEngine On

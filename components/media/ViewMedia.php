@@ -376,7 +376,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>

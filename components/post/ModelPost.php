@@ -27,7 +27,8 @@ class ModelPost extends \Apgenic\Classes\Model{
     public $slug = '';
     public $excerpt = null;
     public $body = '';
-    public $status = array();
+    // A new article is a draft
+    public $status = 'draft';
     public $published_at = null;
     public $created_at = '';
     public $updated_at = '';
@@ -47,6 +48,11 @@ class ModelPost extends \Apgenic\Classes\Model{
     * @return int 0 or 1
     */
     public function add():int{
+
+        // Date of publication by default: the day of the creation, at 00:00
+        if($this->published_at === null || $this->published_at === ''){
+            $this->published_at = self::today().' 00:00:00';
+        }
 
         $query = "  INSERT INTO `post`  ( id_user, lang, title, id_media, slug, excerpt, body, status, published_at)
                     VALUES (
@@ -73,6 +79,18 @@ class ModelPost extends \Apgenic\Classes\Model{
             //$q->debugDumpParams();
             return(0);
         }
+    }
+
+
+    /**
+     * The slug is the one of another article of the same language (lang + slug are unique, the trash included)
+     * @param int $exceptId the article being saved, 0 for a new one
+     * @return bool
+     */
+    public function slugTaken(string $slug, string $lang, int $exceptId = 0):bool{
+        $q = self::$db->prepare("SELECT 1 FROM `post` WHERE `slug` = :slug AND `lang` = :lang AND `id_post` <> :id LIMIT 1");
+        $q->execute(array(':slug' => $slug, ':lang' => $lang, ':id' => $exceptId));
+        return (bool)$q->fetchColumn();
     }
 
 

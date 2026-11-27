@@ -45,6 +45,7 @@ class ViewTemplate
         'post'          => [T_MENU_POST, 'newspaper', T_SECTION_CONTENT],
         'translation'   => [T_MENU_TRANSLATION, 'translate', T_SECTION_CONTENT],
         'user'          => [T_MENU_USER, 'people', T_SECTION_ADMINISTRATION],
+        'config'        => [T_MENU_CONFIG, 'gear', T_SECTION_ADMINISTRATION],
     ];
     /** Components that are not in the menu (reached by the tabs): the entry of the menu that is highlighted */
     const MENU_PARENT = [
@@ -67,11 +68,12 @@ class ViewTemplate
 
 
     /**
-     * Name of the site, APP_NAME in config.php
+     * Name of the site, escaped for the HTML: setting site_name of the page Paramètres (table config),
+     * APP_NAME in config.php by default
      * @return string
      */
     static function appName(): string{
-        return defined('APP_NAME') ? APP_NAME : '100Komerce';
+        return htmlspecialchars(\Apgenic\Config\ModelConfig::siteName());
     }
 
 
@@ -170,9 +172,18 @@ class ViewTemplate
      * Button adding a product to the cart of the shop
      * @param bool $withQuantity display a quantity field next to the button (page of the product)
      * @param bool $block button as wide as its container (card of the list of products)
+     * @param int|null $stock units in stock: 0 shows a disabled button "Rupture de stock", the quantity cannot be
+     *                        above the stock (the cart checks it again, see ModelCart). null: not known
      * @return void
      */
-    static function addToCart(int $idProduct, bool $withQuantity = false, bool $block = false): void{
+    static function addToCart(int $idProduct, bool $withQuantity = false, bool $block = false, ?int $stock = null): void{
+        if($stock !== null && $stock < 1){
+            ?>
+            <button type="button" class="btn btn-outline-secondary fw-semibold <?=$withQuantity ? 'btn-lg w-100' : ($block ? 'w-100' : '')?> d-inline-flex align-items-center justify-content-center gap-2" disabled><?=self::icon('x-circle', 18)?> <?=T_OUT_OF_STOCK?></button>
+            <?php
+            return;
+        }
+        $max = $stock === null ? \Apgenic\Shop\ModelCart::MAX_QUANTITY : min(\Apgenic\Shop\ModelCart::MAX_QUANTITY, $stock);
         $formClass = $withQuantity ? 'row g-2' : ($block ? 'd-grid' : 'd-inline-block');
         ?>
         <form class="<?=$formClass?>" method="POST" action="<?=self::url('shop', 'add')?>">
@@ -183,7 +194,7 @@ class ViewTemplate
                 <label class="visually-hidden" for="quantity_<?=$idProduct?>"><?=T_QUANTITY?></label>
                 <div class="input-group input-group-lg flex-nowrap">
                     <button type="button" class="btn btn-outline-secondary d-flex align-items-center px-3" aria-label="<?=T_LESS?>" onclick="this.parentNode.querySelector('input').stepDown()"><?=self::icon('dash', 16)?></button>
-                    <input class="form-control text-center px-1" type="number" name="quantity" id="quantity_<?=$idProduct?>" value="1" min="1" max="99" step="1" inputmode="numeric" />
+                    <input class="form-control text-center px-1" type="number" name="quantity" id="quantity_<?=$idProduct?>" value="1" min="1" max="<?=$max?>" step="1" inputmode="numeric" />
                     <button type="button" class="btn btn-outline-secondary d-flex align-items-center px-3" aria-label="<?=T_MORE?>" onclick="this.parentNode.querySelector('input').stepUp()"><?=self::icon('plus', 16)?></button>
                 </div>
             </div>
@@ -243,7 +254,7 @@ class ViewTemplate
             // Consultation pages allowed by the permissions of the user (front-end: /browse/...)
             $links = '';
             foreach(self::MENU as $menuComponent => $item){
-                if($menuComponent == 'product' || $menuComponent == 'user' || !Auth::can($menuComponent, 'viewlist')) continue;
+                if($menuComponent == 'product' || $menuComponent == 'user' || $menuComponent == 'config' || !Auth::can($menuComponent, 'viewlist')) continue;
                 $links .= '<li><a class="dropdown-item d-flex align-items-center gap-2" href="'.self::url($menuComponent, 'viewlist').'">'.self::icon($item[1], 16).' '.$item[0].'</a></li>';
             }
             if($links != ''){
@@ -274,7 +285,10 @@ class ViewTemplate
             <meta name="description" content="">
             <meta name="theme-color" content="'.self::THEME_COLOR.'">
             <title>'.ucfirst($title).' &middot; '.self::appName().'</title>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js"></script>
+            <!-- htmx 2.0.4, served by the site (public/js): no script of another server without integrity check -->
+            <script src="'.BASE_URL.'/js/htmx.min.js" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"></script>
+            <!-- Slug filled while the name is typed, in the forms of the back office (public/js/slug.js, served by the site) -->
+            '.(Url::isAdmin() ? '<script src="'.BASE_URL.'/js/slug.js" defer></script>' : '').'
             <!-- Bootstrap 5, then the theme: colors, rounded corners, shadows, fonts -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
             <link href="'.BASE_URL.'/css/theme.css" rel="stylesheet">
@@ -740,6 +754,17 @@ class ViewTemplate
      */
     static function badge(string $text, string $type = 'secondary'): string{
         return '<span class="badge rounded-pill bg-'.$type.'-subtle text-'.$type.'-emphasis border border-'.$type.'-subtle">'.$text.'</span>';
+    }
+
+
+    /**
+     * The slug field of a form follows the name while it is typed (public/js/slug.js): when it is empty, or for a
+     * new entry when it is the slug of the name. The slug of an entry already saved does not change by itself: its
+     * address stays the same.
+     * @return bool
+     */
+    static function slugFollowsName(string $slug, string $name, bool $isNew): bool{
+        return $slug === '' || ($isNew && $slug === Url::slug($name));
     }
 
 

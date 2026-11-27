@@ -102,7 +102,7 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
                         else{
                             ?>
 
-                            <input type="hidden" name="id_customer_order" id="id_customer_order" value="<?php if(!isset($data->id_customer_order) || $data->id_customer_order < 1) echo $_GET['filters']['id_customer_order']; else echo $data->id_customer_order?>"/>
+                            <input type="hidden" name="id_customer_order" id="id_customer_order" value="<?php if(!isset($data->id_customer_order) || $data->id_customer_order < 1) echo ((int)($_GET['filters']['id_customer_order'] ?? 0) ?: ''); else echo $data->id_customer_order?>"/>
                             <?php
                         }
                         ?>
@@ -133,7 +133,7 @@ public function edit(ModelCustomerOrderItem $data , int $showTabs = 1, array $me
                         else{
                             ?>
 
-                            <input type="hidden" name="id_product_variant" id="id_product_variant" value="<?php if(!isset($data->id_product_variant) || $data->id_product_variant < 1) echo $_GET['filters']['id_product_variant']; else echo $data->id_product_variant?>"/>
+                            <input type="hidden" name="id_product_variant" id="id_product_variant" value="<?php if(!isset($data->id_product_variant) || $data->id_product_variant < 1) echo ((int)($_GET['filters']['id_product_variant'] ?? 0) ?: ''); else echo $data->id_product_variant?>"/>
                             <?php
                         }
                         ?>
@@ -436,7 +436,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>

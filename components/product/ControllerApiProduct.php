@@ -22,13 +22,15 @@ class ControllerApiProduct extends \Apgenic\Classes\ControllerApi {
         'slug'                 => array('type' => 'string', 'null' => true, 'required' => false, 'max' => 200),
         'summary'              => array('type' => 'string', 'null' => true, 'required' => false, 'max' => 500),
         'description'          => array('type' => 'string', 'null' => true, 'required' => false),
-        // Price without tax, in cents
+        // Price with tax (TVA comprise), in cents
         'price_amount'         => array('type' => 'int', 'null' => false, 'required' => false, 'default' => 0),
+        // Number of units in stock
+        'stock'                => array('type' => 'int', 'null' => false, 'required' => false, 'default' => 1),
         'status'               => array('type' => 'string', 'null' => false, 'required' => false, 'default' => 'draft', 'enum' => array('draft', 'active', 'archived')),
         'published_at'         => array('type' => 'string', 'null' => true, 'required' => false),
     );
 
     // All the fields of the table `product`
-    public static array $fieldsNames = array('id_product', 'id_user', 'name', 'slug', 'summary', 'description', 'price_amount', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
+    public static array $fieldsNames = array('id_product', 'id_user', 'name', 'slug', 'summary', 'description', 'price_amount', 'stock', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
 
 }

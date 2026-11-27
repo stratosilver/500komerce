@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace Apgenic\User;
 
 use Apgenic\Classes\ApiException;
+use Apgenic\Classes\Security;
+use Apgenic\Classes\Throttle;
 
 class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
 
@@ -64,8 +66,26 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
             $errors['permissions'] = 'Must be between 0 and 100';
         }
 
-        if(!isset($errors['email']) && !filter_var(html_entity_decode((string)$this->data->email, ENT_QUOTES | ENT_HTML5, 'UTF-8'), FILTER_VALIDATE_EMAIL)){
-            $errors['email'] = 'Not a valid email address';
+        if(!isset($errors['email'])){
+            // value() has escaped the text: the address is checked and stored as typed, like the web interface does
+            $email = trim(html_entity_decode((string)$this->data->email, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            if(!Security::isValidEmail($email)){
+                $errors['email'] = 'Not a valid email address';
+            }
+            else{
+                $this->data->email = $email;
+            }
+        }
+
+        // A session user cannot change his own level nor suspend his own account (same rule as the web interface)
+        $self = (int)($_SESSION['user']['id_user'] ?? 0);
+        if(!$isNew && $self > 0 && (int)$this->data->id_user === $self){
+            $stored = new ModelUser();
+            $stored->id_user = $self;
+            if($stored->get()){
+                $this->data->permissions = $stored->permissions;
+                $this->data->status = $stored->status;
+            }
         }
 
         if(array_key_exists('password', $this->input) && $this->input['password'] !== null && $this->input['password'] !== ''){
@@ -134,12 +154,15 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
      * @return void
      */
     private function login():void{
-        if(($_SESSION['login_locked_until'] ?? 0) > time()){
+        $email = is_string($this->input['email'] ?? null) ? trim($this->input['email']) : '';
+        $password = is_string($this->input['password'] ?? null) ? $this->input['password'] : '';
+
+        // The counters of the session are not enough: a program does not keep the cookie (classes/Throttle.php)
+        if(($_SESSION['login_locked_until'] ?? 0) > time()
+            || Throttle::lockedFor('login-ip', Throttle::ip()) > 0
+            || Throttle::lockedFor('login-account', $email) > 0){
             throw new ApiException(429, 'Too many attempts, try again in a few minutes');
         }
-
-        $email = trim((string)($this->input['email'] ?? ''));
-        $password = (string)($this->input['password'] ?? '');
 
         $found = filter_var($email, FILTER_VALIDATE_EMAIL) ? $this->data->getByEmail($email) : 0;
 
@@ -154,11 +177,16 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
             }
             $this->data->touchLastLogin();
             $this->openSession();
+            Throttle::clear('login-account', $email);
             $this->data->get();
             $this->sendSession(200);
             return;
         }
 
+        Throttle::hit('login-ip', Throttle::ip(), ControllerUser::LOGIN_MAX_BY_IP, ControllerUser::LOGIN_WINDOW, ControllerUser::LOGIN_WINDOW);
+        if($email != ''){
+            Throttle::hit('login-account', $email, ControllerUser::LOGIN_MAX_BY_ACCOUNT, ControllerUser::LOGIN_WINDOW, ControllerUser::LOGIN_WINDOW);
+        }
         $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
         if($_SESSION['login_attempts'] >= ControllerUser::MAX_LOGIN_ATTEMPTS){
             $_SESSION['login_locked_until'] = time() + ControllerUser::LOGIN_LOCK_TIME;
@@ -211,7 +239,9 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
             $spec = static::FIELDS[$field];
             $values[$field] = $this->value($field, $spec, is_string($this->input[$field] ?? null) ? trim($this->input[$field]) : null, $errors);
         }
-        if(!isset($errors['email']) && !filter_var($this->input['email'], FILTER_VALIDATE_EMAIL)){
+        // The address is stored as typed (like the web interface): it must not have characters of HTML
+        $email = is_string($this->input['email'] ?? null) ? trim($this->input['email']) : '';
+        if(!isset($errors['email']) && !Security::isValidEmail($email)){
             $errors['email'] = 'Not a valid email address';
         }
         $error = self::passwordError($this->input['password'] ?? null);
@@ -223,12 +253,15 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
         }
 
         // The email is unique in the table, logically deleted users included
-        if($this->data->getByEmail($values['email'], false)){
+        if($this->data->getByEmail($email, false)){
             throw new ApiException(409, 'An account already exists with this email address');
+        }
+        if(Throttle::hit('register-ip', Throttle::ip(), ControllerUser::REGISTER_MAX_BY_IP, 3600, 3600) > 0){
+            throw new ApiException(429, 'Too many attempts, try again later');
         }
 
         $this->data = new ModelUser();
-        $this->data->email = $values['email'];
+        $this->data->email = $email;
         $this->data->first_name = $values['first_name'];
         $this->data->last_name = $values['last_name'];
         $this->data->password_hash = password_hash($this->input['password'], PASSWORD_DEFAULT);
@@ -247,24 +280,23 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
      * @return void
      */
     private function forgot():void{
-        $email = trim((string)($this->input['email'] ?? ''));
+        $email = is_string($this->input['email'] ?? null) ? trim($this->input['email']) : '';
         $answer = array('success' => true, 'message' => 'If an account exists with this email address, a link to choose a new password has been sent');
 
-        if(filter_var($email, FILTER_VALIDATE_EMAIL)
+        if(Throttle::hit('forgot-ip', Throttle::ip(), ControllerUser::FORGOT_MAX_BY_IP, 3600, 3600) > 0){
+            throw new ApiException(429, 'Too many attempts, try again later');
+        }
+
+        if(Security::isValidEmail($email)
             && $this->data->getByEmail($email)
-            && $this->data->status == 'active'){
+            && $this->data->status == 'active'
+            && Throttle::hit('forgot-account', $email, ControllerUser::FORGOT_MAX_BY_ACCOUNT + 1, 3600, 3600) == 0){
 
             $token = $this->data->createPasswordResetToken(ControllerUser::RESET_TOKEN_VALIDITY);
 
-            // The link opens the "new password" page of the web interface
-            $url = \Apgenic\Classes\Url::to('user', 'reset', array('token' => $token));
-            if(defined('APP_URL') && APP_URL != ''){
-                $link = rtrim(APP_URL, '/').$url;
-            }
-            else{
-                $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off';
-                $link = ($https ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$url;
-            }
+            // The link opens the "new password" page of the web interface. Never built with the Host header of
+            // the request outside of a development host: APP_URL is required (see Security::absoluteUrl)
+            $link = Security::absoluteUrl(\Apgenic\Classes\Url::to('user', 'reset', array('token' => $token)));
 
             $body  = "Hello,\r\n\r\n";
             $body .= "Use the following link to choose a new password, it is valid for ".ControllerUser::RESET_TOKEN_VALIDITY." minutes:\r\n\r\n";
@@ -274,10 +306,12 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
             if(defined('MAIL_FROM') && MAIL_FROM != ''){
                 $headers .= 'From: '.MAIL_FROM."\r\n";
             }
-            @mail($this->data->email, 'Reset your password', $body, $headers);
+            if($link != ''){
+                @mail($this->data->email, 'Reset your password', $body, $headers);
+            }
 
-            // DEVELOPMENT ONLY, see config.php
-            if(defined('AUTH_SHOW_RESET_LINK') && AUTH_SHOW_RESET_LINK){
+            // DEVELOPMENT ONLY, see config.php: never in the answer of a request that does not come from the server itself
+            if(Security::showDevLinks()){
                 $answer['dev'] = array('token' => $token, 'link' => $link);
             }
         }
@@ -292,7 +326,7 @@ class ControllerApiUser extends \Apgenic\Classes\ControllerApi {
      * @return void
      */
     private function reset():void{
-        if(!$this->data->getByPasswordResetToken((string)($this->input['token'] ?? ''))){
+        if(!$this->data->getByPasswordResetToken(is_string($this->input['token'] ?? null) ? $this->input['token'] : '')){
             throw new ApiException(400, 'This token is not valid or has expired');
         }
         $error = self::passwordError($this->input['password'] ?? null);

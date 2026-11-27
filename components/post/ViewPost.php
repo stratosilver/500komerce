@@ -77,47 +77,35 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
         <div class="row">
 	
 
-                        <?php 
-                        if(!isset($this->filters['id_user'])){ ?>
-                        
+        <?php // The author is not chosen here: the logged user for a new article, the author kept otherwise (ControllerPost::postUser) ?>
         <div class="col-lg-4 col-md-6">
         <div class="mb-3">
-            <label class="form-label" for="id_user"><?=T_FIELD_ID_USER?></label>
-            <select  class="form-select" name="id_user" id="id_user">
-                <option value=""></option>
-        <?php
-        foreach (self::notTrashed($this->userList1, $data->id_user) as $key => $val){
-                ?>
-                <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=$val['email']?></option>
-        <?php 
-        }
-        ?>
-       
-            </select>
+            <label class="form-label" for="author"><?=T_FIELD_ID_USER?></label>
+            <input class="form-control" type="text" id="author" value="<?=htmlspecialchars((string)($this->userList1[$data->id_user]['email'] ?? ''))?>" disabled/>
 		</div>
 		</div>
-		
-                        <?php
-                        }
-                        else{
-                            ?>
-                            
-                            <input type="hidden" name="id_user" id="id_user" value="<?php if(!isset($data->id_user) || $data->id_user < 1) echo $_GET['filters']['id_user']; else echo $data->id_user?>"/>
-                            <?php
-                        }
-                        ?>                     
-                        
+
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="lang"><?=T_FIELD_LANG?>&nbsp;*</label>
-		<input required class="form-control" type="text" name="lang" id="lang" size="10" value="<?=htmlentities((string)(string)$data->lang)?>"/>
+		<select required class="form-select" name="lang" id="lang">
+		<?php
+		// The languages of the site; the one of an article written in another language stays in the list
+		$languages = LANGUAGES;
+		if((string)$data->lang !== '' && !isset($languages[$data->lang])){
+		    $languages[(string)$data->lang] = (string)$data->lang;
+		}
+		foreach($languages as $code => $name){ ?>
+		    <option value="<?=htmlspecialchars((string)$code)?>" <?php if((string)$data->lang === (string)$code) echo 'selected="selected"';?>><?=htmlspecialchars((string)$name)?></option>
+		<?php } ?>
+		</select>
 	    </div>
 	    </div>
 	
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="title"><?=T_FIELD_TITLE?>&nbsp;*</label>
-		<input required class="form-control" type="text" name="title" id="title" size="10" value="<?=htmlentities((string)(string)$data->title)?>"/>
+		<input required class="form-control" type="text" name="title" id="title" size="10" value="<?=htmlentities((string)(string)$data->title)?>" data-slug-target="slug"/>
 	    </div>
 	    </div>
 	
@@ -130,15 +118,17 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
 	    
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
-		<label class="form-label" for="slug"><?=T_FIELD_SLUG?>&nbsp;*</label>
-		<input required class="form-control" type="text" name="slug" id="slug" size="10" value="<?=htmlentities((string)(string)$data->slug)?>"/>
+		<label class="form-label" for="slug"><?=T_FIELD_SLUG?></label>
+		<input  class="form-control" type="text" name="slug" id="slug" size="10" maxlength="200" value="<?=htmlentities((string)(string)$data->slug)?>"
+		        data-slug-auto="<?=self::slugFollowsName((string)$data->slug, (string)$data->title, !($data->id_post > 0)) ? '1' : '0'?>" aria-describedby="slug_help"/>
+		<div class="form-text" id="slug_help"><?=T_FIELD_SLUG_HELP_TITLE?></div>
 	    </div>
 	    </div>
 	
 
-        <div class="col-lg-4 col-md-6"><div class="mb-3">
+        <div class="col-12"><div class="mb-3">
 		<label class="form-label" for="excerpt"><?=T_FIELD_EXCERPT?></label>
-		<input  class="form-control" type="text" name="excerpt" id="excerpt" size="10" value="<?=htmlentities((string)(string)$data->excerpt)?>"/>
+		<textarea class="form-control" name="excerpt" id="excerpt" rows="2" maxlength="500"><?=htmlentities((string)(string)$data->excerpt)?></textarea>
 	    </div>
 	    </div>
 	
@@ -153,9 +143,7 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
         <div class="col-lg-4 col-md-6"><div class="mb-3">
             <label class="form-label" for="status"><?=T_FIELD_STATUS?></label>
             <select required="" class="form-select" name="status" id="status">
-                <option value=""></option>
-            
-                <option value="draft" <?php if($data->status == 'draft') echo 'selected="selected"' ?>><?=T_VALUE_DRAFT?></option>
+                <option value="draft" <?php if($data->status == 'draft' || $data->status == '') echo 'selected="selected"' ?>><?=T_VALUE_DRAFT?></option>
                 <option value="published" <?php if($data->status == 'published') echo 'selected="selected"' ?>><?=T_VALUE_PUBLISHED?></option>
                 <option value="archived" <?php if($data->status == 'archived') echo 'selected="selected"' ?>><?=T_VALUE_ARCHIVED?></option>
             </select>
@@ -165,7 +153,8 @@ public function edit(ModelPost $data , int $showTabs = 1, array $message=null, s
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="published_at"><?=T_FIELD_PUBLISHED_AT?></label>
-		<input  class="form-control" type="datetime-local" name="published_at" id="published_at" value="<?=htmlentities((string)$data->published_at)?>"/>
+		<input  class="form-control" type="datetime-local" name="published_at" id="published_at" value="<?=htmlentities(str_replace(' ', 'T', substr((string)$data->published_at, 0, 16)))?>" aria-describedby="published_at_help"/>
+		<div class="form-text" id="published_at_help"><?=T_FIELD_PUBLISHED_AT_HELP?></div>
 	    </div>
 	    </div>
 	    
@@ -229,7 +218,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		?>
 		<tr>
 		<td class="text-nowrap"><?php echo $element['id_post']?></td>
-		<td ><?php /* author: back office only */ if(\Apgenic\Classes\Auth::canEdit()) echo $this->userList1[$element['id_user']]['email'] ?? '';?></td>
+		<td ><?php /* author: back office only */ if(\Apgenic\Classes\Auth::canEdit()) echo htmlspecialchars((string)($this->userList1[$element['id_user']]['email'] ?? ''));?></td>
 		<td ><?php echo $element['lang']?></td>
 		<td ><?php echo $element['title']?></td>
 		<td ><?=self::value((string)$element['status'])?></td>
@@ -283,7 +272,7 @@ public function view(ModelPost $data , array $message=null){
                 <dl class="row mb-0">
                     
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID?></dt><dd class="col-sm-9"><?php echo $data->id_post?></dd>
-		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_USER?></dt><dd class="col-sm-9"><?php if(\Apgenic\Classes\Auth::canEdit()) echo $this->userList1[$data->id_user]['email'] ?? '';?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_USER?></dt><dd class="col-sm-9"><?php if(\Apgenic\Classes\Auth::canEdit()) echo htmlspecialchars((string)($this->userList1[$data->id_user]['email'] ?? ''));?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_LANG?></dt><dd class="col-sm-9"><?php echo $data->lang?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_TITLE?></dt><dd class="col-sm-9"><?php echo $data->title?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_MEDIA?></dt><dd class="col-sm-9"><?php echo $data->id_media?></dd>
@@ -366,7 +355,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td class="text-nowrap"><?php echo $element['id_post']?></td>
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=post&task=editList&id_user=<?php echo $element['id_user']?>">
-                                            <?php echo $this->userList1[$element['id_user']]['email'] ?? '';?>
+                                            <?php echo htmlspecialchars((string)($this->userList1[$element['id_user']]['email'] ?? ''));?>
                                             </a>
                                             </td>
                                             
@@ -412,7 +401,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>
@@ -441,7 +430,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td class="text-nowrap"><?php echo $element['id_post']?></td>
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=post&task=editList&id_user=<?php echo $element['id_user']?>">
-                                            <?php echo $this->userList1[$element['id_user']]['email'];?>
+                                            <?php echo htmlspecialchars((string)($this->userList1[$element['id_user']]['email'] ?? ''));?>
                                             </a>
                                             </td>
                                             
@@ -517,7 +506,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		?>
 		<tr id="row-<?php echo $element['id_post']?>">
 		<td class="text-nowrap"><?php echo $element['id_post']?></td>
-		<td ><?php echo $this->userList1[$element['id_user']]['email'] ?? '';?></td>
+		<td ><?php echo htmlspecialchars((string)($this->userList1[$element['id_user']]['email'] ?? ''));?></td>
 		<td ><?php echo $element['lang']?></td>
 		<td ><?php echo $element['title']?></td>
 		<td ><?=self::value((string)$element['status'])?></td>

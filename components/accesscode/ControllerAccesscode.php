@@ -15,6 +15,9 @@
 declare(strict_types=1);
 namespace Apgenic\Accesscode;
 
+use Apgenic\Classes\Security;
+use Apgenic\Classes\Throttle;
+
 class ControllerAccesscode {
 
     // The 15 fields of the form: column of access_form => label. Change the labels here.
@@ -40,6 +43,8 @@ class ControllerAccesscode {
     // Wrong codes allowed before the form is locked, and duration of the lock in seconds
     const MAX_ATTEMPTS = 5;
     const LOCK_DURATION = 900;
+    // The same limit by IP address, kept in the database (a program does not keep the session cookie)
+    const MAX_ATTEMPTS_BY_IP = 20;
 
     // Validity of the link sent by email, in days
     const LINK_VALIDITY_DAYS = 7;
@@ -100,8 +105,8 @@ class ControllerAccesscode {
         $code = '';
 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
-            $lockedUntil = (int)($_SESSION['accesscode_locked_until'] ?? 0);
-            $code = trim((string)($_POST['code'] ?? ''));
+            $lockedUntil = max((int)($_SESSION['accesscode_locked_until'] ?? 0), time() + Throttle::lockedFor('accesscode-ip', Throttle::ip()));
+            $code = is_string($_POST['code'] ?? null) ? trim($_POST['code']) : '';
 
             if($lockedUntil > time()){
                 $this->message = array('type' => 'danger', 'text' => sprintf(T_ERROR_TOO_MANY_CODES, ceil(($lockedUntil - time()) / 60)));
@@ -119,6 +124,7 @@ class ControllerAccesscode {
                     return;
                 }
 
+                Throttle::hit('accesscode-ip', Throttle::ip(), self::MAX_ATTEMPTS_BY_IP, self::LOCK_DURATION, self::LOCK_DURATION);
                 $_SESSION['accesscode_attempts'] = (int)($_SESSION['accesscode_attempts'] ?? 0) + 1;
                 if($_SESSION['accesscode_attempts'] >= self::MAX_ATTEMPTS){
                     $_SESSION['accesscode_locked_until'] = time() + self::LOCK_DURATION;
@@ -182,9 +188,9 @@ class ControllerAccesscode {
 
         $email = '';
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
-            $email = trim((string)($_POST['email'] ?? ''));
+            $email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
 
-            if(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
+            if(!Security::isValidEmail($email)){
                 $this->message = array('type' => 'danger', 'text' => T_ERROR_EMAIL_INVALID);
             }
             else{
@@ -194,16 +200,17 @@ class ControllerAccesscode {
                 }
                 else{
                     $link = $this->absoluteUrl(self::url('link', array('token' => $saved['token'])));
-                    $mailSent = $this->sendLinkMail($email, $link, $saved['codes']);
+                    // No safe address for the link (APP_URL missing in config.php): nothing is sent, see the log of PHP
+                    $mailSent = $link != '' && $this->sendLinkMail($email, $link, $saved['codes']);
 
                     // The form is done: a new code is needed for another one
                     unset($_SESSION['accesscode']);
                     $_SESSION['accesscode_sent'] = array(
                         'email' => htmlspecialchars($email),
                         'mail_sent' => $mailSent,
-                        // DEVELOPMENT ONLY, same setting as the password reset (config.php)
-                        'dev_link' => (defined('AUTH_SHOW_RESET_LINK') && AUTH_SHOW_RESET_LINK) ? $link : '',
-                        'dev_codes' => (defined('AUTH_SHOW_RESET_LINK') && AUTH_SHOW_RESET_LINK) ? $saved['codes'] : array(),
+                        // DEVELOPMENT ONLY, same setting as the password reset (config.php), only from the server itself
+                        'dev_link' => Security::showDevLinks() ? $link : '',
+                        'dev_codes' => Security::showDevLinks() ? $saved['codes'] : array(),
                     );
                     self::redirect(self::url('sent'));
                     return;
@@ -235,7 +242,7 @@ class ControllerAccesscode {
     // ------------------------------------------------------------------------------------------------
 
     private function link():void{
-        $row = $this->dataAccesscode->getFormByToken((string)($_GET['token'] ?? ''));
+        $row = $this->dataAccesscode->getFormByToken(is_string($_GET['token'] ?? null) ? $_GET['token'] : '');
 
         // The token must not leak in the Referer header
         header('Referrer-Policy: no-referrer');
@@ -250,11 +257,7 @@ class ControllerAccesscode {
      * @return string
      */
     private function absoluteUrl(string $url):string{
-        if(defined('APP_URL') && APP_URL != ''){
-            return rtrim(APP_URL, '/').$url;
-        }
-        $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off';
-        return ($https ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$url;
+        return Security::absoluteUrl($url);
     }
 
 

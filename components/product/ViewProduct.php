@@ -103,14 +103,16 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="name"><?=T_FIELD_NAME?>&nbsp;*</label>
-		<input required class="form-control" type="text" name="name" id="name" size="10" value="<?=htmlentities((string)(string)$data->name)?>"/>
+		<input required class="form-control" type="text" name="name" id="name" size="10" value="<?=htmlentities((string)(string)$data->name)?>" data-slug-target="slug"/>
 	    </div>
 	    </div>
 
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="slug"><?=T_FIELD_SLUG?></label>
-		<input  class="form-control" type="text" name="slug" id="slug" size="10" value="<?=htmlentities((string)(string)$data->slug)?>"/>
+		<input  class="form-control" type="text" name="slug" id="slug" size="10" maxlength="200" value="<?=htmlentities((string)(string)$data->slug)?>"
+		        data-slug-auto="<?=self::slugFollowsName((string)$data->slug, (string)$data->name, !($data->id_product > 0)) ? '1' : '0'?>" aria-describedby="slug_help"/>
+		<div class="form-text" id="slug_help"><?=T_FIELD_SLUG_HELP?></div>
 	    </div>
 	    </div>
 
@@ -122,9 +124,40 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
 	    </div>
 
 
+        <?php
+        // The price is typed with tax. The price without tax is computed by the browser from the rate of the VAT
+        // (page Paramètres), the same way as \Apgenic\Shop\ModelCart::priceWithoutTax(); the rate is not editable here.
+        $taxRate = \Apgenic\Shop\ModelCart::taxRate();
+        ?>
         <div class="col-lg-4 col-md-6"><div class="mb-3">
-		<label class="form-label" for="price"><?=T_FIELD_PRICE_WITHOUT_TAX?></label>
-		<input  class="form-control" type="number" min="0" step="0.01" name="price" id="price" value="<?=number_format((int)$data->price_amount / 100, 2, '.', '')?>"/>
+		<label class="form-label" for="price"><?=T_FIELD_PRICE_WITH_TAX?></label>
+		<div class="input-group">
+		<input  class="form-control text-end" type="number" min="0" step="0.01" name="price" id="price" data-tax-rate="<?=$taxRate?>" value="<?=number_format((int)$data->price_amount / 100, 2, '.', '')?>"
+		        oninput="var r = Math.round((parseFloat(this.dataset.taxRate) || 0) * 100), v = parseFloat(String(this.value).replace(',', '.')), o = document.getElementById('price_without_tax'); if(o){ o.value = isNaN(v) ? '' : (Math.round(Math.round(v * 100) * 10000 / (10000 + r)) / 100).toFixed(2).replace('.', ','); }"/>
+		<span class="input-group-text"><?=CURRENCY?></span>
+		</div>
+	    </div>
+	    </div>
+
+
+        <div class="col-lg-2 col-md-6"><div class="mb-3">
+		<label class="form-label" for="tax_rate"><?=T_FIELD_TAX_RATE?></label>
+		<div class="input-group">
+		<input  class="form-control text-end" type="text" id="tax_rate" value="<?=self::taxRateText()?>" disabled aria-describedby="tax_rate_help"/>
+		<span class="input-group-text">%</span>
+		</div>
+		<div class="form-text" id="tax_rate_help"><?php if(\Apgenic\Classes\Auth::can('config', 'edit')){ ?><a href="<?=self::url('config', 'edit')?>"><?=T_FIELD_TAX_RATE_HELP?></a><?php } else { echo T_FIELD_TAX_RATE_HELP; } ?></div>
+	    </div>
+	    </div>
+
+
+        <div class="col-lg-2 col-md-6"><div class="mb-3">
+		<label class="form-label" for="price_without_tax"><?=T_FIELD_PRICE_WITHOUT_TAX?></label>
+		<div class="input-group">
+		<input  class="form-control text-end bg-body-tertiary" type="text" id="price_without_tax" value="<?=number_format(\Apgenic\Shop\ModelCart::priceWithoutTax((int)$data->price_amount) / 100, 2, ',', '')?>" readonly tabindex="-1" aria-describedby="price_without_tax_help"/>
+		<span class="input-group-text"><?=CURRENCY?></span>
+		</div>
+		<div class="form-text" id="price_without_tax_help"><?=T_FIELD_PRICE_WITHOUT_TAX_HELP?></div>
 	    </div>
 	    </div>
 
@@ -151,7 +184,16 @@ public function edit(ModelProduct $data , int $showTabs = 1, array $message=null
 
         <div class="col-lg-4 col-md-6"><div class="mb-3">
 		<label class="form-label" for="published_at"><?=T_FIELD_PUBLISHED_AT?></label>
-		<input  class="form-control" type="datetime-local" name="published_at" id="published_at" value="<?=htmlentities((string)$data->published_at)?>"/>
+		<input  class="form-control" type="datetime-local" name="published_at" id="published_at" value="<?=htmlentities(str_replace(' ', 'T', substr((string)$data->published_at, 0, 16)))?>" aria-describedby="published_at_help"/>
+		<div class="form-text" id="published_at_help"><?=T_FIELD_PUBLISHED_AT_HELP?></div>
+	    </div>
+	    </div>
+
+
+        <div class="col-lg-4 col-md-6"><div class="mb-3">
+		<label class="form-label" for="stock"><?=T_FIELD_STOCK?></label>
+		<input  class="form-control" type="number" min="0" step="1" name="stock" id="stock" value="<?=(int)$data->stock?>" aria-describedby="stock_help"/>
+		<div class="form-text" id="stock_help"><?=T_FIELD_STOCK_HELP?></div>
 	    </div>
 	    </div>
 
@@ -289,11 +331,11 @@ public static function productUrl($product):string{
 
 
 /**
- * Price with the tax, the one paid by the customer (the prices are stored without tax)
+ * Price without tax (the prices are stored with tax, they are the ones paid by the customer)
  * @return int cents
  */
-public static function priceWithTax(int $priceAmount):int{
-    return $priceAmount + (int)round($priceAmount * \Apgenic\Shop\ModelCart::taxRate() / 100);
+public static function priceWithoutTax(int $priceAmount):int{
+    return \Apgenic\Shop\ModelCart::priceWithoutTax($priceAmount);
 }
 
 
@@ -459,6 +501,8 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		            </a>
 		            <?php if($canEdit && !$onSale){ ?>
 		            <span class="position-absolute top-0 start-0 m-2"><?=self::statusBadge((string)$element['status'])?></span>
+		            <?php } elseif($onSale && (int)$element['stock'] < 1){ ?>
+		            <span class="position-absolute top-0 start-0 m-2"><?=self::badge(T_OUT_OF_STOCK, 'danger')?></span>
 		            <?php } ?>
 		        </div>
 		        <div class="card-body d-flex flex-column p-3">
@@ -467,13 +511,13 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		            <p class="small text-body-secondary mb-2"><?=$element['summary']?></p>
 		            <?php } ?>
 		            <div class="mt-auto pt-1">
-		                <div class="fs-5 fw-bold lh-sm"><?=self::money(self::priceWithTax($price))?></div>
-		                <div class="small text-body-secondary"><?=self::money($price)?> <?=T_EXCL_TAX?></div>
+		                <div class="fs-5 fw-bold lh-sm"><?=self::money($price)?></div>
+		                <div class="small text-body-secondary"><?=self::money(self::priceWithoutTax($price))?> <?=T_EXCL_TAX?></div>
 		            </div>
 		        </div>
 		        <div class="card-footer bg-transparent border-0 px-3 pb-3 pt-0">
 		            <?php if($onSale){
-		                self::addToCart($id, false, true);
+		                self::addToCart($id, false, true, (int)$element['stock']);
 		            } else { ?>
 		            <button type="button" class="btn btn-light w-100" disabled><?=T_NOT_ON_SALE?></button>
 		            <?php } ?>
@@ -552,12 +596,15 @@ public function view(ModelProduct $data , array $message=null){
                     <?php } ?>
 
                     <div class="border-top border-bottom py-3 my-4">
-                        <div class="display-6 fw-bold lh-1"><?=self::money(self::priceWithTax($price))?></div>
-                        <div class="small text-body-secondary mt-2"><?=self::money($price)?> <?=T_EXCL_TAX?> &middot; <?=sprintf(T_VAT_INCLUDED, $taxRate)?></div>
+                        <div class="display-6 fw-bold lh-1"><?=self::money($price)?></div>
+                        <div class="small text-body-secondary mt-2"><?=self::money(self::priceWithoutTax($price))?> <?=T_EXCL_TAX?> &middot; <?=sprintf(T_VAT_INCLUDED, $taxRate)?></div>
+                        <?php if($onSale && (int)$data->stock < 1){ ?>
+                        <div class="mt-3"><?=self::badge(T_OUT_OF_STOCK, 'danger')?></div>
+                        <?php } ?>
                     </div>
 
                     <?php if($onSale){
-                        self::addToCart($id, true);
+                        self::addToCart($id, true, false, (int)$data->stock);
                     } else {
                         $this->message(array('type' => 'secondary', 'text' => T_PRODUCT_NOT_ON_SALE));
                     } ?>
@@ -589,7 +636,7 @@ public function view(ModelProduct $data , array $message=null){
                 <?php
                 $meta = array(
                     T_FIELD_ID => $data->id_product,
-                    T_FIELD_ID_USER => $this->userList2[$data->id_user]['email'] ?? '',
+                    T_FIELD_ID_USER => htmlspecialchars((string)($this->userList2[$data->id_user]['email'] ?? '')),
                     T_FIELD_SLUG => $data->slug,
                     T_FIELD_STATUS => self::statusBadge((string)$data->status, $data->deleted_at !== null),
                     T_FIELD_PUBLISHED_AT => $data->published_at,
@@ -654,9 +701,11 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	<div class="table-responsive card shadow-sm mb-3">	<table class="table table-hover align-middle mb-0">
 	<thead class="table-light">
 	<tr>	<th scope="col" id="id_product" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=id_product&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_product") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
+	<th scope="col" class="tight"><span class="visually-hidden"><?=T_IMAGE?></span></th>
 	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
 	<th scope="col" id="name" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=name&<?=$this->filtersGet?>&order=<?php if($orderBy == "name") echo $order; else echo 'asc';?>"><?=T_FIELD_NAME?></a></th>
-	<th scope="col" id="price_amount" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_PRICE_AMOUNT?></a></th>
+	<th scope="col" id="price_amount" class="text-nowrap text-end"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=price_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "price_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_PRICE_WITH_TAX?></a></th>
+	<th scope="col" id="stock" class="text-nowrap text-end"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=stock&<?=$this->filtersGet?>&order=<?php if($orderBy == "stock") echo $order; else echo 'asc';?>"><?=T_FIELD_STOCK?></a></th>
 	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
 	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 	<th scope="col" id="updated_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('product', 'editlist')?>?orderBy=updated_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "updated_at") echo $order; else echo 'asc';?>"><?=T_FIELD_UPDATED_AT?></a></th>
@@ -674,14 +723,20 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		?>
 		<tr id="row-<?php echo $element['id_product']?>">
 		<td class="text-nowrap"><?php echo $element['id_product']?></td>
+		<td class="tight"><?php
+		    // Thumbnail of the first image, a grey tile when the product has none
+		    $thumb = $this->imageUrl((int)$element['id_product'], 0, 'thumb');
+		    if($thumb != ''){ ?><img class="d-block rounded-2 border bg-body object-fit-cover" width="48" height="48" src="<?=htmlspecialchars($thumb)?>" alt="" loading="lazy"><?php }
+		    else { ?><span class="d-flex align-items-center justify-content-center rounded-2 border bg-body-secondary text-body-tertiary" style="width:48px;height:48px"><?=self::icon('image', 20)?></span><?php } ?></td>
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=editList&id_user=<?php echo $element['id_user']?>">
-                                            <?php echo $this->userList2[$element['id_user']]['email'] ?? '';?>
+                                            <?php echo htmlspecialchars((string)($this->userList2[$element['id_user']]['email'] ?? ''));?>
                                             </a>
                                             </td>
 
 		<td ><?php echo $element['name']?></td>
 		<td class="text-end text-nowrap"><?=self::money((int)$element['price_amount'])?></td>
+		<td class="text-end text-nowrap"><?=(int)$element['stock'] > 0 ? (int)$element['stock'] : self::badge('0', 'danger')?></td>
 		<td ><?=self::statusBadge((string)$element['status'])?></td>
 		<td ><?php echo $element['created_at']?></td>
 		<td ><?php echo $element['updated_at']?></td>
@@ -722,7 +777,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>
@@ -750,7 +805,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td class="text-nowrap"><?php echo $element['id_product']?></td>
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=product&task=editList&id_user=<?php echo $element['id_user']?>">
-                                            <?php echo $this->userList2[$element['id_user']]['email'];?>
+                                            <?php echo htmlspecialchars((string)($this->userList2[$element['id_user']]['email'] ?? ''));?>
                                             </a>
                                             </td>
 
@@ -824,7 +879,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		?>
 		<tr id="row-<?php echo $element['id_product']?>">
 		<td class="text-nowrap"><?php echo $element['id_product']?></td>
-		<td ><?php echo $this->userList2[$element['id_user']]['email'] ?? '';?></td>
+		<td ><?php echo htmlspecialchars((string)($this->userList2[$element['id_user']]['email'] ?? ''));?></td>
 		<td ><?php echo $element['name']?></td>
 		<td ><?=self::statusBadge((string)$element['status'])?></td>
 		<td ><?php echo $element['created_at']?></td>

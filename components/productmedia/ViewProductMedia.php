@@ -102,7 +102,7 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
                         else{
                             ?>
 
-                            <input type="hidden" name="id_product" id="id_product" value="<?php if(!isset($data->id_product) || $data->id_product < 1) echo $_GET['filters']['id_product']; else echo $data->id_product?>"/>
+                            <input type="hidden" name="id_product" id="id_product" value="<?php if(!isset($data->id_product) || $data->id_product < 1) echo ((int)($_GET['filters']['id_product'] ?? 0) ?: ''); else echo $data->id_product?>"/>
                             <?php
                         }
                         ?>
@@ -132,7 +132,7 @@ public function edit(ModelProductMedia $data , int $showTabs = 1, array $message
                         else{
                             ?>
 
-                            <input type="hidden" name="id_media" id="id_media" value="<?php if(!isset($data->id_media) || $data->id_media < 1) echo $_GET['filters']['id_media']; else echo $data->id_media?>"/>
+                            <input type="hidden" name="id_media" id="id_media" value="<?php if(!isset($data->id_media) || $data->id_media < 1) echo ((int)($_GET['filters']['id_media'] ?? 0) ?: ''); else echo $data->id_media?>"/>
                             <?php
                         }
                         ?>
@@ -361,7 +361,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>

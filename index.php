@@ -6,27 +6,34 @@
  * Project: {PROJECT_NAME}
  */
 
-session_start();
-ini_set('display_errors', 'On');
-error_reporting(E_ALL ^ E_NOTICE);
-
 require_once('config.php');
+require_once('autoload.php');
+
+// Errors, session cookie (HttpOnly, SameSite, Secure) and security headers (classes/Security.php)
+Apgenic\Classes\Security::errors();
+Apgenic\Classes\Security::startSession();
+Apgenic\Classes\Security::headers();
+
 // Texts of the interface in the chosen language: constants T_...
 require_once('translations.php');
-require_once('autoload.php');
 
 // CSRF protection
 // ------------------------------------------------------------------------------------------------
-if (empty($_SESSION['csrf_token'])) {
+if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
-if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'])) {
-    $csrf_token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? null;
+if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'], true)) {
+    $csrf_token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
 
-    if ($csrf_token == null ||
+    if (!is_string($csrf_token) || $csrf_token === '' ||
         !hash_equals($_SESSION['csrf_token'], $csrf_token)){
+        http_response_code(403);
         die(T_INVALID_TOKEN);
     }
+}
+elseif (!in_array($_SERVER['REQUEST_METHOD'], ['GET', 'HEAD'], true)) {
+    http_response_code(405);
+    exit;
 }
 
 
@@ -89,6 +96,15 @@ if($_SERVER['REQUEST_METHOD'] == 'GET' && !isset($_SERVER['HTTP_HX_REQUEST'])
         header('Location: '.$target, true, 301);
         exit;
     }
+}
+
+// The tasks that delete or restore take the id in the address: they are refused with GET, so that a link or an
+// image of another site cannot run them (the POST requests are checked by the CSRF token above)
+if(!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'DELETE', 'PATCH'], true)
+    && in_array(strtolower($task), Apgenic\Classes\Auth::WRITE_TASKS, true)){
+    http_response_code(405);
+    header('Allow: POST');
+    die(T_METHOD_NOT_ALLOWED);
 }
 
 // The public tasks (sign in, products, cart, checkout) are allowed to everybody, see Auth::PUBLIC_TASKS
@@ -185,14 +201,29 @@ try{
                 $oCtrl = new Apgenic\Blog\ControllerBlog();
                 break;
 
+            case 'config':
+                $oCtrl = new Apgenic\Config\ControllerConfig();
+                break;
+
             default:
                 throw new ErrorException(T_PAGE_NOT_FOUND, 404);
     }
     $oCtrl->render();
 }
-catch (exception $e){
-    // Displayed by 404.php, in the layout of the site
-    $errorMessage = $e->getMessage();
+catch (\Throwable $e){
+    // Displayed by 404.php, in the layout of the site. Only the messages written for the visitors are displayed
+    // (ErrorException thrown by the controllers: page not found, access denied); the others (database, PHP)
+    // would give the queries and the paths of the files: they go to the log of PHP
+    if($e instanceof \ErrorException && in_array((int)$e->getCode(), array(403, 404), true)){
+        $errorMessage = $e->getMessage();
+    }
+    else{
+        error_log('500komerce '.COMPONENT.'/'.$task.': '.get_class($e).': '.$e->getMessage().' in '.$e->getFile().':'.$e->getLine());
+        if(!headers_sent()){
+            http_response_code(500);
+        }
+        $errorMessage = (defined('APP_DEBUG') && APP_DEBUG) ? get_class($e).': '.$e->getMessage() : T_ERROR_INTERNAL;
+    }
     include '404.php';
 }
 

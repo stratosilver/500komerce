@@ -10,14 +10,15 @@ declare(strict_types=1);
 namespace Apgenic\CustomerOrder;
 
 class ViewCustomerOrder extends \Apgenic\Classes\ViewTemplate {
-var $productList4 = array();
+var $userList = array();
 
 public string $filtersGet = '';
 
 public $fileters = array();
 
-function __construct($productList4) {
-$this->productList4 = $productList4;
+/** @param array $userList the users, by id_user: the customers of the orders */
+function __construct($userList) {
+$this->userList = $userList;
 }
 
 
@@ -88,9 +89,9 @@ public function edit(ModelCustomerOrder $data , int $showTabs = 1, array $messag
             <select  class="form-select" name="id_user" id="id_user">
                 <option value=""></option>
         <?php
-        foreach (self::notTrashed($this->productList4) as $key => $val){
+        foreach (self::notTrashed($this->userList, $data->id_user) as $key => $val){
                 ?>
-                <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=$val['name']?></option>
+                <option value="<?=$val['id_user']?>" <?php if($data->id_user == $val['id_user']) echo 'selected="selected"';?>><?=htmlspecialchars((string)$val['email'])?></option>
         <?php
         }
         ?>
@@ -104,10 +105,37 @@ public function edit(ModelCustomerOrder $data , int $showTabs = 1, array $messag
                         else{
                             ?>
 
-                            <input type="hidden" name="id_user" id="id_user" value="<?php if(!isset($data->id_user) || $data->id_user < 1) echo $_GET['filters']['id_user']; else echo $data->id_user?>"/>
+                            <input type="hidden" name="id_user" id="id_user" value="<?php if(!isset($data->id_user) || $data->id_user < 1) echo ((int)($_GET['filters']['id_user'] ?? 0) ?: ''); else echo $data->id_user?>"/>
                             <?php
                         }
                         ?>
+
+        <?php
+        // Status: a cancelled order cannot change anymore. Cancelling asks a confirmation (hx-confirm of the form)
+        $cancelled = $data->status == \Apgenic\Shop\ModelOrder::STATUS_CANCELLED;
+        ?>
+        <div class="col-lg-4 col-md-6">
+        <div class="mb-3">
+            <label class="form-label" for="status"><?=T_FIELD_STATUS?></label>
+            <select class="form-select" name="status" id="status" <?=$cancelled ? 'disabled' : ''?> aria-describedby="status_help"
+                    onchange="if(this.value == '<?=\Apgenic\Shop\ModelOrder::STATUS_CANCELLED?>'){ this.form.setAttribute('hx-confirm', this.dataset.confirm); } else { this.form.removeAttribute('hx-confirm'); }"
+                    data-confirm="<?=htmlspecialchars(T_ORDER_CANCEL_CONFIRM)?>">
+            <?php foreach(array_keys(\Apgenic\Shop\ModelOrder::STATUSES) as $status){ ?>
+                <option value="<?=$status?>" <?php if($data->status == $status) echo 'selected="selected"';?>><?=self::value($status)?></option>
+            <?php } ?>
+            </select>
+            <div class="form-text" id="status_help"><?=$cancelled ? T_ORDER_CANCELLED_FINAL : T_ORDER_STATUS_HELP?></div>
+        </div>
+        </div>
+
+        <?php if((int)$data->id_customer_order > 0){ ?>
+        <div class="col-lg-4 col-md-6">
+        <div class="mb-3">
+            <span class="form-label d-block"><?=T_FIELD_TOTAL_INCL_TAX?></span>
+            <span class="fs-5 fw-semibold"><?=self::money((int)$data->total_amount)?></span>
+        </div>
+        </div>
+        <?php } ?>
 
 		<div class="col-12">
 
@@ -165,7 +193,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		?>
 		<tr>
 		<td class="text-nowrap"><?php echo $element['id_customer_order']?></td>
-		<td ><?php echo $this->productList4[$element['id_user']]['name'] ?? '';?></td>
+		<td ><?php echo htmlspecialchars((string)($this->userList[$element['id_user']]['email'] ?? ''));?></td>
 		<td ><?php echo $element['created_at']?></td>
 
 		    <td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=view&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-secondary" title="<?=T_VIEW?>" aria-label="<?=T_VIEW?>">
@@ -193,6 +221,15 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 
 
 /**
+ * Badge of the status of an order (\Apgenic\Shop\ModelOrder::STATUSES)
+ * @return string
+ */
+public static function orderStatusBadge(string $status):string{
+    return self::badge(self::value($status), \Apgenic\Shop\ModelOrder::STATUSES[$status] ?? 'secondary');
+}
+
+
+/**
  * Display details of a record from the table customer_order
  *
  * @parameter ModelCustomerOrder $data
@@ -215,7 +252,9 @@ public function view(ModelCustomerOrder $data , array $message=null){
                 <dl class="row mb-0">
 
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID?></dt><dd class="col-sm-9"><?php echo $data->id_customer_order?></dd>
-		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_USER?></dt><dd class="col-sm-9"><?php echo $this->productList4[$data->id_user]['name'] ?? '';?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_USER?></dt><dd class="col-sm-9"><?php echo htmlspecialchars((string)($this->userList[$data->id_user]['email'] ?? ''));?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_TOTAL_INCL_TAX?></dt><dd class="col-sm-9"><?=self::money((int)$data->total_amount)?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_STATUS?></dt><dd class="col-sm-9"><?=self::orderStatusBadge((string)$data->status)?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_CREATED_AT?></dt><dd class="col-sm-9"><?php echo $data->created_at?></dd>
 	             </dl></div>
             </div>
@@ -267,6 +306,8 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 	<thead class="table-light">
 	<tr>	<th scope="col" id="id_customer_order" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=id_customer_order&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_customer_order") echo $order; else echo 'asc';?>"><?=T_FIELD_ID?></a></th>
 	<th scope="col" id="id_user" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=id_user&<?=$this->filtersGet?>&order=<?php if($orderBy == "id_user") echo $order; else echo 'asc';?>"><?=T_FIELD_ID_USER?></a></th>
+	<th scope="col" id="total_amount" class="text-nowrap text-end"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=total_amount&<?=$this->filtersGet?>&order=<?php if($orderBy == "total_amount") echo $order; else echo 'asc';?>"><?=T_FIELD_TOTAL_INCL_TAX?></a></th>
+	<th scope="col" id="status" class="text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=status&<?=$this->filtersGet?>&order=<?php if($orderBy == "status") echo $order; else echo 'asc';?>"><?=T_FIELD_STATUS?></a></th>
 	<th scope="col" id="created_at" class="tight text-nowrap"><a class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-75-hover" href="<?=self::url('customerorder', 'editlist')?>?orderBy=created_at&<?=$this->filtersGet?>&order=<?php if($orderBy == "created_at") echo $order; else echo 'asc';?>"><?=T_FIELD_CREATED_AT?></a></th>
 
 		<th class="tight"></th>
@@ -284,10 +325,12 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		<td class="text-nowrap"><?php echo $element['id_customer_order']?></td>
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=editList&id_user=<?php echo $element['id_user']?>">
-                                            <?php echo $this->productList4[$element['id_user']]['name'] ?? '';?>
+                                            <?php echo htmlspecialchars((string)($this->userList[$element['id_user']]['email'] ?? ''));?>
                                             </a>
                                             </td>
 
+		<td class="text-end text-nowrap"><?=self::money((int)$element['total_amount'])?></td>
+		<td ><?=self::orderStatusBadge((string)$element['status'])?></td>
 		<td ><?php echo $element['created_at']?></td>
 
 			<td class="text-nowrap"><a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=edit&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>" class="btn btn-sm btn-outline-primary" title="<?=T_EDIT?>" aria-label="<?=T_EDIT?>">
@@ -326,7 +369,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>
@@ -351,7 +394,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		<td class="text-nowrap"><?php echo $element['id_customer_order']?></td>
 		<td >
                                             <a href="#" hx-target="#main_content" hx-swap="innerHTML" hx-get="<?=BASE_URL?>/htmx.php?component=customerorder&task=editList&id_user=<?php echo $element['id_user']?>">
-                                            <?php echo $this->productList4[$element['id_user']]['name'];?>
+                                            <?php echo htmlspecialchars((string)($this->userList[$element['id_user']]['email'] ?? ''));?>
                                             </a>
                                             </td>
 
@@ -419,7 +462,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		?>
 		<tr id="row-<?php echo $element['id_customer_order']?>">
 		<td class="text-nowrap"><?php echo $element['id_customer_order']?></td>
-		<td ><?php echo $this->productList4[$element['id_user']]['name'] ?? '';?></td>
+		<td ><?php echo htmlspecialchars((string)($this->userList[$element['id_user']]['email'] ?? ''));?></td>
 		<td ><?php echo $element['created_at']?></td>
 
 		    <td class="text-nowrap"><a href="#" hx-target="#row-<?php echo $element['id_customer_order']?>" hx-post="<?=BASE_URL?>/htmx.php?component=customerorder&task=undelHtmx&id_customer_order=<?php echo $element['id_customer_order']?>&<?=$this->filtersGet?>&csrf_token=<?=$_SESSION['csrf_token']?>" class="btn btn-sm btn-outline-secondary" title="<?=T_RESTORE?>" aria-label="<?=T_RESTORE?>">

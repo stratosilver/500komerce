@@ -104,6 +104,42 @@ class Url
     // ------------------------------------------------------------------------------------------------
 
     /**
+     * Slug of a text, for an address: "Sweat à capuche Gris !" -> "sweat-a-capuche-gris".
+     * Letters without accents, digits, separated by -. The same as komerceSlug() of public/js/slug.js, which
+     * fills the slug while the name is typed: keep both the same.
+     * @param string $text can be html-escaped (the forms store the texts escaped)
+     * @param int $max longest slug (the columns slug are VARCHAR(200))
+     * @return string '' when the text has no letter and no digit
+     */
+    public static function slug(string $text, int $max = 200): string{
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = function_exists('mb_strtolower') ? mb_strtolower($text, 'UTF-8') : strtolower($text);
+        $text = strtr($text, self::SLUG_LETTERS);
+        // The other accents: the letter without its accent (intl), what is still not a-z 0-9 becomes -
+        if(class_exists('Normalizer')){
+            $text = (string)\Normalizer::normalize($text, \Normalizer::FORM_D);
+        }
+        // Accents written apart from their letter (and the ones taken apart by intl)
+        $text = (string)preg_replace('/[\x{0300}-\x{036f}]+/u', '', $text);
+        $text = trim((string)preg_replace('/[^a-z0-9]+/', '-', (string)$text), '-');
+        return rtrim(substr($text, 0, $max), '-');
+    }
+
+    /** Letters of Url::slug() and of komerceSlug() (public/js/slug.js) */
+    const SLUG_LETTERS = array(
+        'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'æ' => 'ae',
+        'ç' => 'c', 'č' => 'c', 'ć' => 'c', 'đ' => 'd', 'ď' => 'd',
+        'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ē' => 'e', 'ę' => 'e', 'ě' => 'e',
+        'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ī' => 'i', 'ł' => 'l', 'ľ' => 'l',
+        'ñ' => 'n', 'ń' => 'n', 'ň' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ō' => 'o', 'œ' => 'oe',
+        'ř' => 'r', 'ś' => 's', 'š' => 's', 'ß' => 'ss', 'ť' => 't', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ū' => 'u', 'ů' => 'u',
+        'ý' => 'y', 'ÿ' => 'y', 'ź' => 'z', 'ż' => 'z', 'ž' => 'z',
+        'ă' => 'a', 'ą' => 'a', 'ĉ' => 'c', 'ĝ' => 'g', 'ğ' => 'g', 'ĥ' => 'h', 'ı' => 'i', 'ĵ' => 'j',
+        'ő' => 'o', 'ŝ' => 's', 'ş' => 's', 'ș' => 's', 'ț' => 't', 'ţ' => 't', 'ŭ' => 'u', 'ű' => 'u',
+    );
+
+
+    /**
      * Address of a page: clean url of the front-end, or /admin/... for the back office
      * @param array $params parameters of the page, the empty ones are left out
      * @return string

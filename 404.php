@@ -11,7 +11,10 @@ $pageStarted = headers_sent() || ob_get_length();
 $oView404 = new Apgenic\Classes\ViewTemplate();
 
 if(!$pageStarted){
-    http_response_code(404);
+    // index.php may have set another status (500)
+    if(http_response_code() === 200){
+        http_response_code(404);
+    }
     if(!$htmx){
         $oView404->header(T_PAGE_NOT_FOUND);
     }

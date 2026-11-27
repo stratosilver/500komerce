@@ -93,26 +93,34 @@ class ControllerPost  extends \Apgenic\Classes\Controller {
      * @return void
      */
     function edit(string $task='edit'){
-        // For when the edit is under a tab
-        $this->dataPost->id_user = (int)($_GET['id_user'] ?? 0);
 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
             $this->dataPost->id_post = filter_var($_POST['id_post'] ?? null, FILTER_VALIDATE_INT);
+            $isNew = !($this->dataPost->id_post > 0);
+            // The slug is not required: it is made from the title when it is empty
             if(filter_var($_POST['lang'] ?? null, FILTER_UNSAFE_RAW) &&
                 filter_var($_POST['title'] ?? null, FILTER_UNSAFE_RAW) &&
-                filter_var($_POST['slug'] ?? null, FILTER_UNSAFE_RAW) &&
                 filter_var($_POST['body'] ?? null, FILTER_UNSAFE_RAW)){
 
-                $this->dataPost->id_user = $_POST['id_user'] == '' ? null : (int)filter_var($_POST['id_user'] ?? null, FILTER_SANITIZE_NUMBER_INT);
-                $this->dataPost->lang = (string)filter_var($_POST['lang'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                // The author: the logged user, never a value of the form
+                $this->dataPost->id_user = $this->postUser((int)$this->dataPost->id_post);
+                // A code of language (fr, en, nl: column of 3 letters), the default language otherwise. The list of
+                // the form has the languages of the site, and the one of the article when it is another one
+                $lang = (string)($_POST['lang'] ?? '');
+                $this->dataPost->lang = preg_match('/^[a-z]{2,3}$/', $lang) ? $lang : LANG_DEFAULT;
                 $this->dataPost->title = (string)filter_var($_POST['title'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataPost->id_media = $_POST['id_media'] == '' ? null : (int)filter_var($_POST['id_media'] ?? null, FILTER_SANITIZE_NUMBER_INT);
-                $this->dataPost->slug = (string)filter_var($_POST['slug'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataPost->id_media = ($_POST['id_media'] ?? '') == '' ? null : (int)filter_var($_POST['id_media'] ?? null, FILTER_SANITIZE_NUMBER_INT);
+                // Slug: the one typed (cleaned), or the one of the title; never the one of another article of the language
+                $idPost = (int)$this->dataPost->id_post;
+                $slug = \Apgenic\Classes\Url::slug((string)($_POST['slug'] ?? '')) ?: \Apgenic\Classes\Url::slug($this->dataPost->title) ?: 'article';
+                $this->dataPost->slug = self::uniqueSlug($slug, fn(string $s): bool => $this->dataPost->slugTaken($s, $this->dataPost->lang, $idPost));
                 $this->dataPost->excerpt = (string)filter_var($_POST['excerpt'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataPost->body = (string)filter_var($_POST['body'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataPost->status = (string)filter_var($_POST['status'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataPost->published_at = (string)filter_var($_POST['published_at'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $status = (string)($_POST['status'] ?? '');
+                $this->dataPost->status = in_array($status, array('draft', 'published', 'archived'), true) ? $status : 'draft';
+                // Date of publication: today at 00:00 for a new article without date
+                $this->dataPost->published_at = self::publishedAt((string)($_POST['published_at'] ?? ''), $isNew);
 
                 $this->dataPost->save();
                 $this->message['type'] = 'success';
@@ -137,6 +145,14 @@ class ControllerPost  extends \Apgenic\Classes\Controller {
         else{
             // Do not show tabs when wee create the entry
             $this->showTabs = 0;
+            // New article: written by the logged user, in the default language, a draft published today at 00:00
+            $this->dataPost->id_user = $this->postUser(0);
+            if((string)$this->dataPost->lang === ''){
+                $this->dataPost->lang = LANG_DEFAULT;
+            }
+            if($this->dataPost->published_at === null || $this->dataPost->published_at === ''){
+                $this->dataPost->published_at = ModelPost::today().' 00:00:00';
+            }
         }
 
 
@@ -147,6 +163,26 @@ class ControllerPost  extends \Apgenic\Classes\Controller {
             $this->dataPost = new ModelPost();
             $this->HTMLPost->edit($this->dataPost,  $this->showTabs, $this->message, 'childlist');
         }
+    }
+
+
+
+    /**
+     * Author of an article: the logged user is the one of a new article. An article that already has an author
+     * keeps it (like the products, ControllerProduct::productUser()).
+     * @param int $idPost 0 for a new article
+     * @return int|null
+     */
+    private function postUser(int $idPost):?int{
+        if($idPost > 0){
+            $post = new ModelPost();
+            $post->id_post = $idPost;
+            if($post->get() && (int)$post->id_user > 0){
+                return (int)$post->id_user;
+            }
+        }
+        $logged = (int)($_SESSION['user']['id_user'] ?? 0);
+        return $logged > 0 ? $logged : null;
     }
 
 

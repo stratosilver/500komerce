@@ -17,15 +17,17 @@ class ModelProduct extends \Apgenic\Classes\Model{
     public array $list;
 
     // Columns of the table: the only names accepted as filter and as sort field
-    const COLUMNS = array('id_product', 'id_user', 'name', 'slug', 'summary', 'description', 'price_amount', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
+    const COLUMNS = array('id_product', 'id_user', 'name', 'slug', 'summary', 'description', 'price_amount', 'stock', 'status', 'published_at', 'created_at', 'updated_at', 'deleted_at');
 
     public $id_product = '';
     public $id_user = null;
     public $name = '';
     public $slug = null;
     public $summary = null;
-    // Price without tax, in cents
+    // Price with tax (TVA comprise), in cents: the price paid by the customer
     public $price_amount = 0;
+    // Number of units in stock
+    public $stock = 1;
     public $description = null;
     public $status = array();
     public $published_at = null;
@@ -51,7 +53,12 @@ class ModelProduct extends \Apgenic\Classes\Model{
     */
     public function add():int{
 
-        $query = "  INSERT INTO `product`  ( id_user, name, slug, summary, description, price_amount, status, published_at)
+        // Date of publication by default: the day of the creation, at 00:00
+        if($this->published_at === null || $this->published_at === ''){
+            $this->published_at = self::today().' 00:00:00';
+        }
+
+        $query = "  INSERT INTO `product`  ( id_user, name, slug, summary, description, price_amount, stock, status, published_at)
                     VALUES (
                     :id_user,
                     :name,
@@ -59,6 +66,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
                     :summary,
                     :description,
                     :price_amount,
+                    :stock,
                     :status,
                     :published_at
                     )";
@@ -66,7 +74,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
 
 
         $q = self::$db->prepare($query);
-        if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':price_amount' => max(0, (int)$this->price_amount), ':status' => $this->status, ':published_at' => $this->published_at,))){
+        if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':price_amount' => max(0, (int)$this->price_amount), ':stock' => max(0, (int)$this->stock), ':status' => $this->status, ':published_at' => $this->published_at,))){
             $this->id_product = self::$db->lastInsertId();
             return(1);
         }
@@ -93,13 +101,14 @@ class ModelProduct extends \Apgenic\Classes\Model{
                     `summary` = :summary,
                     `description` = :description,
                     `price_amount` = :price_amount,
+                    `stock` = :stock,
                     `status` = :status,
                     `published_at` = :published_at
             WHERE  `id_product` = :id_product  ";
 
 
                 $q = self::$db->prepare($query);
-            if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':price_amount' => max(0, (int)$this->price_amount), ':status' => $this->status, ':published_at' => $this->published_at, ':id_product' => $this->id_product))){
+            if($q->execute(array(':id_user' => $this->id_user, ':name' => $this->name, ':slug' => $this->slug, ':summary' => $this->summary, ':description' => $this->description, ':price_amount' => max(0, (int)$this->price_amount), ':stock' => max(0, (int)$this->stock), ':status' => $this->status, ':published_at' => $this->published_at, ':id_product' => $this->id_product))){
                 return (1);
             }
             else{
@@ -183,7 +192,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
     */
     public function get():int{
 
-        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`price_amount`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
+        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`price_amount`, p.`stock`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
                     , u.email AS u_email, u.id_user AS u_id_user
                                         FROM `product` AS p 
                     LEFT JOIN `user` u ON p.id_user = u.id_user
@@ -202,6 +211,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
                 $this->summary = $row['summary'];
                 $this->description = $row['description'];
                 $this->price_amount = (int)$row['price_amount'];
+                $this->stock = (int)$row['stock'];
                 $this->status = $row['status'];
                 $this->published_at = $row['published_at'];
                 $this->created_at = $row['created_at'];
@@ -227,6 +237,18 @@ class ModelProduct extends \Apgenic\Classes\Model{
     * @param string $slug as stored, html-escaped
     * @return int 0 if no product has this slug
     */
+    /**
+     * The slug is the one of another product (the column slug is unique, the trash included)
+     * @param int $exceptId the product being saved, 0 for a new one
+     * @return bool
+     */
+    public function slugTaken(string $slug, int $exceptId = 0):bool{
+        $q = self::$db->prepare("SELECT 1 FROM `product` WHERE `slug` = :slug AND `id_product` <> :id LIMIT 1");
+        $q->execute(array(':slug' => $slug, ':id' => $exceptId));
+        return (bool)$q->fetchColumn();
+    }
+
+
     public function getIdBySlug(string $slug):int{
         if($slug === ''){
             return 0;
@@ -251,7 +273,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
         $filters = $this->safeFilters($filters);
         $orderBy = $this->safeOrderBy($orderBy);
 
-        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`price_amount`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
+        $query = "  SELECT p.`id_product`, p.`id_user`, p.`name`, p.`slug`, p.`summary`, p.`description`, p.`price_amount`, p.`stock`, p.`status`, p.`published_at`, p.`created_at`, p.`updated_at`, p.`deleted_at`
                     FROM `product` AS p                    ";
 
         // Add all filters
@@ -330,6 +352,7 @@ class ModelProduct extends \Apgenic\Classes\Model{
                $this->list[$row['id_product']]['summary'] = $row['summary'];
                $this->list[$row['id_product']]['description'] = $row['description'];
                $this->list[$row['id_product']]['price_amount'] = (int)$row['price_amount'];
+               $this->list[$row['id_product']]['stock'] = (int)$row['stock'];
                $this->list[$row['id_product']]['status'] = $row['status'];
                $this->list[$row['id_product']]['published_at'] = $row['published_at'];
                $this->list[$row['id_product']]['created_at'] = $row['created_at'];

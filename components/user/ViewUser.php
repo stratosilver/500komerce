@@ -157,7 +157,7 @@ public function edit(ModelUser $data , int $showTabs = 1, array $message=null, s
                         else{
                             ?>
 
-                            <input type="hidden" name="id_media" id="id_media" value="<?php if(!isset($data->id_media) || $data->id_media < 1) echo $_GET['filters']['id_media']; else echo $data->id_media?>"/>
+                            <input type="hidden" name="id_media" id="id_media" value="<?php if(!isset($data->id_media) || $data->id_media < 1) echo ((int)($_GET['filters']['id_media'] ?? 0) ?: ''); else echo $data->id_media?>"/>
                             <?php
                         }
                         ?>
@@ -287,7 +287,7 @@ public function viewList(array $data ,  string $orderBy='', string $order='desc'
 		?>
 		<tr>
 		<td class="text-nowrap"><?php echo $element['id_user']?></td>
-		<td ><?php echo $element['email']?></td>
+		<td ><?php echo htmlspecialchars((string)$element['email'])?></td>
 		<td ><?php echo $element['email_verified']?></td>
 		<td ><?php echo $element['first_name']?></td>
 		<td ><?php echo $element['last_name']?></td>
@@ -343,9 +343,9 @@ public function view(ModelUser $data , array $message=null){
                 <dl class="row mb-0">
 
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID?></dt><dd class="col-sm-9"><?php echo $data->id_user?></dd>
-		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_EMAIL?></dt><dd class="col-sm-9"><?php echo $data->email?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_EMAIL?></dt><dd class="col-sm-9"><?php echo htmlspecialchars((string)$data->email)?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_EMAIL_VERIFIED?></dt><dd class="col-sm-9"><?php echo $data->email_verified?></dd>
-		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_PASSWORD_HASH?></dt><dd class="col-sm-9"><?php echo $data->password_hash?></dd>
+		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_PASSWORD_HASH?></dt><dd class="col-sm-9"><?php /* the hash itself is never displayed */ echo (string)$data->password_hash != '' ? T_YES : '-';?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_FIRST_NAME?></dt><dd class="col-sm-9"><?php echo $data->first_name?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_LAST_NAME?></dt><dd class="col-sm-9"><?php echo $data->last_name?></dd>
 		        <dt class="col-sm-3 small text-uppercase fw-semibold text-body-secondary mb-1 mb-sm-2"><?=T_FIELD_ID_MEDIA?></dt><dd class="col-sm-9"><?=\Apgenic\Media\MediaImage::thumbnail($this->mediaList[$data->id_media]['filename'] ?? '')?> <?php echo $this->mediaList[$data->id_media]['filename'] ?? '';?></dd>
@@ -428,7 +428,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 		?>
 		<tr id="row-<?php echo $element['id_user']?>">
 		<td class="text-nowrap"><?php echo $element['id_user']?></td>
-		<td ><?php echo $element['email']?></td>
+		<td ><?php echo htmlspecialchars((string)$element['email'])?></td>
 		<td ><?php echo $element['email_verified']?></td>
 		<td ><?php echo $element['first_name']?></td>
 		<td ><?php echo $element['last_name']?></td>
@@ -473,7 +473,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>
@@ -501,7 +501,7 @@ public function childList(array $data , array $filters, string $orderBy='',strin
 		?>
 		<tr id="row-<?php echo $element['id_user']?>">
 		<td class="text-nowrap"><?php echo $element['id_user']?></td>
-		<td ><?php echo $element['email']?></td>
+		<td ><?php echo htmlspecialchars((string)$element['email'])?></td>
 		<td ><?php echo $element['email_verified']?></td>
 		<td ><?php echo $element['first_name']?></td>
 		<td ><?php echo $element['last_name']?></td>
@@ -576,7 +576,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
 		?>
 		<tr id="row-<?php echo $element['id_user']?>">
 		<td class="text-nowrap"><?php echo $element['id_user']?></td>
-		<td ><?php echo $element['email']?></td>
+		<td ><?php echo htmlspecialchars((string)$element['email'])?></td>
 		<td ><?php echo $element['email_verified']?></td>
 		<td ><?php echo $element['first_name']?></td>
 		<td ><?php echo $element['last_name']?></td>
@@ -637,7 +637,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
                     <div class="card-body p-4 text-center">
                         <span class="d-inline-flex rounded-circle bg-primary-subtle text-primary p-3 mb-3" aria-hidden="true"><?=self::icon('person', 40)?></span>
                         <div class="h5 fw-bold mb-1"><?=$data->first_name?> <?=$data->last_name?></div>
-                        <div class="text-body-secondary text-break mb-4"><?=$data->email?></div>
+                        <div class="text-body-secondary text-break mb-4"><?=htmlspecialchars((string)$data->email)?></div>
                         <dl class="small text-start mb-4">
                             <div class="d-flex justify-content-between gap-3 border-top py-2"><dt class="fw-normal text-body-secondary"><?=T_SIGN_IN_WITH?></dt><dd class="mb-0 fw-semibold text-end"><?=count($signInWith) ? implode('<br>', $signInWith) : '&mdash;'?></dd></div>
                             <?php if((string)$data->created_at != ''){ ?><div class="d-flex justify-content-between gap-3 border-top py-2"><dt class="fw-normal text-body-secondary"><?=T_MEMBER_SINCE?></dt><dd class="mb-0 fw-semibold text-end"><?=$this->getDate((string)$data->created_at)?></dd></div><?php } ?>
@@ -666,7 +666,7 @@ public function trashedList(array $data ,  string $orderBy='', string $order='de
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="email"><?=T_EMAIL?>&nbsp;*</label>
-                                <input required maxlength="255" class="form-control" type="email" name="email" id="email" value="<?=$data->email?>" autocomplete="email"<?=count($providers) ? ' aria-describedby="email_help"' : ''?>/>
+                                <input required maxlength="255" class="form-control" type="email" name="email" id="email" value="<?=htmlspecialchars((string)$data->email)?>" autocomplete="email"<?=count($providers) ? ' aria-describedby="email_help"' : ''?>/>
                                 <?php if(count($providers)){ ?>
                                 <div class="form-text" id="email_help"><?=sprintf(T_EMAIL_IDENTITY_HINT, implode(', ', $providers))?></div>
                                 <?php } ?>

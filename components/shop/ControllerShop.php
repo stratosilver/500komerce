@@ -65,6 +65,11 @@ class ControllerShop {
         $_SESSION['shop_message'] = array('type' => $type, 'text' => $text);
     }
 
+    /** Changes made by the cart to respect the stock, one by line */
+    private function notices():string{
+        return implode('<br>', $this->dataCart->notices);
+    }
+
 
     // Cart
     // ------------------------------------------------------------------------------------------------
@@ -79,10 +84,16 @@ class ControllerShop {
             $quantity = (int)filter_var($_POST['quantity'] ?? 1, FILTER_VALIDATE_INT);
 
             if($idProduct > 0 && $this->dataCart->add($idProduct, max(1, $quantity))){
-                self::flash('success', T_MSG_ADDED_TO_CART);
+                // Added, maybe less than asked: the stock is the limit
+                if(count($this->dataCart->notices)){
+                    self::flash('warning', $this->notices());
+                }
+                else{
+                    self::flash('success', T_MSG_ADDED_TO_CART);
+                }
             }
             else{
-                self::flash('danger', T_MSG_CANNOT_ADD_TO_CART);
+                self::flash('danger', count($this->dataCart->notices) ? $this->notices() : T_MSG_CANNOT_ADD_TO_CART);
             }
         }
         self::redirect(self::url('cart'));
@@ -108,7 +119,12 @@ class ControllerShop {
                     }
                 }
             }
-            self::flash('success', T_MSG_CART_UPDATED);
+            if(count($this->dataCart->notices)){
+                self::flash('warning', $this->notices());
+            }
+            else{
+                self::flash('success', T_MSG_CART_UPDATED);
+            }
         }
         self::redirect(self::url('cart'));
     }
@@ -116,6 +132,14 @@ class ControllerShop {
 
     private function cart():void{
         $this->dataCart->load();
+        // Lines changed because of the stock: said with the message of the previous page
+        if(count($this->dataCart->notices)){
+            $text = $this->notices();
+            if(count($this->message) && $this->message['text'] != $text){
+                $text = $this->message['text'].'<br>'.$text;
+            }
+            $this->message = array('type' => 'warning', 'text' => $text);
+        }
         $this->HTMLShop->header(T_CART);
         $this->HTMLShop->cart($this->dataCart, $this->message);
         $this->HTMLShop->footer();
@@ -146,7 +170,14 @@ class ControllerShop {
      * @return void
      */
     private function checkout():void{
-        if(!$this->dataCart->load()){
+        $lines = $this->dataCart->load();
+        // The cart has changed because of the stock: the customer checks it before paying
+        if(count($this->dataCart->notices)){
+            self::flash('warning', ($lines ? T_CART_ADJUSTED.'<br>' : '').$this->notices());
+            self::redirect(self::url('cart'));
+            return;
+        }
+        if(!$lines){
             self::flash('warning', T_CART_EMPTY);
             self::redirect(self::url('cart'));
             return;
@@ -194,6 +225,11 @@ class ControllerShop {
                 self::redirect(self::url('confirmation', array('id_customer_order' => $idOrder)));
                 return;
             }
+            // The stock has changed: the cart has been adjusted, the customer checks it (message already set)
+            if($idOrder < 0){
+                self::redirect(self::url('cart'));
+                return;
+            }
             if(!count($this->message)){
                 $this->message = array('type' => 'danger', 'text' => T_MSG_FIELDS_INVALID);
             }
@@ -214,7 +250,8 @@ class ControllerShop {
      * Check the checkout form and create the order
      * @param array $values values of the form, completed with what has been typed
      * @param array $errors field => message, completed
-     * @return int id of the order, 0 if the form is not valid or the order could not be created
+     * @return int id of the order, 0 if the form is not valid or the order could not be created,
+     *             -1 if the stock is too low for the cart: the cart is adjusted and has to be checked again
      */
     private function placeOrder(ModelUser $user, ModelAddress $addresses, bool $logged, array &$values, array &$errors):int{
 
@@ -240,7 +277,7 @@ class ControllerShop {
             $values['email'] = htmlspecialchars($email);
             $password = (string)($_POST['password'] ?? '');
 
-            if(!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255){
+            if(!\Apgenic\Classes\Security::isValidEmail($email)){
                 $errors['email'] = T_ERROR_EMAIL_INVALID;
             }
             elseif((new ModelUser())->getByEmail($email, false)){
@@ -302,6 +339,10 @@ class ControllerShop {
             // The cart of the visitor becomes the cart of the new account
             $this->dataCart->identify();
             $this->dataCart->load();
+            if(count($this->dataCart->notices)){
+                self::flash('warning', T_CART_ADJUSTED.'<br>'.$this->notices());
+                return -1;
+            }
         }
         else{
             $user->updateProfile((string)$user->email, $values['first_name'], $values['last_name']);
@@ -325,6 +366,17 @@ class ControllerShop {
 
         $order = new ModelOrder();
         $idOrder = $order->create($idUser, $this->dataCart->items, $this->dataCart->total, $ids['delivery'], $ids['postal']);
+        // Another customer has bought the last units in the meantime: nothing has been saved
+        if($idOrder < 1 && count($order->stockErrors)){
+            $products = array();
+            foreach($order->stockErrors as $error){
+                $products[] = sprintf($error['stock'] > 0 ? T_STOCK_LEFT : T_STOCK_NONE, $error['name'], $error['stock']);
+            }
+            // The cart follows the stock: lower quantities, products out of stock removed
+            $this->dataCart->load();
+            self::flash('warning', sprintf(T_ORDER_STOCK_CHANGED, implode(', ', $products)));
+            return -1;
+        }
         if($idOrder < 1){
             $this->message = array('type' => 'danger', 'text' => T_ERROR_ORDER_NOT_CREATED);
             return 0;

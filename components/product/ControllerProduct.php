@@ -16,7 +16,7 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
     private ModelProduct $dataProduct;
 
     // Accepted sort fields
-    public static array $fieldsNames = array('id_product','id_user','name','slug','summary','description','price_amount','status','published_at','created_at','updated_at','deleted_at');
+    public static array $fieldsNames = array('id_product','id_user','name','slug','summary','description','price_amount','stock','status','published_at','created_at','updated_at','deleted_at');
 
     function __construct(){
         if(filter_var($_GET['showTabs'] ?? null, FILTER_VALIDATE_INT) === 0){
@@ -134,13 +134,20 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
                 // The logged user, never a value of the form
                 $this->dataProduct->id_user = $this->productUser((int)$this->dataProduct->id_product);
                 $this->dataProduct->name = (string)filter_var($_POST['name'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataProduct->slug = (string)filter_var($_POST['slug'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                // Slug: the one typed (cleaned), or the one of the name; never the one of another product.
+                // A name without letter nor digit gives no slug: the product is reached by its id
+                $idProduct = (int)$this->dataProduct->id_product;
+                $slug = \Apgenic\Classes\Url::slug((string)($_POST['slug'] ?? '')) ?: \Apgenic\Classes\Url::slug($this->dataProduct->name);
+                $this->dataProduct->slug = $slug === '' ? null : self::uniqueSlug($slug, fn(string $s): bool => $this->dataProduct->slugTaken($s, $idProduct));
                 $this->dataProduct->summary = (string)filter_var($_POST['summary'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
                 $this->dataProduct->description = (string)filter_var($_POST['description'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
-                // Typed in the currency unit (19.99), stored in cents
+                // Price with tax (TVA comprise), typed in the currency unit (19.99), stored in cents.
+                // The price without tax is not typed: it is computed from this price and the rate of the VAT.
                 $this->dataProduct->price_amount = (int)round(max(0, (float)str_replace(',', '.', (string)($_POST['price'] ?? '0'))) * 100);
+                $stock = filter_var($_POST['stock'] ?? '', FILTER_VALIDATE_INT, array('options' => array('min_range' => 0)));
+                $this->dataProduct->stock = $stock === false ? 1 : $stock;
                 $this->dataProduct->status = (string)filter_var($_POST['status'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
-                $this->dataProduct->published_at = (string)filter_var($_POST['published_at'] ?? null, FILTER_SANITIZE_SPECIAL_CHARS);
+                $this->dataProduct->published_at = self::publishedAt((string)($_POST['published_at'] ?? ''), !($this->dataProduct->id_product > 0));
 
                 $this->dataProduct->save();
                 $this->message['type'] = 'success';
@@ -165,6 +172,10 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         else{
             // Do not show tabs when wee create the entry
             $this->showTabs = 0;
+            // New product: published today at 00:00, 1 unit in stock (ModelProduct)
+            if($this->dataProduct->published_at === null || $this->dataProduct->published_at === ''){
+                $this->dataProduct->published_at = ModelProduct::today().' 00:00:00';
+            }
         }
 
 
@@ -256,6 +267,8 @@ class ControllerProduct  extends \Apgenic\Classes\Controller {
         $this->filters['deleted_at'] = 0; // not the rows of the trash (only trashedlist shows them)
         $nbItems = $this->dataProduct->getList(($this->page * $this->itemsByPage)-$this->itemsByPage , $this->itemsByPage, $this->filters, $this->orderBy, strtoupper($this->order), $textSearch);
 
+        // Thumbnail of the first image of each product
+        $this->HTMLProduct->images = $this->dataProduct->getImages(array_keys($this->dataProduct->list));
         $this->HTMLProduct->editList($this->dataProduct->list ,  $this->orderBy, $this->revertOrder, $this->message);
 
         $orderGet = 'orderBy='.$this->orderBy.'&';

@@ -503,6 +503,11 @@ abstract class ControllerApi
         if(!Auth::isLogged()){
             throw new ApiException(401, 'Authentication required');
         }
+        // The API is for the back office: it lists the drafts, the archived products, the data of all the users...
+        // Below PERMISSION_EDIT, a session only reaches its own account (user/me)
+        if(!Auth::canEdit() && !(COMPONENT === 'user' && $task === 'me')){
+            throw new ApiException(403, 'Your permissions do not allow this operation');
+        }
         // Same rules as the web interface: list and view are the consultation tasks
         $webTasks = array('list' => 'viewlist', 'view' => 'view');
         if(!Auth::can(COMPONENT, $webTasks[$task] ?? $task)){
@@ -511,8 +516,9 @@ abstract class ControllerApi
         // The session cookie is sent by the browser on its own: a request that changes something must prove
         // that it comes from our pages, with the CSRF token of the session
         if($method != 'GET'){
-            $csrf = (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $this->input['csrf_token'] ?? $_GET['csrf_token'] ?? '');
-            if($csrf == '' || !hash_equals((string)($_SESSION['csrf_token'] ?? ''), $csrf)){
+            $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $this->input['csrf_token'] ?? $_GET['csrf_token'] ?? '';
+            $sessionToken = (string)($_SESSION['csrf_token'] ?? '');
+            if(!is_string($csrf) || $csrf === '' || $sessionToken === '' || !hash_equals($sessionToken, $csrf)){
                 throw new ApiException(403, 'Invalid CSRF token');
             }
         }

@@ -60,6 +60,26 @@ class Model{
 
 
     /**
+     * Date of today (2026-11-26) in the local time of the database, like created_at: the time zone of PHP
+     * (date.timezone of php.ini) can be another one
+     * @return string
+     */
+    public static function today():string{
+        new self();
+        try{
+            $today = (string)self::$db->query("SELECT date('now', 'localtime')")->fetchColumn();
+            if(preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)){
+                return $today;
+            }
+        }
+        catch(\Throwable $e){
+            error_log('Model: '.$e->getMessage());
+        }
+        return date('Y-m-d');
+    }
+
+
+    /**
      * Sort column written in the query: only a column of the table is accepted
      * @return string the column, or '' for no sort
      */

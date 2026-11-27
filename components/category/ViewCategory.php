@@ -110,7 +110,7 @@ public function edit(ModelCategory $data , int $showTabs = 1, array $message=nul
                         else{
                             ?>
 
-                            <input type="hidden" name="id_parent" id="id_parent" value="<?php if(!isset($data->id_parent) || $data->id_parent < 1) echo $_GET['filters']['id_parent']; else echo $data->id_parent?>"/>
+                            <input type="hidden" name="id_parent" id="id_parent" value="<?php if(!isset($data->id_parent) || $data->id_parent < 1) echo ((int)($_GET['filters']['id_parent'] ?? 0) ?: ''); else echo $data->id_parent?>"/>
                             <?php
                         }
                         ?>
@@ -374,7 +374,7 @@ public function editList(array $data ,  string $orderBy='',string $order='desc',
 public function childList(array $data , array $filters, string $orderBy='',string $order='desc',array $message=null){
     $this->message($message);
     $parentPK = array_key_first($filters);
-    $parentPKValue = $filters[$parentPK];
+    $parentPKValue = rawurlencode((string)($filters[$parentPK] ?? ''));
 
 
 	?>

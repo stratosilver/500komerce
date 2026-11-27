@@ -12,7 +12,9 @@
  *   - a link with ?lang=fr or ?lang=en (the switch FR | EN of the header): the choice is kept in the session
  *     and in the cookie "lang" (1 year)
  *   - otherwise the language of the session, then the one of the cookie, then LANG_DEFAULT
- *   LANGUAGES and LANG_DEFAULT can be defined in config.php to replace the values below.
+ *   LANG_DEFAULT: setting "Langue par défaut" of the page Paramètres (table config, key default_language),
+ *   the first of LANGUAGES when it is not set. LANGUAGES and LANG_DEFAULT can be defined in config.php to
+ *   replace these values (then the setting of the page Paramètres is not used).
  *
  * Add a text: one line in $translations, with the same keys (fr, en) for all the languages.
  * Add a language (ex: Dutch): add 'nl' => 'Nederlands' to LANGUAGES and 'nl' => '...' to each line;
@@ -26,7 +28,7 @@ if(!defined('LANGUAGES')){
     define('LANGUAGES', array('fr' => 'Français', 'en' => 'English'));
 }
 if(!defined('LANG_DEFAULT')){
-    define('LANG_DEFAULT', array_key_first(LANGUAGES));
+    define('LANG_DEFAULT', class_exists(\Apgenic\Config\ModelConfig::class) ? \Apgenic\Config\ModelConfig::defaultLanguage() : array_key_first(LANGUAGES));
 }
 
 
@@ -88,6 +90,8 @@ $translations = array(
     'T_NEXT_PAGE'                 => array('fr' => 'Page suivante', 'en' => 'Next page'),
     'T_DEV_MODE'                  => array('fr' => 'Mode développement', 'en' => 'Development mode'),
     'T_INVALID_TOKEN'             => array('fr' => 'Jeton de sécurité non valide : rechargez la page', 'en' => 'Invalid token: reload the page'),
+    'T_METHOD_NOT_ALLOWED'        => array('fr' => 'Cette action doit être envoyée par un formulaire', 'en' => 'This action must be sent by a form'),
+    'T_ERROR_INTERNAL'            => array('fr' => 'Une erreur est survenue, réessayez plus tard.', 'en' => 'An error occurred, try again later.'),
 
     // Messages
     'T_MSG_SAVED'                 => array('fr' => 'L’élément a été enregistré', 'en' => 'The entry has been saved'),
@@ -154,6 +158,7 @@ $translations = array(
     'T_COMPONENT_DISCOUNT'        => array('fr' => 'Remise', 'en' => 'Discount'),
     'T_COMPONENT_POST'            => array('fr' => 'Article', 'en' => 'Post'),
     'T_COMPONENT_TRANSLATION'     => array('fr' => 'Traduction', 'en' => 'Translation'),
+    'T_COMPONENT_CONFIG'          => array('fr' => 'Paramètres', 'en' => 'Settings'),
     'T_COMPONENT_USER'            => array('fr' => 'Utilisateur', 'en' => 'User'),
     'T_COMPONENT_PRODUCTMEDIA'    => array('fr' => 'Image du produit', 'en' => 'Product media'),
     'T_COMPONENT_PRODUCTCATEGORY' => array('fr' => 'Catégorie du produit', 'en' => 'Product category'),
@@ -170,6 +175,7 @@ $translations = array(
     'T_MENU_POST'                 => array('fr' => 'Articles', 'en' => 'Posts'),
     'T_MENU_TRANSLATION'          => array('fr' => 'Traductions', 'en' => 'Translations'),
     'T_MENU_USER'                 => array('fr' => 'Utilisateurs', 'en' => 'Users'),
+    'T_MENU_CONFIG'               => array('fr' => 'Paramètres', 'en' => 'Settings'),
     'T_MENU_PRODUCTMEDIA'         => array('fr' => 'Images du produit', 'en' => 'Product images'),
     'T_MENU_PRODUCTCATEGORY'      => array('fr' => 'Catégories du produit', 'en' => 'Product categories'),
     'T_MENU_PRODUCTVARIANT'       => array('fr' => 'Variantes', 'en' => 'Variants'),
@@ -219,6 +225,25 @@ $translations = array(
     'T_FIELD_POSITION'            => array('fr' => 'Position', 'en' => 'Position'),
     'T_FIELD_PRICE_AMOUNT'        => array('fr' => 'Prix', 'en' => 'Price'),
     'T_FIELD_PRICE_WITHOUT_TAX'   => array('fr' => 'Prix (HT)', 'en' => 'Price (without tax)'),
+    'T_FIELD_PRICE_WITH_TAX'      => array('fr' => 'Prix (TVA comprise)', 'en' => 'Price (VAT included)'),
+    'T_FIELD_TAX_RATE'            => array('fr' => 'Taux de TVA', 'en' => 'VAT rate'),
+    'T_FIELD_TAX_RATE_HELP'       => array('fr' => 'Modifiable dans Paramètres', 'en' => 'Can be changed in Settings'),
+    'T_FIELD_PRICE_WITHOUT_TAX_HELP' => array('fr' => 'Calculé à partir du prix TVA comprise', 'en' => 'Computed from the price with VAT'),
+    'T_FIELD_STOCK'               => array('fr' => 'Stock', 'en' => 'Stock'),
+    'T_FIELD_STOCK_HELP'          => array('fr' => 'Nombre d’unités disponibles', 'en' => 'Number of units available'),
+    'T_FIELD_PUBLISHED_AT_HELP'   => array('fr' => 'Par défaut : aujourd’hui à 00:00', 'en' => 'By default: today at 00:00'),
+    'T_FIELD_SLUG_HELP'           => array('fr' => 'Créé à partir du nom pendant la saisie. Laissez vide pour le recréer.', 'en' => 'Made from the name while it is typed. Leave it empty to make it again.'),
+    'T_FIELD_SLUG_HELP_TITLE'     => array('fr' => 'Créé à partir du titre pendant la saisie. Laissez vide pour le recréer.', 'en' => 'Made from the title while it is typed. Leave it empty to make it again.'),
+    'T_CONFIG_DEFAULT_LANGUAGE'   => array('fr' => 'Langue par défaut', 'en' => 'Default language'),
+    'T_CONFIG_DEFAULT_LANGUAGE_HELP' => array('fr' => 'Langue par défaut : celle des visiteurs qui n’en ont pas choisi une avec FR | EN, et des nouveaux articles.', 'en' => 'Default language: the one of the visitors who have not chosen one with FR | EN, and of the new articles.'),
+    'T_CONFIG_DEFAULT_LANGUAGE_INVALID' => array('fr' => 'Choisissez une des langues du site', 'en' => 'Choose one of the languages of the site'),
+    'T_CONFIG_SITE_NAME'          => array('fr' => 'Nom du site', 'en' => 'Name of the site'),
+    'T_CONFIG_SITE_NAME_HELP'     => array('fr' => 'Affiché dans l’en-tête, le pied de page et le titre des pages', 'en' => 'Displayed in the header, the footer and the title of the pages'),
+    'T_CONFIG_TAX_RATE'           => array('fr' => 'Taux de TVA', 'en' => 'VAT rate'),
+    'T_CONFIG_TAX_RATE_HELP'      => array('fr' => 'Les prix des produits sont encodés TVA comprise : changer le taux change le prix HT et la TVA, pas le prix payé par le client. Les commandes déjà passées gardent leurs montants.', 'en' => 'The prices of the products are typed with VAT: changing the rate changes the price without tax and the VAT, not the price paid by the customer. The orders already placed keep their amounts.'),
+    'T_CONFIG_SITE_NAME_REQUIRED' => array('fr' => 'Le nom du site est obligatoire', 'en' => 'The name of the site is required'),
+    'T_CONFIG_TAX_RATE_INVALID'   => array('fr' => 'Le taux de TVA doit être un nombre de 0 à 100, avec 2 décimales au maximum (ex. : 21 ou 5,5)', 'en' => 'The VAT rate must be a number from 0 to 100, with 2 decimals at most (ex: 21 or 5.5)'),
+    'T_CONFIG_NOT_SAVED'          => array('fr' => 'Les paramètres n’ont pas pu être enregistrés : la table config existe-t-elle ? (_dev/config_stock_price_ttc.sql)', 'en' => 'The settings could not be saved: does the table config exist? (_dev/config_stock_price_ttc.sql)'),
     'T_FIELD_PRODUCT'             => array('fr' => 'Produit', 'en' => 'Product'),
     'T_FIELD_PRODUCT_NAME'        => array('fr' => 'Nom du produit', 'en' => 'Product name'),
     'T_FIELD_PROVIDER'            => array('fr' => 'Connexion via', 'en' => 'Provider'),
@@ -246,6 +271,11 @@ $translations = array(
     'T_VALUE_DRAFT'               => array('fr' => 'Brouillon', 'en' => 'Draft'),
     'T_VALUE_PUBLISHED'           => array('fr' => 'Publié', 'en' => 'Published'),
     'T_VALUE_SUSPENDED'           => array('fr' => 'Suspendu', 'en' => 'Suspended'),
+    // Statuses of the orders (\Apgenic\Shop\ModelOrder::STATUSES)
+    'T_VALUE_PENDING'             => array('fr' => 'En attente', 'en' => 'Pending'),
+    'T_VALUE_PAID'                => array('fr' => 'Payée', 'en' => 'Paid'),
+    'T_VALUE_SHIPPED'             => array('fr' => 'Expédiée', 'en' => 'Shipped'),
+    'T_VALUE_CANCELLED'           => array('fr' => 'Annulée', 'en' => 'Cancelled'),
 
     // Catalog and product page
     'T_SORT_BY'                   => array('fr' => 'Trier par', 'en' => 'Sort by'),
@@ -359,6 +389,23 @@ $translations = array(
     'T_BACK_TO_PRODUCTS'          => array('fr' => 'Retour aux produits', 'en' => 'Back to the products'),
     'T_MSG_ADDED_TO_CART'         => array('fr' => 'Le produit a été ajouté à votre panier', 'en' => 'The product has been added to your cart'),
     'T_MSG_CANNOT_ADD_TO_CART'    => array('fr' => 'Ce produit ne peut pas être ajouté au panier', 'en' => 'This product cannot be added to the cart'),
+    // Stock (components/shop)
+    'T_OUT_OF_STOCK'              => array('fr' => 'Rupture de stock', 'en' => 'Out of stock'),
+    'T_MSG_OUT_OF_STOCK'          => array('fr' => 'Ce produit est en rupture de stock', 'en' => 'This product is out of stock'),
+    'T_CART_QUANTITY_LIMITED'     => array('fr' => 'La quantité de « %s » est limitée au stock disponible : %d', 'en' => 'The quantity of "%s" is limited to the stock available: %d'),
+    'T_CART_ITEM_OUT_OF_STOCK'    => array('fr' => '« %s » n’est plus en stock : il a été retiré de votre panier', 'en' => '"%s" is not in stock anymore: it has been removed from your cart'),
+    'T_CART_ADJUSTED'             => array('fr' => 'Votre panier a été ajusté au stock disponible, vérifiez-le avant de valider la commande.', 'en' => 'Your cart has been adjusted to the stock available, check it before placing the order.'),
+    'T_ORDER_STOCK_CHANGED'       => array('fr' => 'Le stock a changé pendant votre commande : %s. Rien n’a été commandé, votre panier a été ajusté : vérifiez-le avant de valider.', 'en' => 'The stock has changed during your order: %s. Nothing has been ordered, your cart has been adjusted: check it before placing the order.'),
+    'T_STOCK_LEFT'                => array('fr' => '« %s » (plus que %d en stock)', 'en' => '"%s" (only %d left in stock)'),
+    'T_STOCK_NONE'                => array('fr' => '« %s » (rupture de stock)', 'en' => '"%s" (out of stock)'),
+    // Status of the orders (back office)
+    'T_FIELD_TOTAL_INCL_TAX'      => array('fr' => 'Total TTC', 'en' => 'Total incl. tax'),
+    'T_ORDER_STATUS_HELP'         => array('fr' => 'Annuler une commande remet ses produits en stock. Une commande annulée ne peut plus changer de statut.', 'en' => 'Cancelling an order puts its products back in stock. A cancelled order cannot change its status anymore.'),
+    'T_ORDER_CANCEL_CONFIRM'      => array('fr' => 'Annuler cette commande ? Ses produits seront remis en stock et la commande ne pourra plus changer de statut.', 'en' => 'Cancel this order? Its products will be put back in stock and the order will not be able to change its status anymore.'),
+    'T_ORDER_CANCELLED_FINAL'     => array('fr' => 'Cette commande est annulée : son statut ne peut plus changer.', 'en' => 'This order is cancelled: its status cannot change anymore.'),
+    'T_ORDER_CANCELLED_RESTOCKED' => array('fr' => 'La commande a été annulée, ses produits ont été remis en stock', 'en' => 'The order has been cancelled, its products have been put back in stock'),
+    'T_ORDER_STATUS_INVALID'      => array('fr' => 'Statut de commande inconnu', 'en' => 'Unknown order status'),
+    'T_ORDER_STATUS_NOT_SAVED'    => array('fr' => 'Le statut n’a pas pu être enregistré, réessayez', 'en' => 'The status could not be saved, try again'),
     'T_MSG_CART_UPDATED'          => array('fr' => 'Votre panier a été mis à jour', 'en' => 'Your cart has been updated'),
     'T_ERROR_ACCOUNT_EXISTS_SIGN_IN' => array('fr' => 'Un compte existe déjà avec cette adresse e-mail : connectez-vous ci-dessus', 'en' => 'An account already exists with this email address: sign in above'),
     'T_ERROR_ACCOUNT_NOT_CREATED' => array('fr' => 'Le compte n’a pas pu être créé', 'en' => 'The account could not be created'),
